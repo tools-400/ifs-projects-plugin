@@ -1,0 +1,694 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Terminal backends
+     ==========================================================================
+   -->
+
+   <extension-point id="terminalLaunchers" name="%ExtensionPoint_Terminal_Launchers" schema="schema/terminalLaunchers.exsd"/>
+
+   <extension point="de.tools400.ifsprojects.core.plugin.terminalLaunchers">
+      <launcher
+            id="de.tools400.ifsprojects.launchers.tm"
+            class="de.tools400.ifsprojects.terminal.tm.TmTerminalLauncher"
+            priority="100">
+      </launcher>
+   </extension>
+
+   <!--
+     ==========================================================================
+       LPEX: registers the class loader of the plug-in for the user actions.
+       The LPEX profile is not changed.
+     ==========================================================================
+   -->
+
+   <extension point="com.ibm.lpex.preload">
+      <preload class="de.tools400.ifsprojects.lpex.LpexRegistration"/>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Subsystem 'IFS Projects'
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.rse.core.subsystemConfigurations">
+      <configuration
+            id="de.tools400.ifsprojects.subsystem"
+            class="de.tools400.ifsprojects.subsystem.IfsProjectSubSystemConfiguration"
+            name="%Subsystem_IFS_Projects"
+            description="%Subsystem_IFS_Projects_description"
+            category="ifsprojects"
+            systemTypeIds="org.eclipse.rse.systemtype.iseries"
+            icon="icons/obj16/cprj_obj.png"
+            iconlive="icons/obj16/prj_obj.png"
+            vendor="Tools/400"
+            priority="450">
+      </configuration>
+   </extension>
+
+   <extension point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="de.tools400.ifsprojects.subsystem.IfsProjectSubSystemConfiguration"
+            class="de.tools400.ifsprojects.subsystem.IfsProjectSubSystemConfigurationAdapterFactory">
+         <adapter type="org.eclipse.rse.ui.subsystems.ISubSystemConfigurationAdapter"/>
+      </factory>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Property testers
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            id="de.tools400.ifsprojects.expressions.HostPropertyTester"
+            class="de.tools400.ifsprojects.expressions.HostPropertyTester"
+            namespace="de.tools400.ifsprojects.host"
+            properties="systemTypeId"
+            type="org.eclipse.rse.core.model.IHost">
+      </propertyTester>
+      <propertyTester
+            id="de.tools400.ifsprojects.expressions.FilterReferencePropertyTester"
+            class="de.tools400.ifsprojects.expressions.FilterReferencePropertyTester"
+            namespace="de.tools400.ifsprojects.filter"
+            properties="subsystemConfigId,hasDirectory"
+            type="org.eclipse.rse.core.filters.ISystemFilterReference">
+      </propertyTester>
+      <propertyTester
+            id="de.tools400.ifsprojects.expressions.IfsFilePropertyTester"
+            class="de.tools400.ifsprojects.expressions.IfsFilePropertyTester"
+            namespace="de.tools400.ifsprojects.file"
+            properties="isInIfsProject,canCheckSyntax"
+            type="org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile">
+      </propertyTester>
+      <propertyTester
+            id="de.tools400.ifsprojects.expressions.LocalProjectPropertyTester"
+            class="de.tools400.ifsprojects.expressions.LocalProjectPropertyTester"
+            namespace="de.tools400.ifsprojects.project"
+            properties="isLocalIfsProject,hasIProjFile,isInLocalIfsProject,canCheckSyntax"
+            type="org.eclipse.core.resources.IResource">
+      </propertyTester>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Terminal view
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.views">
+      <view
+            id="de.tools400.ifsprojects.views.terminal"
+            name="%View_SSH_Terminal"
+            category="org.eclipse.rse.ui.view"
+            class="de.tools400.ifsprojects.terminal.tm.TmTerminalView"
+            icon="icons/terminal_view.gif"
+            allowMultiple="false">
+      </view>
+   </extension>
+
+   <!--
+     Placeholder for all terminal views and shortcut of the wizard of local IFS
+     projects in 'File > New'. Take effect after 'Reset Perspective'.
+   -->
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.rse.ui.view.SystemPerspective">
+         <view
+               id="de.tools400.ifsprojects.views.terminal"
+               relationship="stack"
+               relative="org.eclipse.rse.ui.view.systemTableView"
+               visible="false">
+         </view>
+         <newWizardShortcut id="de.tools400.ifsprojects.newWizards.localIfsProject"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+         <newWizardShortcut id="de.tools400.ifsprojects.newWizards.localIfsProject"/>
+      </perspectiveExtension>
+   </extension>
+
+   <!--
+     ==========================================================================
+       New > Project... > IFS Projects > Local IFS Project
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.newWizards">
+      <category
+            id="de.tools400.ifsprojects.newWizards.category"
+            name="%Category_IFS_Projects">
+      </category>
+      <wizard
+            id="de.tools400.ifsprojects.newWizards.localIfsProject"
+            name="%NewWizard_Local_IFS_project"
+            category="de.tools400.ifsprojects.newWizards.category"
+            class="de.tools400.ifsprojects.project.wizards.NewLocalIfsProjectWizard"
+            icon="icons/obj16/prj_obj.png"
+            project="true">
+         <description>%NewWizard_Local_IFS_project_description</description>
+      </wizard>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Commands and handlers
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.commands">
+      <category
+            id="de.tools400.ifsprojects.commands.category"
+            name="%Category_IFS_Projects">
+      </category>
+      <command
+            id="de.tools400.ifsprojects.commands.openTerminal"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Open_SSH_terminal">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.openTerminalHere"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Open_SSH_terminal_here">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.openNewTerminal"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Open_new_SSH_terminal">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.openNewTerminalHere"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Open_new_SSH_terminal_here">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.buildIfsProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Build_IFS_project">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.compileIfsFile"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Build_IFS_file">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.checkSyntax"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Check_syntax">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.buildLocalProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Build_local_project">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.uploadLocalProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Upload_local_project">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.uploadAllLocalProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Upload_all_local_project">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.compileLocalFile"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Compile_local_file">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.checkSyntaxLocalFile"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Check_syntax_local_file">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.configureLocalProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Configure_local_project">
+      </command>
+   </extension>
+
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            commandId="de.tools400.ifsprojects.commands.openTerminal"
+            class="de.tools400.ifsprojects.handlers.OpenTerminalHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.openTerminalHere"
+            class="de.tools400.ifsprojects.handlers.OpenTerminalHereHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.openNewTerminal"
+            class="de.tools400.ifsprojects.handlers.OpenNewTerminalHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.openNewTerminalHere"
+            class="de.tools400.ifsprojects.handlers.OpenNewTerminalHereHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.buildIfsProject"
+            class="de.tools400.ifsprojects.handlers.BuildIfsProjectHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.compileIfsFile"
+            class="de.tools400.ifsprojects.handlers.CompileIfsFileHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.checkSyntax"
+            class="de.tools400.ifsprojects.handlers.CheckSyntaxHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.buildLocalProject"
+            class="de.tools400.ifsprojects.handlers.BuildLocalProjectHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.uploadLocalProject"
+            class="de.tools400.ifsprojects.handlers.UploadLocalProjectHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.uploadAllLocalProject"
+            class="de.tools400.ifsprojects.handlers.UploadAllLocalProjectHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.compileLocalFile"
+            class="de.tools400.ifsprojects.handlers.CompileLocalFileHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.checkSyntaxLocalFile"
+            class="de.tools400.ifsprojects.handlers.CheckSyntaxLocalFileHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.configureLocalProject"
+            class="de.tools400.ifsprojects.handlers.ConfigureLocalProjectHandler">
+      </handler>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Context menu of the Remote Systems view
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.rse.ui.view.systemView?after=additions">
+
+         <!-- IBM i connection: terminal in home directory -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.openTerminal"
+               icon="icons/terminal_view.gif"
+               label="%Label_Open_SSH_terminal">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.rse.core.model.IHost">
+                        <test property="de.tools400.ifsprojects.host.systemTypeId" value="org.eclipse.rse.systemtype.iseries" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- IBM i connection: additional terminal in home directory -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.openNewTerminal"
+               icon="icons/terminal_view.gif"
+               label="%Label_Open_new_SSH_terminal">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.rse.core.model.IHost">
+                        <test property="de.tools400.ifsprojects.host.systemTypeId" value="org.eclipse.rse.systemtype.iseries" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- IFS file, IFS directory or IFS filter: terminal in directory -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.openTerminalHere"
+               icon="icons/terminal_view.gif"
+               label="%Label_Open_SSH_terminal_here">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <or>
+                        <adapt type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile"/>
+                        <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                           <and>
+                              <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="com.ibm.etools.iseries.subsystems.ifs.files.ifs" forcePluginActivation="true"/>
+                              <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+                           </and>
+                        </adapt>
+                     </or>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- IFS file, IFS directory or IFS filter: additional terminal in directory -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.openNewTerminalHere"
+               icon="icons/terminal_view.gif"
+               label="%Label_Open_new_SSH_terminal_here">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <or>
+                        <adapt type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile"/>
+                        <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                           <and>
+                              <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="com.ibm.etools.iseries.subsystems.ifs.files.ifs" forcePluginActivation="true"/>
+                              <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+                           </and>
+                        </adapt>
+                     </or>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- IFS project: terminal in project directory -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.openTerminalHere"
+               icon="icons/terminal_view.gif"
+               label="%Label_Open_SSH_terminal_in_project_directory">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                        <and>
+                           <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="de.tools400.ifsprojects.subsystem" forcePluginActivation="true"/>
+                           <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- IFS project: additional terminal in project directory -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.openNewTerminalHere"
+               icon="icons/terminal_view.gif"
+               label="%Label_Open_new_SSH_terminal_in_project_directory">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                        <and>
+                           <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="de.tools400.ifsprojects.subsystem" forcePluginActivation="true"/>
+                           <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- IFS project: build -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.buildIfsProject"
+               label="%Label_Build_IFS_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                        <and>
+                           <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="de.tools400.ifsprojects.subsystem" forcePluginActivation="true"/>
+                           <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- File of an IFS project: compile -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.compileIfsFile"
+               label="%Label_Build_IFS_file">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile">
+                        <and>
+                           <not>
+                              <test property="org.eclipse.rse.subsystems.files.isdirectory" value="true" forcePluginActivation="true"/>
+                           </not>
+                           <test property="de.tools400.ifsprojects.file.isInIfsProject" value="true" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- RPGLE or SQLRPGLE file of an IFS project: check syntax -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.checkSyntax"
+               label="%Label_Check_syntax">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile">
+                        <and>
+                           <not>
+                              <test property="org.eclipse.rse.subsystems.files.isdirectory" value="true" forcePluginActivation="true"/>
+                           </not>
+                           <test property="de.tools400.ifsprojects.file.canCheckSyntax" value="true" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+      </menuContribution>
+
+      <!--
+        Context menu of projects of the workspace, e.g. in the Project Explorer:
+        local IFS projects
+      -->
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+
+         <!-- Local IFS project: upload and build -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.buildLocalProject"
+               label="%Label_Build_local_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="true" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Local IFS project: upload changes -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.uploadLocalProject"
+               label="%Label_Upload_local_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="true" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Local IFS project: upload all files -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.uploadAllLocalProject"
+               label="%Label_Upload_all_local_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="true" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- File of a local IFS project: upload and compile -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.compileLocalFile"
+               label="%Label_Compile_local_file">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IFile">
+                        <test property="de.tools400.ifsprojects.project.isInLocalIfsProject" value="true" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- RPGLE or SQLRPGLE file of a local IFS project: upload and check syntax -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.checkSyntaxLocalFile"
+               label="%Label_Check_syntax">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IFile">
+                        <test property="de.tools400.ifsprojects.project.canCheckSyntax" value="true" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Project with iproj.json, that is not configured yet: configure as local IFS project -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.configureLocalProject"
+               label="%Label_Configure_local_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <and>
+                           <test property="de.tools400.ifsprojects.project.hasIProjFile" value="true" forcePluginActivation="true"/>
+                           <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="false" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+      </menuContribution>
+   </extension>
+
+   <!-- IFS directory: New > IFS Project... (RSE builds the 'New' menu of remote objects from popupMenus) -->
+   <extension point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            id="de.tools400.ifsprojects.popupMenus.newIfsProjectFromDirectory"
+            objectClass="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile">
+         <visibility>
+            <objectState name="isdirectory" value="true"/>
+         </visibility>
+         <action
+               id="de.tools400.ifsprojects.actions.newIfsProjectFromDirectory"
+               class="de.tools400.ifsprojects.handlers.NewIfsProjectActionDelegate"
+               icon="icons/obj16/prj_obj.png"
+               label="%Label_IFS_project_dots"
+               menubarPath="menu.new/newifsproject">
+         </action>
+      </objectContribution>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Property page of IFS projects
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.propertyPages">
+      <page
+            id="de.tools400.ifsprojects.propertypages.LocalProjectPropertyPage"
+            class="de.tools400.ifsprojects.project.propertypages.LocalProjectPropertyPage"
+            name="%PropertyPage_IFS_project">
+         <enabledWhen>
+            <adapt type="org.eclipse.core.resources.IProject">
+               <test property="org.eclipse.core.resources.open" value="true"/>
+            </adapt>
+         </enabledWhen>
+      </page>
+      <page
+            id="de.tools400.ifsprojects.propertypages.LocalProjectEnvironmentPropertyPage"
+            class="de.tools400.ifsprojects.project.propertypages.LocalProjectEnvironmentPropertyPage"
+            category="de.tools400.ifsprojects.propertypages.LocalProjectPropertyPage"
+            name="%PropertyPage_IFS_project_environment">
+         <enabledWhen>
+            <adapt type="org.eclipse.core.resources.IProject">
+               <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="true" forcePluginActivation="true"/>
+            </adapt>
+         </enabledWhen>
+      </page>
+      <page
+            id="de.tools400.ifsprojects.propertypages.IfsProjectPropertyPage"
+            class="de.tools400.ifsprojects.project.propertypages.IfsProjectPropertyPage"
+            name="%PropertyPage_IFS_project">
+         <enabledWhen>
+            <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+               <and>
+                  <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="de.tools400.ifsprojects.subsystem" forcePluginActivation="true"/>
+                  <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+               </and>
+            </adapt>
+         </enabledWhen>
+      </page>
+      <page
+            id="de.tools400.ifsprojects.propertypages.IfsProjectEnvironmentPropertyPage"
+            class="de.tools400.ifsprojects.project.propertypages.IfsProjectEnvironmentPropertyPage"
+            category="de.tools400.ifsprojects.propertypages.IfsProjectPropertyPage"
+            name="%PropertyPage_IFS_project_environment">
+         <enabledWhen>
+            <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+               <and>
+                  <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="de.tools400.ifsprojects.subsystem" forcePluginActivation="true"/>
+                  <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+               </and>
+            </adapt>
+         </enabledWhen>
+      </page>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Preferences
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+            id="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
+            class="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
+            name="%PreferencePage_IFS_Projects">
+         <keywordReference id="de.tools400.ifsprojects.keywords"/>
+      </page>
+   </extension>
+
+   <extension point="org.eclipse.ui.keywords">
+      <keyword
+            id="de.tools400.ifsprojects.keywords"
+            label="%Keywords_IFS_Projects">
+      </keyword>
+   </extension>
+
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="de.tools400.ifsprojects.preferences.PreferencesInitializer"/>
+   </extension>
+
+</plugin>

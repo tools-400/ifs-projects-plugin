@@ -1,0 +1,23 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Git stuff
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Project specific
+*.java text eol=lf
+*.rpgle text eol=lf
+*.jar binary
+
+# Eclipse specific
+.project text eol=lf
+.classpath text eol=lf
+MANIFEST.MF text eol=lf
+**/*.prefs text eol=lf
+
+# Miscellaneous
+*.xml text eol=lf
+*.properties text eol=lf
+*.md text eol=lf
+*.launch text eol=lf

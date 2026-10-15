@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="de.tools400.ifsprojects.core.plugin" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="de.tools400.ifsprojects.core.plugin" id="terminalLaunchers" name="Terminal Launchers"/>
+      </appInfo>
+      <documentation>
+         Contributes a terminal backend that opens SSH terminals for IBM i connections. The available backend with the highest priority is used. A backend is available, if its terminal implementation is installed (see ITerminalLauncher.isAvailable()).
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="launcher" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="launcher">
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Unique ID of the terminal backend.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Implementation of the terminal backend.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":de.tools400.ifsprojects.terminal.ITerminalLauncher"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="priority" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Priority of the backend. The available backend with the highest priority is used.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;extension point=&quot;de.tools400.ifsprojects.core.plugin.terminalLaunchers&quot;&gt;
+   &lt;launcher
+         id=&quot;de.tools400.ifsprojects.launchers.tm&quot;
+         class=&quot;de.tools400.ifsprojects.terminal.tm.TmTerminalLauncher&quot;
+         priority=&quot;100&quot;&gt;
+   &lt;/launcher&gt;
+&lt;/extension&gt;
+      </documentation>
+   </annotation>
+
+</schema>

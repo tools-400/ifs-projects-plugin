@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/de.tools400.ifsprojects.core.feature_1.0.0.b001.jar" id="de.tools400.ifsprojects.core.feature" version="1.0.0.b001">
+      <category name="de.tools400.ifsprojects"/>
+   </feature>
+   <category-def name="de.tools400.ifsprojects" label="IFS Projects">
+      <description>
+         IFS Projects for RDi 9.6, 9.8 and 9.9.
+      </description>
+   </category-def>
+</site>

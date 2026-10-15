@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="de.tools400.ifsprojects.core.feature"
+      label="IFS Projects"
+      version="1.0.0.b001"
+      provider-name="Tools/400">
+
+   <description url="">
+      The &quot;IFS Projects Core Feature&quot; opens SSH terminals for IBM i connections
+and IFS directories of the Remote Systems view and supports IFS projects (iproj.json).
+   </description>
+
+   <copyright>
+      Copyright (c) 2026 Thomas Raddatz. All rights reserved.
+   </copyright>
+
+   <license url="http://www.eclipse.org/legal/cpl-v10.html">
+      This program and the accompanying materials are made available
+under the terms of the Common Public License v1.0 which accompanies
+this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html.
+   </license>
+
+   <plugin
+         id="de.tools400.ifsprojects.core.plugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

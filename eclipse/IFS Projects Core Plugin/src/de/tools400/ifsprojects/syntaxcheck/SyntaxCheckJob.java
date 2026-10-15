@@ -1,0 +1,216 @@
+/*******************************************************************************
+ * Copyright (c) 2026 Thomas Raddatz
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ *******************************************************************************/
+
+package de.tools400.ifsprojects.syntaxcheck;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.rse.core.model.IHost;
+import org.eclipse.rse.subsystems.files.core.SystemIFileProperties;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.UIJob;
+
+import com.ibm.as400.access.AS400;
+
+import de.tools400.ifsprojects.IfsProjectsPlugin;
+import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.local.EventsFileMapper;
+import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.remote.RemoteJobs;
+
+/**
+ * Checks the syntax of a stream file of an IFS project and shows the errors in
+ * the 'Error List' view of RDi.
+ */
+public class SyntaxCheckJob extends Job {
+
+    private static final long UPLOAD_TIMEOUT_MILLIS = 60000;
+    private static final long UPLOAD_POLL_INTERVAL_MILLIS = 200;
+
+    private final IHost host;
+    private final AS400 system;
+    private final String projectDirectory;
+    private final IProjConfig config;
+    private final Map<String, String> variables;
+    private final String sourcePath;
+    private final String fileName;
+    private final SourceType sourceType;
+    private final List<IFile> savedFiles;
+    private final SourceMapping sourceMapping;
+
+    /**
+     * Creates the job.
+     *
+     * @param aHost - RSE connection
+     * @param aSystem - connected system object of RSE
+     * @param aProjectDirectory - absolute directory of the IFS project
+     * @param aConfig - content of <code>iproj.json</code>
+     * @param aVariables - environment variables of the project
+     * @param aSourcePath - absolute path of the stream file
+     * @param aFileName - name of the stream file
+     * @param aSourceType - type of the stream file
+     * @param aSavedFiles - local files of the editors, that have been saved
+     *        before the syntax check. The job waits, until they have been
+     *        uploaded.
+     * @param aSourceMapping - mapping of the project directory to a local
+     *        project or <code>null</code>. The errors of the files of the
+     *        local project are shown for the local files.
+     */
+    public SyntaxCheckJob(IHost aHost, AS400 aSystem, String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables,
+        String aSourcePath, String aFileName, SourceType aSourceType, List<IFile> aSavedFiles, SourceMapping aSourceMapping) {
+        super(Messages.bind(Messages.Task_Checking_syntax_of_A, aFileName));
+
+        this.host = aHost;
+        this.system = aSystem;
+        this.projectDirectory = aProjectDirectory;
+        this.config = aConfig;
+        this.variables = aVariables;
+        this.sourcePath = aSourcePath;
+        this.fileName = aFileName;
+        this.sourceType = aSourceType;
+        this.savedFiles = new ArrayList<IFile>(aSavedFiles);
+        this.sourceMapping = aSourceMapping;
+
+        setUser(true);
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor aMonitor) {
+
+        aMonitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
+        try {
+
+            waitForUpload(aMonitor);
+
+            String source = SyntaxCheckRunner.readStreamFile(system, sourcePath);
+            boolean noMain = SyntaxCheckCommands.isNoMain(source);
+
+            String objectName = SyntaxCheckCommands.getObjectName(fileName);
+            List<String> includeDirectories = SyntaxCheckCommands.getIncludeDirectories(projectDirectory, config, variables);
+            String compileCommand = SyntaxCheckCommands.getCompileCommand(sourceType, objectName, sourcePath, includeDirectories, noMain);
+            List<String> setupCommands = SyntaxCheckCommands.getSetupCommands(projectDirectory, config, variables);
+
+            String temporaryDirectory;
+            try {
+                temporaryDirectory = RemoteJobs.getTemporaryDirectory(system);
+            } catch (IOException e) {
+                throw new SyntaxCheckException(e.getLocalizedMessage(), e);
+            }
+
+            SyntaxCheckResult result = SyntaxCheckRunner.run(system, setupCommands, objectName, compileCommand, temporaryDirectory, aMonitor);
+            if (result.getEvents() == null) {
+                throw new SyntaxCheckException(Messages.bind(Messages.Error_No_events_file_A_B, compileCommand, result.getCompileMessages()), null);
+            }
+
+            String events = EventsFiles.removeMessages(result.getEvents(), SyntaxCheckCommands.getIgnoredMessageIds(sourceType, noMain));
+            Set<String> projectLocations = Collections.emptySet();
+            if (sourceMapping != null) {
+                EventsFileMapper.Result mappedEvents = EventsFileMapper.map(events, sourceMapping);
+                events = mappedEvents.getEvents();
+                projectLocations = mappedEvents.getLocations();
+            }
+
+            IFile eventsFile = ErrorList.writeEventsFile(host, sourcePath, events, result.getCcsid(), aMonitor);
+
+            showErrors(eventsFile, projectLocations);
+
+        } catch (InterruptedException e) {
+            return Status.CANCEL_STATUS;
+        } catch (SyntaxCheckException e) {
+            if (e.getCause() != null) {
+                IfsProjectsPlugin.logError("Syntax check failed: " + sourcePath, e.getCause()); //$NON-NLS-1$
+            }
+            showError(e.getMessage());
+        } catch (CoreException e) {
+            IfsProjectsPlugin.logError("Could not write the events file of: " + sourcePath, e); //$NON-NLS-1$
+            showError(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
+        } catch (RuntimeException e) {
+            IfsProjectsPlugin.logError("Unexpected error checking the syntax of: " + sourcePath, e); //$NON-NLS-1$
+            showError(Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
+        } finally {
+            aMonitor.done();
+        }
+
+        return Status.OK_STATUS;
+    }
+
+    /**
+     * Waits until RSE has uploaded the files saved before the syntax check.
+     */
+    private void waitForUpload(IProgressMonitor aMonitor) throws SyntaxCheckException, InterruptedException {
+
+        long timeout = System.currentTimeMillis() + UPLOAD_TIMEOUT_MILLIS;
+        for (IFile file : savedFiles) {
+            while (new SystemIFileProperties(file).getDirty()) {
+                if (aMonitor.isCanceled()) {
+                    throw new InterruptedException();
+                }
+                if (System.currentTimeMillis() > timeout) {
+                    throw new SyntaxCheckException(Messages.bind(Messages.Error_A_has_not_been_uploaded, sourcePath), null);
+                }
+                Thread.sleep(UPLOAD_POLL_INTERVAL_MILLIS);
+            }
+        }
+    }
+
+    private void showErrors(final IFile anEventsFile, final Set<String> aProjectLocations) {
+
+        final String projectName = sourceMapping == null ? null : sourceMapping.getProjectName();
+
+        UIJob job = new UIJob(getName()) {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor aMonitor) {
+                try {
+                    ErrorList.show(anEventsFile, host, ErrorList.getTitle(host, sourcePath), projectName, aProjectLocations);
+                } catch (SyntaxCheckException e) {
+                    if (e.getCause() != null) {
+                        IfsProjectsPlugin.logError("Could not show the errors of: " + sourcePath, e.getCause()); //$NON-NLS-1$
+                    }
+                    MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, e.getMessage());
+                }
+                return Status.OK_STATUS;
+            }
+        };
+        job.schedule();
+    }
+
+    private void showError(final String aMessage) {
+
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, aMessage);
+            }
+        });
+    }
+
+    private static Shell getShell() {
+
+        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (window == null) {
+            return null;
+        }
+
+        return window.getShell();
+    }
+}
