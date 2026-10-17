@@ -9,22 +9,18 @@
     <booleanAttribute key="clearConfig" value="false"/>
     <booleanAttribute key="clearws" value="false"/>
     <booleanAttribute key="clearwslog" value="false"/>
-    <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/IFS Projects (en)"/>
+    <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/IFS Projects 9.8 (de)"/>
     <booleanAttribute key="default" value="false"/>
-    <setAttribute key="deselected_workspace_bundles">
-        <setEntry value="biz.isphere.antcontrib"/>
-        <setEntry value="biz.isphere.comparefilters"/>
-        <setEntry value="biz.isphere.development"/>
-    </setAttribute>
+    <setAttribute key="deselected_workspace_bundles"/>
     <booleanAttribute key="includeOptional" value="true"/>
-    <stringAttribute key="location" value="${workspace_loc}/../runtime-ifsprojects-en"/>
+    <stringAttribute key="location" value="${workspace_loc}/../runtime-ifsprojects-de"/>
     <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
         <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
         <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
     </listAttribute>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_ATTR_USE_ARGFILE" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl en -consoleLog"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl de -consoleLog"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
     <booleanAttribute key="pde.generated.config" value="false"/>
     <stringAttribute key="pde.version" value="3.3"/>
@@ -869,11 +865,14 @@
         <setEntry value="OpenClosedProjects@default:default"/>
         <setEntry value="OpenClosedProjectsExtension@default:default"/>
         <setEntry value="biz.isphere.adapter@default:default"/>
+        <setEntry value="biz.isphere.antcontrib@default:default"/>
         <setEntry value="biz.isphere.base.help@default:default"/>
         <setEntry value="biz.isphere.base@default:default"/>
         <setEntry value="biz.isphere.common.libraries@default:default"/>
+        <setEntry value="biz.isphere.comparefilters@default:default"/>
         <setEntry value="biz.isphere.core.help@default:default"/>
         <setEntry value="biz.isphere.core@default:default"/>
+        <setEntry value="biz.isphere.development@default:default"/>
         <setEntry value="biz.isphere.ide@default:default"/>
         <setEntry value="biz.isphere.joblogexplorer.help@default:default"/>
         <setEntry value="biz.isphere.joblogexplorer.rse@default:default"/>
