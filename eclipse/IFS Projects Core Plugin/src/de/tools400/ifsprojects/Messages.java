@@ -169,6 +169,8 @@ public class Messages extends NLS {
     public static String Title_New_local_IFS_project;
     public static String Description_New_local_IFS_project_page;
     public static String Description_New_local_IFS_project_settings_page;
+    public static String Title_Import_local_IFS_project;
+    public static String Description_Import_local_IFS_project_page;
     public static String Label_Text_files_in_UTF8;
     public static String Tooltip_Text_files_in_UTF8;
     public static String Error_Could_not_create_project_A;
@@ -196,6 +198,7 @@ public class Messages extends NLS {
     public static String Error_Directory_must_be_absolute;
     public static String Error_Project_name_must_not_be_empty;
     public static String Error_A_project_named_A_already_exists;
+    public static String Error_Workspace_project_A_already_exists;
     public static String Error_Directory_A_does_not_exist;
     public static String Error_Could_not_create_project_filter_A;
     public static String Error_Not_an_IFS_project;

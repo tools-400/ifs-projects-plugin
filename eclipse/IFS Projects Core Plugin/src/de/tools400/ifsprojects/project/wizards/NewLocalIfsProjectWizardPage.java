@@ -11,7 +11,6 @@ package de.tools400.ifsprojects.project.wizards;
 import java.io.File;
 import java.nio.file.Files;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -19,7 +18,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
@@ -29,9 +27,10 @@ import de.tools400.ifsprojects.project.propertypages.LocalProjectSettingsGroup;
 import de.tools400.ifsprojects.swt.ToolTips;
 
 /**
- * Second page of the 'New Local IFS Project' wizard: the settings of the local
- * IFS project (see {@link LocalProjectSettingsGroup}), the encoding of the
- * project and the attributes of a new <code>iproj.json</code> file (see
+ * Last page of the wizards 'New Local IFS Project' and 'Import Local IFS
+ * Project': the settings of the local IFS project (see
+ * {@link LocalProjectSettingsGroup}), the encoding of the project and the
+ * attributes of a new <code>iproj.json</code> file (see
  * {@link IProjDefaultsGroup}).
  * <p>
  * If the location of the project already contains an <code>iproj.json</code>
@@ -42,7 +41,22 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
     private static final String PAGE_NAME = "NewLocalIfsProjectWizardPage"; //$NON-NLS-1$
     private static final String UTF_8 = "UTF-8"; //$NON-NLS-1$
 
-    private final WizardNewProjectCreationPage projectPage;
+    /**
+     * Name and directory of the project, entered on the first page of the
+     * wizard.
+     */
+    public interface IProjectLocation {
+
+        String getProjectName();
+
+        /**
+         * Returns the directory of the project or <code>null</code>, if it is
+         * not known yet.
+         */
+        File getProjectDirectory();
+    }
+
+    private final IProjectLocation projectLocation;
 
     private LocalProjectSettingsGroup settingsGroup;
     private Button utf8Button;
@@ -54,12 +68,13 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
     /**
      * Creates the page.
      *
-     * @param aProjectPage - first page with name and location of the project
+     * @param aProjectLocation - name and directory of the project
+     * @param aTitle - title of the wizard
      */
-    public NewLocalIfsProjectWizardPage(WizardNewProjectCreationPage aProjectPage) {
+    public NewLocalIfsProjectWizardPage(IProjectLocation aProjectLocation, String aTitle) {
         super(PAGE_NAME);
-        this.projectPage = aProjectPage;
-        setTitle(Messages.Title_New_local_IFS_project);
+        this.projectLocation = aProjectLocation;
+        setTitle(aTitle);
         setDescription(Messages.Description_New_local_IFS_project_settings_page);
     }
 
@@ -94,7 +109,7 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
         super.setVisible(anIsVisible);
 
         if (anIsVisible) {
-            settingsGroup.setProjectName(projectPage.getProjectName());
+            settingsGroup.setProjectName(projectLocation.getProjectName());
             checkIProjFile();
         }
     }
@@ -148,7 +163,7 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
      */
     private void checkIProjFile() {
 
-        File directory = getProjectDirectory();
+        File directory = projectLocation.getProjectDirectory();
         if (directory == null || directory.equals(checkedDirectory)) {
             return;
         }
@@ -173,24 +188,6 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
             iprojGroup.showExisting(null);
             setMessage(Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, e.getLocalizedMessage()), IMessageProvider.WARNING);
         }
-    }
-
-    /**
-     * Returns the directory of the new project. The default location is the
-     * directory of the project in the workspace.
-     */
-    private File getProjectDirectory() {
-
-        IPath location = projectPage.getLocationPath();
-        if (location == null || projectPage.getProjectName().length() == 0) {
-            return null;
-        }
-
-        if (projectPage.useDefaults()) {
-            location = location.append(projectPage.getProjectName());
-        }
-
-        return location.toFile();
     }
 
     private void validate() {

@@ -166,6 +166,27 @@
 
    <!--
      ==========================================================================
+       Import > IFS Projects > Existing Local IFS Project
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.importWizards">
+      <category
+            id="de.tools400.ifsprojects.importWizards.category"
+            name="%Category_IFS_Projects">
+      </category>
+      <wizard
+            id="de.tools400.ifsprojects.importWizards.localIfsProject"
+            name="%ImportWizard_Local_IFS_project"
+            category="de.tools400.ifsprojects.importWizards.category"
+            class="de.tools400.ifsprojects.project.wizards.ImportLocalIfsProjectWizard"
+            icon="icons/obj16/prj_obj.png">
+         <description>%ImportWizard_Local_IFS_project_description</description>
+      </wizard>
+   </extension>
+
+   <!--
+     ==========================================================================
        Commands and handlers
      ==========================================================================
    -->
