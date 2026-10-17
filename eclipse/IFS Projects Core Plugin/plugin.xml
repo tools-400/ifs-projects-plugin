@@ -101,11 +101,20 @@
      ==========================================================================
    -->
 
+   <!--
+     Own category in 'Show View', because the category 'Remote Systems' also
+     contains the RSE view 'Terminals', which does not support IBM i
+     connections.
+   -->
    <extension point="org.eclipse.ui.views">
+      <category
+            id="de.tools400.ifsprojects.views.category"
+            name="%Category_IFS_Projects">
+      </category>
       <view
             id="de.tools400.ifsprojects.views.terminal"
             name="%View_SSH_Terminal"
-            category="org.eclipse.rse.ui.view"
+            category="de.tools400.ifsprojects.views.category"
             class="de.tools400.ifsprojects.terminal.tm.TmTerminalView"
             icon="icons/terminal_view.gif"
             allowMultiple="false">
@@ -114,7 +123,9 @@
 
    <!--
      Placeholder for all terminal views and shortcut of the wizard of local IFS
-     projects in 'File > New'. Take effect after 'Reset Perspective'.
+     projects in 'File > New'. Take effect after 'Reset Perspective'. No
+     shortcut in 'Window > Show View': the view is not the standard SSH
+     terminal of RDi.
    -->
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.eclipse.rse.ui.view.SystemPerspective">
