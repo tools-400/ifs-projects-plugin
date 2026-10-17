@@ -71,6 +71,9 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
  * <li>The terminal listener is called on the connector thread.</li>
  * <li><code>TextCanvas.clearSelection()</code> does not exist in RDi 9.6.
  * Therefore the selection is cleared in the model of the canvas.</li>
+ * <li>The TM terminal of RDi 9.9 stops updating the display, when it is
+ * disconnected, but does not start again, when it is connected again, see
+ * {@link #restartDisplayUpdates()}.</li>
  * </ul>
  * <p>
  * Keys handled by the session before the TM terminal, see
@@ -102,6 +105,10 @@ class TerminalSession {
     private static final String METHOD_CONNECT_TERMINAL = "connectTerminal"; //$NON-NLS-1$
 
     private static final String FIELD_CELL_CANVAS_MODEL = "fCellCanvasModel"; //$NON-NLS-1$
+
+    private static final String FIELD_POLLING_TEXT_CANVAS_MODEL = "fPollingTextCanvasModel"; //$NON-NLS-1$
+
+    private static final String METHOD_START_POLLING = "startPolling"; //$NON-NLS-1$
 
     /*
      * Contexts of the TM terminal: bindings, that disable the menu keys (Alt+F,
@@ -606,6 +613,7 @@ class TerminalSession {
         }
 
         if (aState == TerminalState.CONNECTED) {
+            restartDisplayUpdates();
             if (pendingCommandLine != null) {
                 sendPendingCommandLineWhenReady();
             }
@@ -827,6 +835,28 @@ class TerminalSession {
 
         // The canvas scrolls, when its scroll bar reports the selection.
         scrollBar.notifyListeners(SWT.Selection, new Event());
+    }
+
+    /**
+     * Restarts the display updates of the terminal. The TM terminal stops them,
+     * when it is disconnected. The TM terminal of RDi 9.8 starts them again,
+     * when it is connected again, but the TM terminal of RDi 9.9 does not: it
+     * shows neither the output of the shell nor the typed keys. The TM terminal
+     * of RDi 9.6 never stops them and has neither the field nor
+     * <code>startPolling()</code>, therefore the method is called by reflection.
+     */
+    private void restartDisplayUpdates() {
+
+        try {
+            Field field = control.getClass().getDeclaredField(FIELD_POLLING_TEXT_CANVAS_MODEL);
+            field.setAccessible(true);
+            Object model = field.get(control);
+            model.getClass().getMethod(METHOD_START_POLLING).invoke(model);
+        } catch (NoSuchFieldException e) {
+            // RDi 9.6: the display updates are never stopped
+        } catch (Exception e) {
+            IfsProjectsPlugin.logWarning("Could not restart the display updates of the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
+        }
     }
 
     private void clearSelection() {
