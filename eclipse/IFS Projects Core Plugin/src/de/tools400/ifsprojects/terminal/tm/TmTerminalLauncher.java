@@ -11,6 +11,7 @@ package de.tools400.ifsprojects.terminal.tm;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -96,6 +97,11 @@ public class TmTerminalLauncher implements ITerminalLauncher {
         return toCommandLine(aRequest, view.openSession(aRequest));
     }
 
+    /**
+     * Closes all sessions of the terminal views. The views stay open, so that
+     * the workbench opens them again after a restart, like the other views. A
+     * view, that has not been created, has no sessions.
+     */
     public void closeAllTerminals() {
 
         if (!PlatformUI.isWorkbenchRunning()) {
@@ -107,7 +113,10 @@ public class TmTerminalLauncher implements ITerminalLauncher {
             for (IWorkbenchPage page : window.getPages()) {
                 for (IViewReference reference : page.getViewReferences()) {
                     if (TmTerminalView.ID.equals(reference.getId())) {
-                        page.hideView(reference);
+                        IViewPart view = reference.getView(false);
+                        if (view instanceof TmTerminalView) {
+                            ((TmTerminalView)view).closeAllSessions();
+                        }
                     }
                 }
             }

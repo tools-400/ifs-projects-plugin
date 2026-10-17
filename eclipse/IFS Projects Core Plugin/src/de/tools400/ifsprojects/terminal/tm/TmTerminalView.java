@@ -292,6 +292,13 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         return commandLine;
     }
 
+    /**
+     * Closes all sessions. The view stays open.
+     */
+    void closeAllSessions() {
+        closeSessions(new ArrayList<TerminalSession>(sessions));
+    }
+
     public void sessionStateChanged(TerminalSession aSession) {
 
         if (sessionList == null || sessionList.getControl().isDisposed()) {
