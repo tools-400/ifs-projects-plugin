@@ -55,12 +55,6 @@ public final class RemoteJobs {
     private static final String TEMPORARY_DIRECTORY = "tmp"; //$NON-NLS-1$
     private static final String BUILDS_DIRECTORY = "builds"; //$NON-NLS-1$
 
-    /**
-     * Directory of temporary files of RDi, which was used by earlier versions
-     * of the plug-in.
-     */
-    private static final String PREVIOUS_TEMPORARY_DIRECTORY = ".eclipse/RSE"; //$NON-NLS-1$
-
     /** Home directories by system name and user profile. */
     private static final Map<String, String> HOME_DIRECTORIES = new ConcurrentHashMap<String, String>();
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
@@ -103,8 +97,7 @@ public final class RemoteJobs {
     /**
      * Returns the directory of temporary files of the plug-in,
      * <code>&lt;home&gt;/.ifsprojects/tmp</code>, and creates it, if it does
-     * not exist. When it is created, the files left over by earlier versions
-     * of the plug-in in <code>&lt;home&gt;/.eclipse/RSE</code> are deleted.
+     * not exist.
      *
      * @param aSystem - system object
      * @return directory without trailing slash
@@ -112,19 +105,12 @@ public final class RemoteJobs {
      */
     public static String getTemporaryDirectory(AS400 aSystem) throws IOException {
 
-        String homeDirectory = getHomeDirectory(aSystem);
-        String directory = getTemporaryDirectory(homeDirectory);
+        String directory = getTemporaryDirectory(getHomeDirectory(aSystem));
 
         try {
             IFSFile file = new IFSFile(aSystem, directory);
-            if (!file.exists()) {
-                if (!file.mkdirs() && !file.exists()) {
-                    throw new IOException(Messages.bind(Messages.Error_Could_not_create_directory_A, directory));
-                }
-                String previousDirectory = getPreviousTemporaryDirectory(homeDirectory);
-                if (new IFSFile(aSystem, previousDirectory).exists()) {
-                    deleteObsoleteTemporaryFiles(aSystem, previousDirectory);
-                }
+            if (!file.exists() && !file.mkdirs() && !file.exists()) {
+                throw new IOException(Messages.bind(Messages.Error_Could_not_create_directory_A, directory));
             }
         } catch (IOException e) {
             throw e;
@@ -169,20 +155,6 @@ public final class RemoteJobs {
      */
     public static String getBuildsDirectory(String aHomeDirectory) {
         return getRootDirectory(aHomeDirectory) + SEPARATOR + BUILDS_DIRECTORY;
-    }
-
-    /**
-     * Returns the directory of temporary files of RDi, which was used by
-     * earlier versions of the plug-in.
-     *
-     * @param aHomeDirectory - home directory of the user profile
-     * @return directory, e.g. <code>/home/jsmith/.eclipse/RSE</code>
-     */
-    public static String getPreviousTemporaryDirectory(String aHomeDirectory) {
-
-        String directory = getRootDirectory(aHomeDirectory);
-
-        return directory.substring(0, directory.length() - ROOT_DIRECTORY.length()) + PREVIOUS_TEMPORARY_DIRECTORY;
     }
 
     /**
@@ -238,8 +210,7 @@ public final class RemoteJobs {
      * {@link #OBSOLETE_FILE_AGE_MILLIS} are deleted, so that the files of
      * running commands, also of other RDi instances, are kept.
      * <p>
-     * Files that cannot be deleted are skipped, e.g. the files of other users
-     * in <code>/tmp</code>.
+     * Files that cannot be deleted are skipped.
      *
      * @param aSystem - system object
      * @param aDirectory - directory of temporary files, see

@@ -119,8 +119,7 @@ public class TerminalBuildJob extends Job {
     /**
      * Writes the script, that writes the marker files, if it does not exist
      * or differs. An existing script is deleted before, so that a shell, that
-     * is reading it, keeps the old content. A new script replaces the script
-     * of earlier versions of the plug-in, which is deleted.
+     * is reading it, keeps the old content.
      *
      * @param aSystem - system object
      * @param aTemporaryDirectory - directory of temporary files, see
@@ -137,9 +136,6 @@ public class TerminalBuildJob extends Job {
                 return;
             }
             file.delete();
-        } else {
-            String previousDirectory = RemoteJobs.getPreviousTemporaryDirectory(RemoteJobs.getHomeDirectory(aSystem));
-            RemoteJobs.delete(new IFSFile(aSystem, TerminalBuildCommands.getScriptFile(previousDirectory)));
         }
 
         RemoteJobs.writeText(file, script, RemoteJobs.CCSID_UTF8);

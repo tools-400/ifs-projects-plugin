@@ -52,7 +52,6 @@ public class RemoteJobsTest {
         assertEquals("/home/jsmith/.ifsprojects", RemoteJobs.getRootDirectory("/home/jsmith/"));
         assertEquals("/home/jsmith/.ifsprojects/tmp", RemoteJobs.getTemporaryDirectory("/home/jsmith"));
         assertEquals("/home/jsmith/.ifsprojects/builds", RemoteJobs.getBuildsDirectory("/home/jsmith"));
-        assertEquals("/home/jsmith/.eclipse/RSE", RemoteJobs.getPreviousTemporaryDirectory("/home/jsmith/"));
         assertEquals("/.ifsprojects/tmp", RemoteJobs.getTemporaryDirectory("/"));
     }
 
