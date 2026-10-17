@@ -35,7 +35,9 @@ import de.tools400.ifsprojects.swt.ToolTips;
  * attributes are shown read-only.
  * <p>
  * The build tool buttons set the build and compile command. The button of the
- * build tool, whose commands are entered, is selected.
+ * build tool, whose commands are entered, is selected. For an existing file,
+ * the button of the build tool, that its commands use, is selected, see
+ * {@link BuildTool#findExisting(String, String)}.
  */
 public class IProjDefaultsGroup {
 
@@ -159,6 +161,7 @@ public class IProjDefaultsGroup {
         setText(compileCommandText, aConfig == null ? null : aConfig.getString(IProjConfig.COMPILE_COMMAND));
         setText(repositoryText, aConfig == null ? null : aConfig.getString(IProjConfig.REPOSITORY));
 
+        updateBuildToolButtons();
         updateFields();
     }
 
@@ -178,6 +181,7 @@ public class IProjDefaultsGroup {
         }
 
         createIProjButton.setEnabled(true);
+        updateBuildToolButtons();
         updateFields();
     }
 
@@ -206,7 +210,9 @@ public class IProjDefaultsGroup {
      */
     private void updateBuildToolButtons() {
 
-        BuildTool buildTool = BuildTool.find(buildCommandText.getText(), compileCommandText.getText());
+        String buildCommand = buildCommandText.getText();
+        String compileCommand = compileCommandText.getText();
+        BuildTool buildTool = hasExistingIProj ? BuildTool.findExisting(buildCommand, compileCommand) : BuildTool.find(buildCommand, compileCommand);
         for (Button button : buildToolButtons) {
             button.setSelection(button.getData() == buildTool);
         }

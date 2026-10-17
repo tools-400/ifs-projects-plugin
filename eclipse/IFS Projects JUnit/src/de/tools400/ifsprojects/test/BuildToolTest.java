@@ -41,4 +41,35 @@ public class BuildToolTest {
         assertNull(BuildTool.find(null, "gmake {filename}"));
         assertNull(BuildTool.find("gmake", null));
     }
+
+    @Test
+    public void testFindExisting() {
+        assertEquals(BuildTool.GMAKE, BuildTool.findExisting("gmake", null));
+        assertEquals(BuildTool.GMAKE, BuildTool.findExisting(" gmake ", ""));
+        assertEquals(BuildTool.GMAKE, BuildTool.findExisting("gmake all", null));
+        assertEquals(BuildTool.GMAKE, BuildTool.findExisting("/QOpenSys/pkgs/bin/gmake -f Makefile", null));
+        assertEquals(BuildTool.TOBI, BuildTool.findExisting("makei build", " "));
+        assertEquals(BuildTool.TOBI, BuildTool.findExisting("makei b", null));
+        assertEquals(BuildTool.TOBI, BuildTool.findExisting("cd src && makei build", null));
+    }
+
+    @Test
+    public void testFindExisting_buildCommandDecides() {
+        assertEquals(BuildTool.TOBI, BuildTool.findExisting("makei build", "makei compile -f {filename}"));
+        assertEquals(BuildTool.GMAKE, BuildTool.findExisting("gmake", "makei compile -f {filename}"));
+        assertEquals(BuildTool.TOBI, BuildTool.findExisting(null, "makei c -f {filename}"));
+        assertEquals(BuildTool.GMAKE, BuildTool.findExisting(" ", "gmake {filename}"));
+    }
+
+    @Test
+    public void testFindExisting_noMatch() {
+        assertNull(BuildTool.findExisting("make", null));
+        assertNull(BuildTool.findExisting("make -f makefile", null));
+        assertNull(BuildTool.findExisting("xgmake", null));
+        assertNull(BuildTool.findExisting("gmake-4.3", null));
+        assertNull(BuildTool.findExisting("makeit", null));
+        assertNull(BuildTool.findExisting("makei build && gmake docs", null));
+        assertNull(BuildTool.findExisting(null, null));
+        assertNull(BuildTool.findExisting("", ""));
+    }
 }
