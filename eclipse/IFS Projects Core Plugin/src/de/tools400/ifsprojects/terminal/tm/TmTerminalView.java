@@ -21,6 +21,8 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -669,6 +671,16 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
                     setActiveSession(selectedSessions.get(0));
                 }
                 updateActions();
+            }
+        });
+
+        // A double-click connects a disconnected session again.
+        sessionList.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent anEvent) {
+                List<TerminalSession> selectedSessions = getSelectedSessions();
+                if (selectedSessions.size() == 1) {
+                    activateSession(selectedSessions.get(0));
+                }
             }
         });
     }
