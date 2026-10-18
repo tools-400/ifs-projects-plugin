@@ -16,6 +16,8 @@ The plug-in adds to RDi:
 Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`).
 The compile errors are shown in the *Error List* view of RDi.
 
+Further information about IFS Projects is available on the [IFS Projects Web Site](https://tools-400.github.io/ifs-terminal/).
+
 ## Requirements
 
 * RDi 9.6, 9.8 or 9.9 with a connection to the IBM i.
