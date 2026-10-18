@@ -76,6 +76,19 @@ public final class SyntaxCheckCommands {
     }
 
     /**
+     * Returns <code>true</code>, if a name is a valid name of an object or
+     * member in uppercase: up to 10 characters, <code>A-Z</code>,
+     * <code>0-9</code>, <code>$#@_</code>, not starting with a digit or an
+     * underscore.
+     *
+     * @param aName - name or <code>null</code>
+     * @return <code>true</code> for a valid name
+     */
+    public static boolean isObjectName(String aName) {
+        return aName != null && aName.matches(OBJECT_NAME_PATTERN);
+    }
+
+    /**
      * Returns the name of the object, into which a stream file is compiled: the
      * file name up to the first period, e.g. <code>HELLO</code> for
      * <code>hello.pgm.rpgle</code>.
@@ -96,7 +109,7 @@ public final class SyntaxCheckCommands {
         }
 
         name = name.toUpperCase(Locale.ROOT);
-        if (!name.matches(OBJECT_NAME_PATTERN)) {
+        if (!isObjectName(name)) {
             return DEFAULT_OBJECT_NAME;
         }
 
