@@ -343,9 +343,21 @@
    -->
 
    <extension point="org.eclipse.ui.menus">
+      <!--
+        The commands are placed at the end of the group 'additions', which
+        other plug-ins use too, e.g. IBM and iSphere for IFS files. The
+        separator divides them from these actions. JFace shows a separator only
+        between visible items and merges it with the separator of the next
+        group, so that it disappears, if none of the commands is visible.
+      -->
       <menuContribution
             allPopups="false"
-            locationURI="popup:org.eclipse.rse.ui.view.systemView?after=additions">
+            locationURI="popup:org.eclipse.rse.ui.view.systemView?before=group.team">
+
+         <separator
+               name="de.tools400.ifsprojects.separators.rse"
+               visible="true">
+         </separator>
 
          <!-- IBM i connection: terminal in home directory -->
          <command
@@ -551,11 +563,20 @@
 
       <!--
         Context menu of projects of the workspace, e.g. in the Project Explorer:
-        local IFS projects
+        local IFS projects. As in the Remote Systems view, the commands are
+        placed at the end of the group 'additions', which e.g. Run As, Team and
+        Configure use too, behind a separator, which JFace merges with the
+        separator of the group 'group.properties', if none of the commands is
+        visible.
       -->
       <menuContribution
             allPopups="false"
-            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+            locationURI="popup:org.eclipse.ui.popup.any?before=group.properties">
+
+         <separator
+               name="de.tools400.ifsprojects.separators.workspace"
+               visible="true">
+         </separator>
 
          <!-- Local IFS project: upload and build -->
          <command
@@ -761,6 +782,20 @@
             id="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
             class="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
             name="%PreferencePage_IFS_Projects">
+         <keywordReference id="de.tools400.ifsprojects.keywords"/>
+      </page>
+      <page
+            id="de.tools400.ifsprojects.preferencepages.SshTerminalPreferencePage"
+            category="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
+            class="de.tools400.ifsprojects.preferencepages.SshTerminalPreferencePage"
+            name="%PreferencePage_SSH_terminal">
+         <keywordReference id="de.tools400.ifsprojects.keywords"/>
+      </page>
+      <page
+            id="de.tools400.ifsprojects.preferencepages.ExportPreferencePage"
+            category="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
+            class="de.tools400.ifsprojects.preferencepages.ExportPreferencePage"
+            name="%PreferencePage_Export_to_library">
          <keywordReference id="de.tools400.ifsprojects.keywords"/>
       </page>
    </extension>

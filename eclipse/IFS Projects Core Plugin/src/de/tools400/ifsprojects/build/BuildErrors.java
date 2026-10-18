@@ -18,9 +18,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
@@ -29,6 +26,7 @@ import de.tools400.ifsprojects.local.EventsFileMapper;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.syntaxcheck.ErrorList;
 import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckException;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Shows the events of a build in the 'Error List' view, see
@@ -80,27 +78,17 @@ final class BuildErrors {
                     ErrorList.show(eventsFile, aHost, ErrorList.getTitle(aHost, aDirectory), projectName, projectLocations);
                 } catch (CoreException e) {
                     IfsProjectsPlugin.logError("Could not write the events file of: " + aDirectory, e); //$NON-NLS-1$
-                    MessageDialog.openError(getShell(), Messages.Title_IFS_Projects,
+                    MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects,
                         Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
                 } catch (SyntaxCheckException e) {
                     if (e.getCause() != null) {
                         IfsProjectsPlugin.logError("Could not show the errors of: " + aDirectory, e.getCause()); //$NON-NLS-1$
                     }
-                    MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, e.getMessage());
+                    MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, e.getMessage());
                 }
                 return Status.OK_STATUS;
             }
         };
         job.schedule();
-    }
-
-    static Shell getShell() {
-
-        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (window == null) {
-            return null;
-        }
-
-        return window.getShell();
     }
 }

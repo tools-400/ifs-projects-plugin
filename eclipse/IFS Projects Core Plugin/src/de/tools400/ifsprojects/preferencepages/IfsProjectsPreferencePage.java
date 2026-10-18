@@ -9,10 +9,11 @@
 package de.tools400.ifsprojects.preferencepages;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -34,7 +35,10 @@ import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.swt.ToolTips;
 
 /**
- * Preference page of the IFS Projects plug-in.
+ * Main preference page of the IFS Projects plug-in: the builds of IFS projects
+ * and local IFS projects. The SSH terminals and the export to a library have
+ * pages of their own, see {@link SshTerminalPreferencePage} and
+ * {@link ExportPreferencePage}.
  * <p>
  * The defaults of the IFS projects are placed in a group. The preset combo box
  * of the group fills the default build and compile command of a build tool and
@@ -42,12 +46,12 @@ import de.tools400.ifsprojects.swt.ToolTips;
  */
 public class IfsProjectsPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-    private static final int MAX_PORT = 65535;
-    private static final int MAX_SECONDS = 3600;
     private static final int NUM_COLUMNS = 2;
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
     private static final String LABEL_SEPARATOR = ": "; //$NON-NLS-1$
 
+    private RadioGroupFieldEditor buildMode;
+    private BooleanFieldEditor reuseBuildTerminal;
     private Combo presetCombo;
     private StringFieldEditor buildCommand;
     private StringFieldEditor compileCommand;
@@ -55,7 +59,7 @@ public class IfsProjectsPreferencePage extends FieldEditorPreferencePage impleme
     public IfsProjectsPreferencePage() {
         super(GRID);
         setPreferenceStore(Preferences.getInstance().getPreferenceStore());
-        setDescription(Messages.Description_Preference_page);
+        setDescription(Messages.Description_Build_preference_page);
     }
 
     public void init(IWorkbench aWorkbench) {
@@ -64,52 +68,46 @@ public class IfsProjectsPreferencePage extends FieldEditorPreferencePage impleme
     @Override
     protected void createFieldEditors() {
 
-        IntegerFieldEditor port = new IntegerFieldEditor(Preferences.PORT, Messages.Label_SSH_port_colon, getFieldEditorParent());
-        port.setValidRange(1, MAX_PORT);
-        ToolTips.set(port, getFieldEditorParent(), Messages.Tooltip_SSH_port);
-        addField(port);
-
-        IntegerFieldEditor timeout = new IntegerFieldEditor(Preferences.TIMEOUT, Messages.Label_Connection_timeout_colon, getFieldEditorParent());
-        timeout.setValidRange(1, MAX_SECONDS);
-        ToolTips.set(timeout, getFieldEditorParent(), Messages.Tooltip_Connection_timeout);
-        addField(timeout);
-
-        IntegerFieldEditor keepAlive = new IntegerFieldEditor(Preferences.KEEP_ALIVE, Messages.Label_Keep_alive_interval_colon,
-            getFieldEditorParent());
-        keepAlive.setValidRange(1, MAX_SECONDS);
-        ToolTips.set(keepAlive, getFieldEditorParent(), Messages.Tooltip_Keep_alive_interval);
-        addField(keepAlive);
-
-        StringFieldEditor encoding = new StringFieldEditor(Preferences.ENCODING, Messages.Label_Encoding_colon, getFieldEditorParent());
-        encoding.setEmptyStringAllowed(false);
-        ToolTips.set(encoding, getFieldEditorParent(), Messages.Tooltip_Encoding);
-        addField(encoding);
-
-        addBooleanField(Preferences.LOWERCASE_USER_ID, Messages.Label_Convert_user_ID_to_lowercase, Messages.Tooltip_Convert_user_ID_to_lowercase);
-
-        addBooleanField(Preferences.USE_SAVED_PASSWORD, Messages.Label_Use_password_saved_in_RSE, Messages.Tooltip_Use_password_saved_in_RSE);
-
-        addBooleanField(Preferences.RESTORE_TERMINALS, Messages.Label_Restore_terminals_after_restart,
-            Messages.Tooltip_Restore_terminals_after_restart);
-
-        RadioGroupFieldEditor buildMode = new RadioGroupFieldEditor(Preferences.BUILD_MODE, Messages.Label_Run_build_and_compile_commands, 1,
-            new String[][] { { Messages.Label_Build_mode_terminal, BuildMode.TERMINAL.getValue() },
-                { Messages.Label_Build_mode_rse, BuildMode.RSE.getValue() } },
+        buildMode = new RadioGroupFieldEditor(Preferences.BUILD_MODE, Messages.Label_Run_build_and_compile_commands, 1, new String[][] {
+            { Messages.Label_Build_mode_terminal, BuildMode.TERMINAL.getValue() }, { Messages.Label_Build_mode_rse, BuildMode.RSE.getValue() } },
             getFieldEditorParent(), true);
         ToolTips.set(buildMode, getFieldEditorParent(), Messages.Tooltip_Build_mode, Messages.Tooltip_Build_mode_terminal,
             Messages.Tooltip_Build_mode_rse);
         addField(buildMode);
 
-        addBooleanField(Preferences.REUSE_BUILD_TERMINAL, Messages.Label_Reuse_build_terminal, Messages.Tooltip_Reuse_build_terminal);
+        reuseBuildTerminal = new BooleanFieldEditor(Preferences.REUSE_BUILD_TERMINAL, Messages.Label_Reuse_build_terminal, getFieldEditorParent());
+        ToolTips.set(reuseBuildTerminal, getFieldEditorParent(), Messages.Tooltip_Reuse_build_terminal);
+        addField(reuseBuildTerminal);
 
         createDefaultsGroup(getFieldEditorParent());
     }
 
-    private void addBooleanField(String aName, String aLabel, String aToolTip) {
+    @Override
+    protected void initialize() {
+        super.initialize();
+        updateReuseBuildTerminal(getPreferenceStore().getString(Preferences.BUILD_MODE));
+    }
 
-        BooleanFieldEditor fieldEditor = new BooleanFieldEditor(aName, aLabel, getFieldEditorParent());
-        ToolTips.set(fieldEditor, getFieldEditorParent(), aToolTip);
-        addField(fieldEditor);
+    @Override
+    protected void performDefaults() {
+        super.performDefaults();
+        updateReuseBuildTerminal(getPreferenceStore().getDefaultString(Preferences.BUILD_MODE));
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent anEvent) {
+        super.propertyChange(anEvent);
+        if (anEvent.getSource() == buildMode && FieldEditor.VALUE.equals(anEvent.getProperty())) {
+            updateReuseBuildTerminal((String)anEvent.getNewValue());
+        }
+    }
+
+    /**
+     * Enables the option to reuse the build terminals, if builds run in the
+     * terminal.
+     */
+    private void updateReuseBuildTerminal(String aBuildMode) {
+        reuseBuildTerminal.setEnabled(BuildMode.fromValue(aBuildMode) == BuildMode.TERMINAL, getFieldEditorParent());
     }
 
     /**

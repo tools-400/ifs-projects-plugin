@@ -25,9 +25,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
 import org.eclipse.rse.subsystems.files.core.SystemIFileProperties;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 
 import com.ibm.as400.access.AS400;
@@ -38,6 +35,7 @@ import de.tools400.ifsprojects.local.EventsFileMapper;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Checks the syntax of a stream file of an IFS project and shows the errors in
@@ -187,7 +185,7 @@ public class SyntaxCheckJob extends Job {
                     if (e.getCause() != null) {
                         IfsProjectsPlugin.logError("Could not show the errors of: " + sourcePath, e.getCause()); //$NON-NLS-1$
                     }
-                    MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, e.getMessage());
+                    MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, e.getMessage());
                 }
                 return Status.OK_STATUS;
             }
@@ -199,18 +197,8 @@ public class SyntaxCheckJob extends Job {
 
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
-                MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, aMessage);
+                MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, aMessage);
             }
         });
-    }
-
-    private static Shell getShell() {
-
-        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (window == null) {
-            return null;
-        }
-
-        return window.getShell();
     }
 }

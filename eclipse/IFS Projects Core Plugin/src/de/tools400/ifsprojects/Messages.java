@@ -51,7 +51,7 @@ public class Messages extends NLS {
     public static String Label_Enter_user_ID_for_A;
     public static String Tooltip_User_ID;
 
-    public static String Description_Preference_page;
+    public static String Description_SSH_terminal_preference_page;
     public static String Label_SSH_port_colon;
     public static String Label_Connection_timeout_colon;
     public static String Label_Keep_alive_interval_colon;
@@ -279,6 +279,14 @@ public class Messages extends NLS {
     public static String Error_Could_not_export_A_B;
     public static String Info_Export_of_A_to_B_created_C_replaced_D_skipped_E;
     public static String Label_Errors_A;
+    public static String Label_CCSID_of_new_source_files_colon;
+    public static String Tooltip_Default_export_CCSID;
+    public static String Label_Record_length_of_new_source_files_colon;
+    public static String Tooltip_Default_export_record_length;
+    public static String Description_Build_preference_page;
+    public static String Label_Group_Connection;
+    public static String Label_Group_Log_on;
+    public static String Description_Export_preference_page;
     public static String Label_CCSID_A_B;
     public static String Label_A_with_euro;
     public static String Label_CCSID_Germany_Austria;

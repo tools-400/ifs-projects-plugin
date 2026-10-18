@@ -27,6 +27,7 @@ import de.tools400.ifsprojects.handlers.SyntaxCheckLauncher;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.rse.RemoteEditors;
 import de.tools400.ifsprojects.syntaxcheck.SourceType;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * LPEX user action, that checks the syntax of the RPGLE or SQLRPGLE stream file
@@ -50,7 +51,7 @@ public class CheckSyntaxAction implements LpexAction {
 
     public void doAction(LpexView aView) {
 
-        Shell shell = getShell();
+        Shell shell = PlatformUtils.getWorkbenchShell();
 
         IFile file = getFile(aView);
         IHost host = file == null ? null : RemoteEditors.getHost(file);
@@ -89,16 +90,6 @@ public class CheckSyntaxAction implements LpexAction {
         }
 
         return RemoteEditors.getFile(editor);
-    }
-
-    private Shell getShell() {
-
-        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (window == null) {
-            return null;
-        }
-
-        return window.getShell();
     }
 
     private IWorkbenchPage getActivePage() {

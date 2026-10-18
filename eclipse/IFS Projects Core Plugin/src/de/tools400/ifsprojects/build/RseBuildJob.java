@@ -25,6 +25,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Runs the build or compile command of an IFS project in a remote command
@@ -235,7 +236,7 @@ public class RseBuildJob extends Job {
 
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
-                MessageDialog.openError(BuildErrors.getShell(), Messages.Title_IFS_Projects, aMessage);
+                MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, aMessage);
             }
         });
     }
