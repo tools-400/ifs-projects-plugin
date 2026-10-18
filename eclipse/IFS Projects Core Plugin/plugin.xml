@@ -222,6 +222,11 @@
             name="%Command_Build_IFS_project">
       </command>
       <command
+            id="de.tools400.ifsprojects.commands.exportIfsProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Export_IFS_project">
+      </command>
+      <command
             id="de.tools400.ifsprojects.commands.compileIfsFile"
             categoryId="de.tools400.ifsprojects.commands.category"
             name="%Command_Build_IFS_file">
@@ -245,6 +250,11 @@
             id="de.tools400.ifsprojects.commands.uploadAllLocalProject"
             categoryId="de.tools400.ifsprojects.commands.category"
             name="%Command_Upload_all_local_project">
+      </command>
+      <command
+            id="de.tools400.ifsprojects.commands.exportLocalProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Export_local_project">
       </command>
       <command
             id="de.tools400.ifsprojects.commands.compileLocalFile"
@@ -285,6 +295,10 @@
             class="de.tools400.ifsprojects.handlers.BuildIfsProjectHandler">
       </handler>
       <handler
+            commandId="de.tools400.ifsprojects.commands.exportIfsProject"
+            class="de.tools400.ifsprojects.handlers.ExportIfsProjectHandler">
+      </handler>
+      <handler
             commandId="de.tools400.ifsprojects.commands.compileIfsFile"
             class="de.tools400.ifsprojects.handlers.CompileIfsFileHandler">
       </handler>
@@ -303,6 +317,10 @@
       <handler
             commandId="de.tools400.ifsprojects.commands.uploadAllLocalProject"
             class="de.tools400.ifsprojects.handlers.UploadAllLocalProjectHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.exportLocalProject"
+            class="de.tools400.ifsprojects.handlers.ExportLocalProjectHandler">
       </handler>
       <handler
             commandId="de.tools400.ifsprojects.commands.compileLocalFile"
@@ -468,6 +486,25 @@
             </visibleWhen>
          </command>
 
+         <!-- IFS project: export to library -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.exportIfsProject"
+               label="%Label_Export_to_library">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                        <and>
+                           <test property="de.tools400.ifsprojects.filter.subsystemConfigId" value="de.tools400.ifsprojects.subsystem" forcePluginActivation="true"/>
+                           <test property="de.tools400.ifsprojects.filter.hasDirectory" value="true" forcePluginActivation="true"/>
+                        </and>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
          <!-- File of an IFS project: compile -->
          <command
                commandId="de.tools400.ifsprojects.commands.compileIfsFile"
@@ -556,6 +593,22 @@
          <command
                commandId="de.tools400.ifsprojects.commands.uploadAllLocalProject"
                label="%Label_Upload_all_local_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="true" forcePluginActivation="true"/>
+                     </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Local IFS project: export to library -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.exportLocalProject"
+               label="%Label_Export_to_library">
             <visibleWhen checkEnabled="false">
                <and>
                   <count value="1"/>

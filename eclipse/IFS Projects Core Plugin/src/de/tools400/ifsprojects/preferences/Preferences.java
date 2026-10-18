@@ -15,6 +15,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.build.BuildMode;
+import de.tools400.ifsprojects.export.ExportSettings;
 import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
@@ -40,6 +41,8 @@ public final class Preferences {
     public static final String BUILD_MODE = "buildMode"; //$NON-NLS-1$
     public static final String DEFAULT_ENVIRONMENT_VARIABLES = "defaultEnvironmentVariables"; //$NON-NLS-1$
     public static final String RESTORE_TERMINALS = "restoreTerminals"; //$NON-NLS-1$
+    public static final String EXPORT_CCSID = "exportCcsid"; //$NON-NLS-1$
+    public static final String EXPORT_RECORD_LENGTH = "exportRecordLength"; //$NON-NLS-1$
 
     private static final int DEFAULT_PORT = TerminalRequest.DEFAULT_PORT;
     private static final int DEFAULT_TIMEOUT = TerminalRequest.DEFAULT_TIMEOUT;
@@ -53,6 +56,8 @@ public final class Preferences {
     private static final String DEFAULT_BUILD_MODE = BuildMode.TERMINAL.getValue();
     private static final String DEFAULT_DEFAULT_ENVIRONMENT_VARIABLES = ""; //$NON-NLS-1$
     private static final boolean DEFAULT_RESTORE_TERMINALS = false;
+    private static final int DEFAULT_EXPORT_CCSID = 1141;
+    private static final int DEFAULT_EXPORT_RECORD_LENGTH = 112;
 
     private Preferences() {
         // Singleton class
@@ -83,6 +88,8 @@ public final class Preferences {
         preferenceStore.setDefault(BUILD_MODE, DEFAULT_BUILD_MODE);
         preferenceStore.setDefault(DEFAULT_ENVIRONMENT_VARIABLES, DEFAULT_DEFAULT_ENVIRONMENT_VARIABLES);
         preferenceStore.setDefault(RESTORE_TERMINALS, DEFAULT_RESTORE_TERMINALS);
+        preferenceStore.setDefault(EXPORT_CCSID, DEFAULT_EXPORT_CCSID);
+        preferenceStore.setDefault(EXPORT_RECORD_LENGTH, DEFAULT_EXPORT_RECORD_LENGTH);
     }
 
     /*
@@ -175,6 +182,30 @@ public final class Preferences {
      */
     public boolean isRestoreTerminals() {
         return preferenceStore.getBoolean(RESTORE_TERMINALS);
+    }
+
+    /**
+     * Returns the CCSID of the source files, that the export to a library
+     * creates, unless the project has been exported before.
+     */
+    public int getExportCcsid() {
+        return getInt(EXPORT_CCSID, ExportSettings.MIN_CCSID, ExportSettings.MAX_CCSID, DEFAULT_EXPORT_CCSID);
+    }
+
+    /**
+     * Returns the minimum record length of the source files, that the export
+     * to a library creates, unless the project has been exported before.
+     */
+    public int getExportRecordLength() {
+        return getInt(EXPORT_RECORD_LENGTH, ExportSettings.MIN_RECORD_LENGTH, ExportSettings.MAX_RECORD_LENGTH, DEFAULT_EXPORT_RECORD_LENGTH);
+    }
+
+    private int getInt(String aKey, int aMinimum, int aMaximum, int aDefault) {
+        int value = preferenceStore.getInt(aKey);
+        if (value < aMinimum || value > aMaximum) {
+            return aDefault;
+        }
+        return value;
     }
 
     private int getPositiveInt(String aKey, int aDefault) {

@@ -48,6 +48,7 @@ public final class LocalProject {
     private static final QualifiedName CONNECTION = new QualifiedName(IfsProjectsPlugin.PLUGIN_ID, "connection"); //$NON-NLS-1$
     private static final String DEPLOY_DIRECTORY_PREFIX = "deployDirectory."; //$NON-NLS-1$
     private static final String ENVIRONMENT_PREFIX = "environment."; //$NON-NLS-1$
+    private static final String EXPORT_PREFIX = "export."; //$NON-NLS-1$
 
     /** Characters of a project name, that are kept in the default deploy directory. */
     private static final String INVALID_DIRECTORY_CHARACTERS = "[^A-Za-z0-9._-]"; //$NON-NLS-1$
@@ -158,6 +159,40 @@ public final class LocalProject {
      */
     public static void setEnvironmentVariables(IProject aProject, String aConnectionName, Map<String, String> aVariables) throws CoreException {
         aProject.setPersistentProperty(getEnvironmentKey(aConnectionName), aVariables.isEmpty() ? null : EnvironmentVariables.format(aVariables));
+    }
+
+    /**
+     * Returns the settings of the last export of a project to a library of a
+     * connection, see {@link de.tools400.ifsprojects.export.ExportSettings}.
+     *
+     * @param aProject - open project
+     * @param aConnectionName - name of the RSE connection
+     * @return values, empty, if the project has not been exported or the
+     *         property is invalid
+     */
+    public static Map<String, String> getExportSettings(IProject aProject, String aConnectionName) {
+
+        // Same format as the environment variables: one value per line.
+        String text = getProperty(aProject, getExportKey(aConnectionName));
+        if (text == null || EnvironmentVariables.findInvalidLine(text) > 0) {
+            return new LinkedHashMap<String, String>();
+        }
+
+        return EnvironmentVariables.parse(text);
+    }
+
+    /**
+     * Sets the settings of the last export of a project to a library of a
+     * connection.
+     *
+     * @param aProject - open project
+     * @param aConnectionName - name of the RSE connection
+     * @param aSettings - values, see
+     *        {@link de.tools400.ifsprojects.export.ExportSettings#toMap()}
+     * @throws CoreException if the settings could not be saved
+     */
+    public static void setExportSettings(IProject aProject, String aConnectionName, Map<String, String> aSettings) throws CoreException {
+        aProject.setPersistentProperty(getExportKey(aConnectionName), aSettings.isEmpty() ? null : EnvironmentVariables.format(aSettings));
     }
 
     /**
@@ -354,6 +389,10 @@ public final class LocalProject {
 
     private static QualifiedName getEnvironmentKey(String aConnectionName) {
         return new QualifiedName(IfsProjectsPlugin.PLUGIN_ID, ENVIRONMENT_PREFIX + aConnectionName);
+    }
+
+    private static QualifiedName getExportKey(String aConnectionName) {
+        return new QualifiedName(IfsProjectsPlugin.PLUGIN_ID, EXPORT_PREFIX + aConnectionName);
     }
 
     private static String getProperty(IProject aProject, QualifiedName aKey) {

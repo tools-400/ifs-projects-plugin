@@ -306,6 +306,20 @@ public final class Deployment {
         }
     }
 
+    /**
+     * Returns the files of a project, that are uploaded: all files except of
+     * the excluded files, see {@link #isExcluded(String)}, and the files of the
+     * ignore file, see {@link IgnoreRules}. The project is not refreshed.
+     *
+     * @param aProject - project
+     * @return files by path relative to the project
+     * @throws CoreException if the files could not be listed
+     * @throws IOException if the ignore file could not be read
+     */
+    static Map<String, IFile> getFiles(IProject aProject) throws CoreException, IOException {
+        return getFiles(aProject, readIgnoreRules(aProject));
+    }
+
     private static Map<String, IFile> getFiles(IProject aProject, final IgnoreRules anIgnoreRules) throws CoreException {
 
         final Map<String, IFile> files = new LinkedHashMap<String, IFile>();
