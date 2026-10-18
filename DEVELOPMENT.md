@@ -31,8 +31,15 @@ Packages below `de.tools400.ifsprojects`:
 | `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `IgnoreRules`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `BuildErrors`. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
+| `export` | Export to a library: `ExportMapping` (stream file to member), `MemberText`, `IncludeResolver` and `IncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview), `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
+| `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
+| `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. |
+| `swt` | `ToolTips` and `CcsidCombo` (CCSID of new source files, used by the preferences and the export). |
+| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. |
 
-The `*Commands` classes have no RDi dependency.
+The `*Commands` classes have no RDi dependency. Neither have `ExportMapping`, `MemberText`,
+`IncludeResolver`, `IncludeConverter`, `SourceCheck` and `ExportPlan`, which only use IBM Toolbox
+for Java.
 
 ## IBM i
 
@@ -186,3 +193,58 @@ events file in the *Error List*.
   the root of referenced projects. There is no per-project setting that the plug-in could fill.
   According to the code of RDi 9.8 (not tested), the outline finds `/copy inc/name.rpgleinc` of a
   source in the project directory.
+
+## Export to a library
+
+*Export to Library...* copies the source files of an IFS project or a local IFS project into
+source members, e.g. for a change management system. The facts below were verified on the IBM i.
+
+* The wizard reads the files of the project once (`ExportSource.listFiles()`, `readFile()`) and the
+  library for every new library name (`LibraryInfo`). Then it computes the `ExportPlan` in memory;
+  deselecting a file computes it again. The job exports exactly the content of the plan.
+* Files: IFS projects are listed with `IFSFile.listFiles()` and read with the CCSID of the stream
+  file. Local IFS projects are refreshed and read from the workspace. Both skip the files that the
+  upload skips (`Deployment.isExcluded()`, `IgnoreRules`). The deploy directory of a local IFS
+  project is only used to resolve absolute include paths and `includePath`; it is not changed.
+* Library: `OBJECT_STATISTICS(lib, '*FILE')` joined with `SYSTABLES` (`FILE_TYPE` `S`) and
+  `SYSCOLUMNS` (length and CCSID of `SRCDTA`) over the JDBC driver of IBM Toolbox for Java, the
+  members from `SYSPARTITIONSTAT`. Program-described files, e.g. `EVFEVENT`, are not in
+  `SYSTABLES`.
+* Commands (`ExportCommands`) in a remote command server job of its own: `CRTLIB` and `CRTSRCPF`,
+  if needed. Per member, the content is written to the temporary stream file
+  `<home>/.ifsprojects/tmp/ifsprojects_<id>.export` with CCSID 1208 and copied with
+  `CPYFRMSTMF MBROPT(*REPLACE)`. `CPYFRMSTMF` creates a missing member without source type and
+  text and keeps both of an existing member. Therefore a new member is added before with `ADDPFM`
+  (and removed with `RMVM`, if the copy fails), a replaced member gets its source type and text
+  with `CHGPFM` afterwards.
+* Lines: `CPYFRMSTMF` counts characters, not bytes, expands tabs to tab stops of 8 and drops a
+  byte order mark. Lines longer than the record are truncated with the message CPIA083, which is
+  also sent, if only trailing blanks are lost. Characters that do not exist in the CCSID of the
+  source file become X'3F' without any message. Therefore `SourceCheck` checks the lengths and the
+  characters (round trip with `CharConverter`) before the export, instead of evaluating CPIA083.
+* CCSID of new source files: only single-byte EBCDIC CCSIDs (space X'40', U+3042 converts to one
+  byte). `CRTSRCPF` rejects ASCII and Unicode CCSIDs except 1208, and lines with double-byte
+  characters or in UTF-8 are longer than their number of characters.
+* Includes (`IncludeResolver`, verified with `CRTBNDRPG` and `CRTBNDCL`):
+  * RPG searches a relative name in the current directory (the project directory for TOBi), the
+    `INCDIR` directories and the directory of the including file. In each directory it tries the
+    name as it is, with `.rpgleinc` and with `.rpgle`. A simple name, that is not found in the IFS,
+    is the member `QRPGLESRC,NAME` of the library list. Each copy book needs its own `**FREE`.
+  * CL searches the directory of the including file and the `INCDIR` directories, not the current
+    directory.
+* `RpgIncludeConverter`: fixed format from column 7, the columns 81 and later keep their
+  position, compile-time data after the first `**` line are not changed. `ClIncludeConverter`:
+  only `INCLUDE SRCSTMF()` on one line. The target is written in the case of the keyword, e.g.
+  `/copy inc,consts`.
+* A file, whose lines are too long for an existing source file, is not exported. The plan
+  converts the includes again, until no further file fails, so that no include refers to a missing
+  member.
+* Settings: IFS projects in the property set `de.tools400.ifsprojects.export` of the filter, local
+  IFS projects in the persistent property `export.<connection>` (format of the environment
+  variables). Defaults: the preferences `exportCcsid` and `exportRecordLength` and the library
+  `objlib` or `curlib` of `iproj.json`.
+* Context menus: IBM, iSphere and Eclipse put their actions into the group `additions` too.
+  Therefore the commands of the plug-in are placed at the end of the group
+  (`before=group.team` in the Remote Systems view, `before=group.properties` in the other views)
+  behind a separator. JFace merges the separator with the one of the next group, if none of the
+  commands is visible.

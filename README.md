@@ -12,6 +12,8 @@ The plug-in adds to RDi:
 * **Local IFS projects**: projects on your PC, e.g. a Git working copy. They are copied to the IFS
   and built there.
 * **SSH terminal**: a command line (shell) of the IBM i in a view of RDi.
+* **Export to a library**: the source files of a project are copied into source members, e.g. for
+  a change management system.
 
 Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`).
 The compile errors are shown in the *Error List* view of RDi.
@@ -109,6 +111,7 @@ compare their files as usual.
 | *Build* (file) | Compiles the file with `compileCommand` of `iproj.json` or with the default compile command. |
 | *Check Syntax* (RPGLE, SQLRPGLE file) | Checks the source for errors without creating an object, see [Syntax check](#syntax-check). |
 | *Open SSH Terminal in Project Directory* | Opens a terminal in the project directory. |
+| *Export to Library...* (project) | Copies the source files into members of a library, see [Export to a library](#export-to-a-library). |
 | *Properties > IFS Project* | Edits `iproj.json`. Settings that the page does not know are kept. |
 | *Properties > IFS Project > Environment* | Environment variables of the project, see below. |
 
@@ -167,6 +170,7 @@ directory) and builds the project there. Files are only copied from your PC to t
 | *Check Syntax* (RPGLE, SQLRPGLE file) | Copies the changes and checks the file. |
 | *Upload Changes to IFS* | Copies new and changed files and deletes the files, that you have deleted. |
 | *Upload All to IFS* | Copies all files, also unchanged ones, and overwrites files changed in the IFS without asking. |
+| *Export to Library...* | Copies the files of the workspace into members of a library, see [Export to a library](#export-to-a-library). The deploy directory is not used. |
 | *Properties > IFS Project > Environment* | Environment variables of the project. |
 
 * *Text files in UTF-8* is recommended. RDi then stores the encoding in `.settings/` of the project.
@@ -184,25 +188,89 @@ directory) and builds the project there. Files are only copied from your PC to t
 * Limitation of RDi: the *Outline* view of LPEX does not find copy books in the `includePath`
   directories of `iproj.json`. Builds and syntax checks are not affected.
 
+## Export to a library
+
+*Export to Library...* in the context menu of an IFS project or a local IFS project copies the
+source files of the project into source members of a library, e.g. for a change management system
+that works with members. The files of the project are not changed. Local IFS projects are exported
+from the workspace; unsaved changes are saved first, if you agree.
+
+**Members.** The stream file `name.type` becomes the member `NAME` of the source type `TYPE`, the
+reverse of `makei cvtsrcpf` of TOBi, e.g. `qrpglesrc/hello.pgm.rpgle` becomes `HELLO` of type
+`RPGLE`. Copy books `*.rpgleinc`, `*.sqlrpgleinc` and `*.clinc` get the type of their source
+(`RPGLE`, `SQLRPGLE`, `CLLE`). Only the file types that TOBi knows are exported; other files, e.g.
+`iproj.json` or `Rules.mk`, are skipped. The same files as by the upload of local IFS projects are
+excluded, e.g. the files of `.deployignore` or `.gitignore`.
+
+**Source files**, to be chosen on the first page:
+
+* *Name of the directory, otherwise by source type* (default): `qrpglesrc/hello.pgm.rpgle` goes to
+  `QRPGLESRC`. Files in the project directory and in directories, whose names are not valid file
+  names, are exported by source type.
+* *By source type*: the default source file of the IBM command, that compiles the source, e.g.
+  `QRPGLESRC` for RPGLE, `QCLSRC` for CLLE and `QDDSSRC` for DSPF.
+* *One source file*: all files into one source file.
+
+**New source files** get the CCSID of the first page and at least its record length (the defaults
+are set in the [preferences](#preferences): 1141 and 112). A source file with longer lines gets a
+longer record length. The CCSID must be an EBCDIC CCSID with one byte per character: select it from
+the list or enter its number. If the library does not exist, you are asked, whether the export
+shall create it.
+
+**Include directives** are converted, so that the members compile from the source files:
+`/copy 'inc/consts.rpgleinc'` becomes `/copy inc,consts` and `INCLUDE SRCSTMF('vars.clinc')`
+becomes `INCLUDE SRCMBR(VARS) SRCFILE(QCLSRC)`. The copy book is searched like the compiler does:
+
+* RPG (`/COPY`, `/INCLUDE`): in the project directory, the `includePath` directories of
+  `iproj.json` and the directory of the source, also with the extensions `.rpgleinc` and `.rpgle`.
+  A name without `/`, `.` and `,`, that is no file of the project, stays a member name.
+* CL (`INCLUDE SRCSTMF`): in the directory of the source and the `includePath` directories.
+* Not converted are `EXEC SQL INCLUDE`, CL `INCLUDE` commands on several lines and copy books
+  outside of the project. The preview shows them.
+
+**Member text** from the comment `%TEXT` in the first lines of the file, as written by
+`makei cvtsrcpf --text`:
+
+```
+// %METADATA
+// %TEXT Display a message
+// %EMETADATA
+```
+
+**Preview.** The second page lists the files with member, source type and status (*New*,
+*Replace*, *Error*). Files with errors are not exported: a file name with more than 10 characters
+before the first period, several files for the same member, a line longer than the record length of
+an existing source file or a file of the same name that is not a source file. Warnings, e.g.
+characters that do not exist in the CCSID of the source file or include directives that are not
+converted, do not prevent the export. Select a file to see all its problems, the converted include
+directives and the member text. You can deselect files.
+
+**Export.** *Finish* starts the export in the background. Before an existing member is replaced,
+you are asked: *Yes*, *Yes To All*, *No*, *No To All* or *Cancel*. The commands are shown in the
+*Commands Log* view, a summary at the end. The next export of the project starts with the same
+settings.
+
 ## Files on the IBM i
 
 The plug-in stores its files in the folder `.ifsprojects` of your home directory:
 
-* `tmp`: temporary files of builds and syntax checks. They are deleted after 24 hours.
+* `tmp`: temporary files of builds, syntax checks and exports. They are deleted after 24 hours.
 * `builds/<project>`: default deploy directories of local IFS projects.
 
 ## Preferences
 
 *Window > Preferences > IFS Projects*:
 
-* SSH connection of the terminals (port, encoding, user ID, password) and *Restore terminals after
-  a restart*.
-* *Run build and compile commands*: in the SSH terminal of the project (default) or in a job of
-  the RSE connection, see [Where the build runs](#where-the-build-runs).
-* Default build and compile command, with presets for TOBi (`makei build`,
-  `makei compile -f {filename}`) and GNU Make (`gmake`, `gmake {filename}`).
-* Default environment variables for all projects. A variable of a project overrides the default
-  of the same name.
+* *IFS Projects*: *Run build and compile commands* in the SSH terminal of the project (default) or
+  in a job of the RSE connection, see [Where the build runs](#where-the-build-runs), and *Reuse the
+  terminal of a project for building*. The defaults of the IFS projects: build and compile command,
+  with presets for TOBi (`makei build`, `makei compile -f {filename}`) and GNU Make (`gmake`,
+  `gmake {filename}`), and environment variables. A variable of a project overrides the default of
+  the same name.
+* *SSH Terminal*: connection (port, timeout, keep alive interval, encoding), log-on (user ID in
+  lowercase, password of the RSE connection) and *Restore terminals after a restart*.
+* *Export to Library*: CCSID and record length of new source files for the first export of a
+  project.
 
 ## For developers
 
