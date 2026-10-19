@@ -21,7 +21,6 @@ import org.junit.Test;
 
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
-import java.util.HashMap;
 
 public class EnvironmentVariablesTest {
 
@@ -155,48 +154,5 @@ public class EnvironmentVariablesTest {
         assertEquals("CALL &LIB/SETUP", EnvironmentVariables.resolveReferences("CALL &LIB/SETUP", null));
         assertEquals("CALL &LIB/SETUP", EnvironmentVariables.resolveReferences("CALL &LIB/SETUP", new LinkedHashMap<String, String>()));
         assertNull(EnvironmentVariables.resolveReferences(null, new LinkedHashMap<String, String>()));
-    }
-
-    @Test
-    public void testAddExports() {
-
-        Map<String, String> variables = new LinkedHashMap<String, String>();
-        variables.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
-        variables.put("EMPTY", "");
-
-        assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY && makei build",
-            EnvironmentVariables.addExports(variables, "makei build"));
-        assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY",
-            EnvironmentVariables.addExports(variables, null));
-    }
-
-    @Test
-    public void testAddExports_quote() {
-
-        Map<String, String> variables = new LinkedHashMap<String, String>();
-        variables.put("TEXT", "it's $HOME");
-
-        assertEquals("TEXT='it'\\''s $HOME' && export TEXT && gmake", EnvironmentVariables.addExports(variables, "gmake"));
-    }
-
-    @Test
-    public void testAddExports_noVariables() {
-        assertEquals("makei build", EnvironmentVariables.addExports(new HashMap<String, String>(), " makei build "));
-        assertEquals("makei build", EnvironmentVariables.addExports(null, "makei build"));
-        assertNull(EnvironmentVariables.addExports(null, null));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddExports_invalidName() {
-        Map<String, String> variables = new LinkedHashMap<String, String>();
-        variables.put("MY-LIB", "x");
-        EnvironmentVariables.addExports(variables, "gmake");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddExports_lineBreak() {
-        Map<String, String> variables = new LinkedHashMap<String, String>();
-        variables.put("CMD", "a\nrm -rf /");
-        EnvironmentVariables.addExports(variables, "gmake");
     }
 }

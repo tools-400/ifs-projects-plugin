@@ -11,7 +11,6 @@ package de.tools400.ifsprojects.terminal;
 import java.util.Collections;
 
 import de.tools400.ifsprojects.ibmi.PaseCommands;
-import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -88,7 +87,7 @@ public final class ShellCommands {
      */
     public static String addTerminalType(String aTerminalType, String aCommandLine) {
 
-        String export = EnvironmentVariables.addExports(Collections.singletonMap(TERMINAL_TYPE, aTerminalType), null);
+        String export = PaseCommands.addExports(Collections.singletonMap(TERMINAL_TYPE, aTerminalType), null);
         if (aCommandLine == null) {
             return export + ENTER;
         }

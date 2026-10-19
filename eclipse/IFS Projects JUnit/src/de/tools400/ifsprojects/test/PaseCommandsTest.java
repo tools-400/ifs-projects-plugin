@@ -9,9 +9,12 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -26,6 +29,59 @@ public class PaseCommandsTest {
         assertEquals("'/home/jsmith/my project'", PaseCommands.quote("/home/jsmith/my project"));
         assertEquals("'/home/jsmith/it'\\''s a test'", PaseCommands.quote("/home/jsmith/it's a test"));
         assertEquals("'$HOME'", PaseCommands.quote("$HOME"));
+    }
+
+    @Test
+    public void testIsVariableName() {
+        assertTrue(PaseCommands.isVariableName("ENVCMD"));
+        assertTrue(PaseCommands.isVariableName("_lib1"));
+        assertFalse(PaseCommands.isVariableName("1LIB"));
+        assertFalse(PaseCommands.isVariableName("MY-LIB"));
+        assertFalse(PaseCommands.isVariableName(""));
+        assertFalse(PaseCommands.isVariableName(null));
+    }
+
+    @Test
+    public void testAddExports() {
+
+        Map<String, String> variables = new LinkedHashMap<String, String>();
+        variables.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
+        variables.put("EMPTY", "");
+
+        assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY && makei build",
+            PaseCommands.addExports(variables, "makei build"));
+        assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY",
+            PaseCommands.addExports(variables, null));
+    }
+
+    @Test
+    public void testAddExports_quote() {
+
+        Map<String, String> variables = new LinkedHashMap<String, String>();
+        variables.put("TEXT", "it's $HOME");
+
+        assertEquals("TEXT='it'\\''s $HOME' && export TEXT && gmake", PaseCommands.addExports(variables, "gmake"));
+    }
+
+    @Test
+    public void testAddExports_noVariables() {
+        assertEquals("makei build", PaseCommands.addExports(new HashMap<String, String>(), " makei build "));
+        assertEquals("makei build", PaseCommands.addExports(null, "makei build"));
+        assertNull(PaseCommands.addExports(null, null));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAddExports_invalidName() {
+        Map<String, String> variables = new LinkedHashMap<String, String>();
+        variables.put("MY-LIB", "x");
+        PaseCommands.addExports(variables, "gmake");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAddExports_lineBreak() {
+        Map<String, String> variables = new LinkedHashMap<String, String>();
+        variables.put("CMD", "a\nrm -rf /");
+        PaseCommands.addExports(variables, "gmake");
     }
 
     @Test

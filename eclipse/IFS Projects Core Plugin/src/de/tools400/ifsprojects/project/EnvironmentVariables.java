@@ -21,7 +21,8 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * Environment variables of an IFS project. The variables are system specific
  * and are therefore not stored in the project, but in the IFS project filter.
  * Default variables for all projects are stored in the preferences. They are
- * exported before the build and compile commands are executed.
+ * exported before the build and compile commands are executed, see
+ * {@link PaseCommands#addExports(Map, String)}.
  * <p>
  * The variables are edited as text with one variable per line:
  * <code>NAME=value</code>. Empty lines and lines starting with <code>#</code>
@@ -37,7 +38,6 @@ public final class EnvironmentVariables {
     public static final String[] IPROJ_VARIABLE_KEYS = { IProjConfig.OBJLIB, IProjConfig.CURLIB, IProjConfig.PRE_USRLIBL,
         IProjConfig.POST_USRLIBL, IProjConfig.INCLUDE_PATH, IProjConfig.SET_IBMI_ENV_CMD };
 
-    private static final String NAME_PATTERN = "[A-Za-z_][A-Za-z0-9_]*"; //$NON-NLS-1$
     private static final String LINE_SEPARATOR_PATTERN = "\\r?\\n"; //$NON-NLS-1$
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
     private static final String TOKEN_SEPARATOR_PATTERN = "[/ ]"; //$NON-NLS-1$
@@ -51,13 +51,13 @@ public final class EnvironmentVariables {
 
     /**
      * Returns <code>true</code>, if the name can be used as name of a shell
-     * variable.
+     * variable, see {@link PaseCommands#isVariableName(String)}.
      *
      * @param aName - name of the variable
      * @return <code>true</code> for valid names
      */
     public static boolean isValidName(String aName) {
-        return aName != null && aName.matches(NAME_PATTERN);
+        return PaseCommands.isVariableName(aName);
     }
 
     /**
@@ -84,7 +84,7 @@ public final class EnvironmentVariables {
             if (!isValidName(name) || !names.add(name)) {
                 return i + 1;
             }
-            if (containsLineBreak(line.substring(index + 1))) {
+            if (StringUtils.containsLineBreak(line.substring(index + 1))) {
                 return i + 1;
             }
         }
@@ -225,57 +225,6 @@ public final class EnvironmentVariables {
         return buffer.toString();
     }
 
-    /**
-     * Returns the command, preceded by the export of environment variables.
-     * The variables are assigned first and then exported, because the Bourne
-     * shell (bsh) does not support <code>export NAME=value</code>:
-     * <code>A='1' B='2' &amp;&amp; export A B &amp;&amp; command</code>. The
-     * variables stay exported in the shell of the terminal.
-     *
-     * @param aVariables - environment variables, the names must be valid
-     *        shell names
-     * @param aCommand - command or <code>null</code>
-     * @return command line without line terminator or <code>null</code>, if
-     *         neither variables nor a command have been specified
-     */
-    public static String addExports(Map<String, String> aVariables, String aCommand) {
-
-        String command = StringUtils.trimToNull(aCommand);
-        if (aVariables == null || aVariables.isEmpty()) {
-            return command;
-        }
-
-        StringBuilder assignments = new StringBuilder();
-        StringBuilder names = new StringBuilder();
-        for (Map.Entry<String, String> entry : aVariables.entrySet()) {
-            String name = entry.getKey();
-            String value = StringUtils.nullToEmpty(entry.getValue());
-            if (!isValidName(name)) {
-                throw new IllegalArgumentException("Invalid name of environment variable: " + name); //$NON-NLS-1$
-            }
-            if (containsLineBreak(value)) {
-                throw new IllegalArgumentException("Environment variable must not contain line breaks: " + name); //$NON-NLS-1$
-            }
-            if (assignments.length() > 0) {
-                assignments.append(' ');
-                names.append(' ');
-            }
-            assignments.append(name).append(ASSIGNMENT).append(PaseCommands.quote(value));
-            names.append(name);
-        }
-
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(assignments);
-        buffer.append(" && export "); //$NON-NLS-1$
-        buffer.append(names);
-        if (command != null) {
-            buffer.append(" && "); //$NON-NLS-1$
-            buffer.append(command);
-        }
-
-        return buffer.toString();
-    }
-
     private static boolean isTokenSeparator(char aChar) {
         return aChar == ' ' || aChar == '/';
     }
@@ -283,10 +232,6 @@ public final class EnvironmentVariables {
     private static boolean isIgnored(String aLine) {
         String line = aLine.trim();
         return line.length() == 0 || line.startsWith(COMMENT);
-    }
-
-    private static boolean containsLineBreak(String aValue) {
-        return aValue.indexOf('\r') >= 0 || aValue.indexOf('\n') >= 0;
     }
 
     private static String[] splitLines(String aText) {
