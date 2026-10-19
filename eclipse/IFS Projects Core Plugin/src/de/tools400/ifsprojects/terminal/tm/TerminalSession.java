@@ -302,6 +302,14 @@ class TerminalSession {
     }
 
     /**
+     * Returns the number of the session among the sessions with the same
+     * title, starting at 1.
+     */
+    int getInstanceNumber() {
+        return instanceNumber;
+    }
+
+    /**
      * Returns the name of the session as shown in the session list.
      */
     String getName() {

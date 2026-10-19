@@ -9,7 +9,11 @@
 package de.tools400.ifsprojects.terminal.tm;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -50,9 +54,9 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * View that hosts all SSH terminal sessions. The active session is shown on the
- * left side, the list of all sessions on the right side. The actions are
- * created by the {@link TerminalActionGroup}, the sessions are saved and
- * restored by the {@link TerminalRequestMemento}.
+ * left side, the list of all sessions on the right side, sorted alphabetically
+ * by name. The actions are created by the {@link TerminalActionGroup}, the
+ * sessions are saved and restored by the {@link TerminalRequestMemento}.
  */
 public class TmTerminalView extends ViewPart implements TerminalSession.Listener {
 
@@ -63,6 +67,25 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     private static final String MEMENTO_SESSION = "session"; //$NON-NLS-1$
     private static final String MEMENTO_ACTIVE_SESSION = "activeSession"; //$NON-NLS-1$
     private static final String MEMENTO_NAME = "name"; //$NON-NLS-1$
+
+    /**
+     * Order of the session list: alphabetically by the custom name or the
+     * title, sessions with the same title by their instance numbers, so that
+     * <code>X (10)</code> follows <code>X (2)</code>.
+     */
+    private static final Comparator<TerminalSession> SESSION_ORDER = new Comparator<TerminalSession>() {
+        public int compare(TerminalSession aSession1, TerminalSession aSession2) {
+            int result = getSortName(aSession1).compareToIgnoreCase(getSortName(aSession2));
+            if (result != 0) {
+                return result;
+            }
+            return aSession1.getInstanceNumber() - aSession2.getInstanceNumber();
+        }
+
+        private String getSortName(TerminalSession aSession) {
+            return aSession.getCustomName() != null ? aSession.getCustomName() : aSession.getRequest().getTitle();
+        }
+    };
 
     private final List<TerminalSession> sessions = new ArrayList<TerminalSession>();
     private TerminalSession activeSession;
@@ -132,7 +155,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      */
     public ITerminalCommandLine openSession(TerminalRequest aRequest) {
 
-        TerminalSession session = addSession(aRequest);
+        TerminalSession session = addSession(aRequest, null);
         setActiveSession(session);
 
         ITerminalCommandLine commandLine = session.connect(aRequest.getCommandLine());
@@ -346,22 +369,47 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         super.dispose();
     }
 
-    private TerminalSession addSession(TerminalRequest aRequest) {
+    /**
+     * Adds a session to the list, see {@link #SESSION_ORDER}.
+     *
+     * @param aRequest - terminal request
+     * @param aCustomName - name of the session or <code>null</code> for the
+     *        default name
+     * @return new session
+     */
+    private TerminalSession addSession(TerminalRequest aRequest, String aCustomName) {
 
-        int instanceNumber = 1;
-        for (TerminalSession session : sessions) {
-            if (session.getRequest().getTitle().equals(aRequest.getTitle())) {
-                instanceNumber++;
-            }
-        }
-
-        TerminalSession session = new TerminalSession(aRequest, instanceNumber, this);
+        TerminalSession session = new TerminalSession(aRequest, getFreeInstanceNumber(aRequest.getTitle()), this);
+        session.setCustomName(aCustomName);
         session.create(terminalArea);
         sessions.add(session);
+        Collections.sort(sessions, SESSION_ORDER);
 
         sessionList.refresh();
 
         return session;
+    }
+
+    /**
+     * Returns the smallest instance number, that no session with the
+     * specified title has, so that the names of the sessions are unique, also
+     * after sessions have been closed.
+     */
+    private int getFreeInstanceNumber(String aTitle) {
+
+        Set<Integer> instanceNumbers = new HashSet<Integer>();
+        for (TerminalSession session : sessions) {
+            if (session.getRequest().getTitle().equals(aTitle)) {
+                instanceNumbers.add(Integer.valueOf(session.getInstanceNumber()));
+            }
+        }
+
+        int instanceNumber = 1;
+        while (instanceNumbers.contains(Integer.valueOf(instanceNumber))) {
+            instanceNumber++;
+        }
+
+        return instanceNumber;
     }
 
     private void restoreSessions() {
@@ -373,8 +421,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         for (IMemento child : restoredState.getChildren(MEMENTO_SESSION)) {
             TerminalRequest request = TerminalRequestMemento.restore(child);
             if (request != null) {
-                TerminalSession session = addSession(request);
-                session.setCustomName(child.getString(MEMENTO_NAME));
+                addSession(request, child.getString(MEMENTO_NAME));
             }
         }
 
@@ -499,7 +546,8 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         }
 
         aSession.setCustomName(dialog.getValue());
-        sessionList.update(aSession, null);
+        Collections.sort(sessions, SESSION_ORDER);
+        sessionList.refresh();
 
         if (aSession == activeSession) {
             updateTitle();
