@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * CL commands of the syntax check of a stream file.
@@ -403,9 +404,9 @@ public final class SyntaxCheckCommands {
 
         List<String> values = new ArrayList<String>();
         for (String rawValue : rawValues) {
-            String value = EnvironmentVariables.resolveReferences(rawValue, aVariables);
-            if (value != null && value.trim().length() > 0) {
-                values.add(value.trim());
+            String value = StringUtils.trimToNull(EnvironmentVariables.resolveReferences(rawValue, aVariables));
+            if (value != null) {
+                values.add(value);
             }
         }
 

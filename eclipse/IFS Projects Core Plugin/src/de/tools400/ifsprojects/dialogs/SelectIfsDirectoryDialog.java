@@ -43,6 +43,7 @@ import com.ibm.as400.access.AS400;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Dialog for selecting a directory of the IFS. The tree is expanded to the
@@ -233,7 +234,7 @@ public class SelectIfsDirectoryDialog extends Dialog {
      */
     private List<IfsDirectoryItem> findDirectoryPath(IfsDirectoryItem aRootDirectory, String aDirectory) {
 
-        if (aDirectory == null || aDirectory.trim().length() == 0) {
+        if (StringUtils.isBlank(aDirectory)) {
             return null;
         }
 

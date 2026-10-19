@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Environment variables of an IFS project. The variables are system specific
  * and are therefore not stored in the project, but in the IFS project filter.
@@ -130,7 +132,7 @@ public final class EnvironmentVariables {
             if (buffer.length() > 0) {
                 buffer.append(LINE_SEPARATOR);
             }
-            buffer.append(entry.getKey()).append(ASSIGNMENT).append(entry.getValue() == null ? "" : entry.getValue()); //$NON-NLS-1$
+            buffer.append(entry.getKey()).append(ASSIGNMENT).append(StringUtils.nullToEmpty(entry.getValue()));
         }
 
         return buffer.toString();
@@ -210,7 +212,7 @@ public final class EnvironmentVariables {
                 String name = token.length() > 1 && token.charAt(0) == VARIABLE_PREFIX ? token.substring(1) : null;
                 if (name != null && aVariables.containsKey(name)) {
                     String value = aVariables.get(name);
-                    buffer.append(value == null ? "" : value); //$NON-NLS-1$
+                    buffer.append(StringUtils.nullToEmpty(value));
                 } else {
                     buffer.append(token);
                 }

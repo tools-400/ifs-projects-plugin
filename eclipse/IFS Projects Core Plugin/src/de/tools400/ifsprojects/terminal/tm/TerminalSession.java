@@ -57,6 +57,7 @@ import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
 import de.tools400.ifsprojects.terminal.ShellCommands;
 import de.tools400.ifsprojects.terminal.TerminalException;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * One SSH terminal session of the {@link TmTerminalView}: the terminal control,
@@ -368,11 +369,7 @@ class TerminalSession {
      * Sets the name of the session. An empty name restores the default name.
      */
     void setCustomName(String aName) {
-        if (aName == null || aName.trim().length() == 0) {
-            customName = null;
-        } else {
-            customName = aName.trim();
-        }
+        customName = StringUtils.trimToNull(aName);
     }
 
     String getErrorMessage() {

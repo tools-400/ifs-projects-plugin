@@ -8,6 +8,8 @@
 
 package de.tools400.ifsprojects.terminal;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Immutable description of a terminal session that is opened by an
  * {@link ITerminalLauncher}.
@@ -290,10 +292,10 @@ public final class TerminalRequest {
         }
 
         public TerminalRequest build() {
-            if (hostName == null || hostName.trim().length() == 0) {
+            if (StringUtils.isBlank(hostName)) {
                 throw new IllegalStateException("Host name must not be empty."); //$NON-NLS-1$
             }
-            if (userId == null || userId.trim().length() == 0) {
+            if (StringUtils.isBlank(userId)) {
                 throw new IllegalStateException("User ID must not be empty."); //$NON-NLS-1$
             }
             if (connectionName == null) {

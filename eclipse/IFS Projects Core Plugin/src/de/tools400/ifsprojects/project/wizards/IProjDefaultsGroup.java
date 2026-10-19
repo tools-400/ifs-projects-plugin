@@ -27,6 +27,7 @@ import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjToolTips;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Group of the wizards of new projects, that defines the attributes of a new
@@ -40,8 +41,6 @@ import de.tools400.ifsprojects.swt.ToolTips;
  * {@link BuildTool#findExisting(String, String)}.
  */
 public class IProjDefaultsGroup {
-
-    private static final String EMPTY = ""; //$NON-NLS-1$
 
     private final Button createIProjButton;
     private final Text descriptionText;
@@ -186,7 +185,7 @@ public class IProjDefaultsGroup {
     }
 
     private void setText(Text aText, String aValue) {
-        aText.setText(aValue == null ? EMPTY : aValue);
+        aText.setText(StringUtils.nullToEmpty(aValue));
     }
 
     private void updateFields() {

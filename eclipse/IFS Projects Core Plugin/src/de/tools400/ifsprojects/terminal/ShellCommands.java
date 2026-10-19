@@ -11,6 +11,7 @@ package de.tools400.ifsprojects.terminal;
 import java.util.Map;
 
 import de.tools400.ifsprojects.project.EnvironmentVariables;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Builds the command line that is sent to the remote shell (bsh, ksh, bash)
@@ -50,7 +51,7 @@ public final class ShellCommands {
 
         // Do not trim the directory: IFS names may start or end with blanks.
         String directory = (aDirectory == null || aDirectory.length() == 0) ? null : aDirectory;
-        String command = trimToNull(aCommand);
+        String command = StringUtils.trimToNull(aCommand);
 
         if (directory == null && command == null) {
             return null;
@@ -100,7 +101,7 @@ public final class ShellCommands {
         String command = aCommand;
         for (Map.Entry<String, String> entry : aValues.entrySet()) {
             String value = entry.getValue();
-            command = command.replace("{" + entry.getKey() + "}", value == null ? "" : value); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            command = command.replace("{" + entry.getKey() + "}", StringUtils.nullToEmpty(value)); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         return command;
@@ -121,7 +122,7 @@ public final class ShellCommands {
      */
     public static String addExports(Map<String, String> aVariables, String aCommand) {
 
-        String command = trimToNull(aCommand);
+        String command = StringUtils.trimToNull(aCommand);
         if (aVariables == null || aVariables.isEmpty()) {
             return command;
         }
@@ -130,7 +131,7 @@ public final class ShellCommands {
         StringBuilder names = new StringBuilder();
         for (Map.Entry<String, String> entry : aVariables.entrySet()) {
             String name = entry.getKey();
-            String value = entry.getValue() == null ? "" : entry.getValue(); //$NON-NLS-1$
+            String value = StringUtils.nullToEmpty(entry.getValue());
             if (!EnvironmentVariables.isValidName(name)) {
                 throw new IllegalArgumentException("Invalid name of environment variable: " + name); //$NON-NLS-1$
             }
@@ -155,18 +156,5 @@ public final class ShellCommands {
         }
 
         return buffer.toString();
-    }
-
-    private static String trimToNull(String aValue) {
-        if (aValue == null) {
-            return null;
-        }
-
-        String value = aValue.trim();
-        if (value.length() == 0) {
-            return null;
-        }
-
-        return value;
     }
 }

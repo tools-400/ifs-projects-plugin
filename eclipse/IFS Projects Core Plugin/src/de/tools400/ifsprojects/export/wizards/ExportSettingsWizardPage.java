@@ -31,6 +31,7 @@ import de.tools400.ifsprojects.export.SourceFileRule;
 import de.tools400.ifsprojects.swt.CcsidCombo;
 import de.tools400.ifsprojects.swt.ToolTips;
 import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * First page of the export: library, source files, CCSID and record length of
@@ -196,11 +197,11 @@ public class ExportSettingsWizardPage extends WizardPage {
 
     private void setValues(ExportSettings aSettings) {
 
-        libraryText.setText(aSettings.getLibrary() == null ? "" : aSettings.getLibrary()); //$NON-NLS-1$
+        libraryText.setText(StringUtils.nullToEmpty(aSettings.getLibrary()));
         directoryButton.setSelection(aSettings.getSourceFileRule() == SourceFileRule.DIRECTORY);
         sourceTypeButton.setSelection(aSettings.getSourceFileRule() == SourceFileRule.SOURCE_TYPE);
         singleFileButton.setSelection(aSettings.getSourceFileRule() == SourceFileRule.SINGLE_FILE);
-        sourceFileText.setText(aSettings.getSourceFile() == null ? "" : aSettings.getSourceFile()); //$NON-NLS-1$
+        sourceFileText.setText(StringUtils.nullToEmpty(aSettings.getSourceFile()));
         sourceFileText.setEnabled(singleFileButton.getSelection());
         ccsidCombo.setCcsid(aSettings.getCcsid());
         recordLengthText.setText(Integer.toString(aSettings.getRecordLength()));

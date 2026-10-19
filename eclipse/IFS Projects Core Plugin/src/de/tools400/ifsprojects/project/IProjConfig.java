@@ -19,6 +19,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Content of an <code>iproj.json</code> file, as used by Code for IBM i and
  * Better Object Builder.
@@ -78,7 +80,7 @@ public final class IProjConfig {
             content = content.substring(1);
         }
 
-        if (content.trim().length() == 0) {
+        if (StringUtils.isBlank(content)) {
             return new IProjConfig();
         }
 
@@ -119,7 +121,7 @@ public final class IProjConfig {
      */
     public void setString(String aKey, String aValue) {
 
-        String value = trimToNull(aValue);
+        String value = StringUtils.trimToNull(aValue);
         if (value == null) {
             json.remove(aKey);
         } else {
@@ -171,7 +173,7 @@ public final class IProjConfig {
         JsonArray array = new JsonArray();
         if (aValues != null) {
             for (String value : aValues) {
-                String item = trimToNull(value);
+                String item = StringUtils.trimToNull(value);
                 if (item != null) {
                     array.add(new JsonPrimitive(item));
                 }
@@ -229,7 +231,7 @@ public final class IProjConfig {
      * @return build command or <code>null</code>
      */
     public String getBuildCommand() {
-        return trimToNull(getString(BUILD_COMMAND));
+        return StringUtils.trimToNull(getString(BUILD_COMMAND));
     }
 
     /**
@@ -238,7 +240,7 @@ public final class IProjConfig {
      * @return compile command or <code>null</code>
      */
     public String getCompileCommand() {
-        return trimToNull(getString(COMPILE_COMMAND));
+        return StringUtils.trimToNull(getString(COMPILE_COMMAND));
     }
 
     /**
@@ -248,19 +250,5 @@ public final class IProjConfig {
      */
     public String toJson() {
         return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(json) + LINE_FEED;
-    }
-
-    private static String trimToNull(String aValue) {
-
-        if (aValue == null) {
-            return null;
-        }
-
-        String value = aValue.trim();
-        if (value.length() == 0) {
-            return null;
-        }
-
-        return value;
     }
 }

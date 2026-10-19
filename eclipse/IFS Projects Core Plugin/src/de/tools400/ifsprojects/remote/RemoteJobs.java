@@ -29,6 +29,7 @@ import com.ibm.as400.access.User;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Helper methods for commands and files of the jobs, that perform syntax checks
@@ -276,11 +277,11 @@ public final class RemoteJobs {
             return HOME_PARENT + aSystem.getUserId().toLowerCase();
         }
 
-        if (directory == null || directory.trim().length() == 0) {
+        directory = StringUtils.trimToNull(directory);
+        if (directory == null) {
             directory = HOME_PARENT + aSystem.getUserId().toLowerCase();
         }
 
-        directory = directory.trim();
         HOME_DIRECTORIES.put(key, directory);
 
         return directory;

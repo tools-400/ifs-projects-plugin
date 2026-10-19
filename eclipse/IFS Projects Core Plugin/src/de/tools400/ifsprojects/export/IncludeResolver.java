@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Finds the file of a project, that an include directive of a stream file
  * refers to, in the same way as the compilers do. Verified on the IBM i:
@@ -118,11 +120,11 @@ public final class IncludeResolver {
 
     private String resolve(List<String> aDirectories, String aName, String[] anExtensions) {
 
-        if (aName == null || aName.trim().length() == 0) {
+        String name = StringUtils.trimToNull(aName);
+        if (name == null) {
             return null;
         }
 
-        String name = aName.trim();
         if (name.charAt(0) == SEPARATOR) {
             String path = toRelativePath(name);
             return path == null ? null : find(path, anExtensions);

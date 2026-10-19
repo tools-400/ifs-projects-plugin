@@ -26,6 +26,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.utils.PlatformUtils;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Runs the build or compile command of an IFS project in a remote command
@@ -224,7 +225,7 @@ public class RseBuildJob extends Job {
         byte[] bytes = RemoteJobs.readBytes(aLogFile, anOffset);
         for (String line : aLogLines.add(bytes)) {
             // Empty lines would be logged as empty comments.
-            if (line.trim().length() > 0) {
+            if (!StringUtils.isBlank(line)) {
                 CommandsLog.log(host, line);
             }
         }

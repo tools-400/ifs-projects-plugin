@@ -12,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Settings of the export of a project. They are saved per project, so that the
  * next export starts with the values of the last one.
@@ -73,9 +75,9 @@ public final class ExportSettings {
 
         ExportSettings settings = new ExportSettings(aDefaults.library, aDefaults.ccsid, aDefaults.recordLength);
 
-        String library = aValues.get(LIBRARY);
-        if (library != null && library.trim().length() > 0) {
-            settings.library = library.trim().toUpperCase(Locale.ROOT);
+        String library = StringUtils.trimToNull(aValues.get(LIBRARY));
+        if (library != null) {
+            settings.library = library.toUpperCase(Locale.ROOT);
         }
 
         try {
@@ -84,9 +86,9 @@ public final class ExportSettings {
             // Keep the default
         }
 
-        String sourceFile = aValues.get(SOURCE_FILE);
-        if (sourceFile != null && sourceFile.trim().length() > 0) {
-            settings.sourceFile = sourceFile.trim().toUpperCase(Locale.ROOT);
+        String sourceFile = StringUtils.trimToNull(aValues.get(SOURCE_FILE));
+        if (sourceFile != null) {
+            settings.sourceFile = sourceFile.toUpperCase(Locale.ROOT);
         }
 
         settings.ccsid = getInt(aValues.get(CCSID), MIN_CCSID, MAX_CCSID, aDefaults.ccsid);

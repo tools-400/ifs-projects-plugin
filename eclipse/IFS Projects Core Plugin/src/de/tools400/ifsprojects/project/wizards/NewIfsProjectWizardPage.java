@@ -40,6 +40,7 @@ import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.project.IfsProjectFilters;
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Page of the 'New IFS Project' wizard.
@@ -51,7 +52,6 @@ import de.tools400.ifsprojects.swt.ToolTips;
 public class NewIfsProjectWizardPage extends WizardPage {
 
     private static final String PAGE_NAME = "NewIfsProjectWizardPage"; //$NON-NLS-1$
-    private static final String EMPTY = ""; //$NON-NLS-1$
 
     private final IHost host;
     private final String initialDirectory;
@@ -243,7 +243,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
 
         isUpdatingName = true;
         try {
-            nameText.setText(lastSegment == null ? EMPTY : lastSegment);
+            nameText.setText(StringUtils.nullToEmpty(lastSegment));
         } finally {
             isUpdatingName = false;
         }

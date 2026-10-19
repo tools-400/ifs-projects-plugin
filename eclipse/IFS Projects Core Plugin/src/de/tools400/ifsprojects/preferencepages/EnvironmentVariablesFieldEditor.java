@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Text;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Field editor of environment variables: a multi-line text with one variable
@@ -134,7 +135,7 @@ public class EnvironmentVariablesFieldEditor extends FieldEditor {
     }
 
     private void setText(String aValue) {
-        text.setText(aValue == null ? "" : aValue); //$NON-NLS-1$
+        text.setText(StringUtils.nullToEmpty(aValue));
         oldValue = text.getText();
     }
 

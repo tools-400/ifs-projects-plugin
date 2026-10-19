@@ -9,6 +9,7 @@
 package de.tools400.ifsprojects.export;
 
 import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * CL commands of the export of stream files into members.
@@ -134,7 +135,7 @@ public final class ExportCommands {
 
     private static String getTextParameter(String aText) {
 
-        if (aText == null || aText.trim().length() == 0) {
+        if (StringUtils.isBlank(aText)) {
             return "*BLANK"; //$NON-NLS-1$
         }
 

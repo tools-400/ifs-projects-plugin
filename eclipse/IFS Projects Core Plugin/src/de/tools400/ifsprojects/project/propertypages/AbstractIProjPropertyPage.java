@@ -32,6 +32,7 @@ import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.project.IProjToolTips;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Base class of the property pages of IFS projects and local IFS projects.
@@ -232,7 +233,7 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
         new Label(aParent, SWT.NONE).setText(aLabel);
 
         Label value = new Label(aParent, SWT.NONE);
-        value.setText(nullToEmpty(aValue));
+        value.setText(StringUtils.nullToEmpty(aValue));
         value.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     }
 
@@ -284,7 +285,7 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
                 text.setText(config.getJsonText(key));
                 text.setEditable(false);
             } else {
-                text.setText(nullToEmpty(config.getString(key)));
+                text.setText(StringUtils.nullToEmpty(config.getString(key)));
             }
         }
 
@@ -341,8 +342,9 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
 
         List<String> lines = new ArrayList<String>();
         for (String line : aText.split(LINE_SEPARATOR_PATTERN)) {
-            if (line.trim().length() > 0) {
-                lines.add(line.trim());
+            String trimmedLine = StringUtils.trimToNull(line);
+            if (trimmedLine != null) {
+                lines.add(trimmedLine);
             }
         }
 
@@ -360,12 +362,5 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
         }
 
         return buffer.toString();
-    }
-
-    private String nullToEmpty(String aValue) {
-        if (aValue == null) {
-            return ""; //$NON-NLS-1$
-        }
-        return aValue;
     }
 }

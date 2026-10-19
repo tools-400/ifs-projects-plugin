@@ -24,6 +24,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.dialogs.ToolTipInputDialog;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Creates terminal requests from RSE connections.
@@ -49,7 +50,7 @@ public final class RseConnections {
 
         String rseUserId = getRseUserId(aHost);
         String userId = rseUserId;
-        if (isEmpty(userId)) {
+        if (StringUtils.isBlank(userId)) {
             userId = promptUserId(aShell, aHost);
             if (userId == null) {
                 return null;
@@ -59,7 +60,7 @@ public final class RseConnections {
         userId = toSshUserId(userId, preferences.isLowercaseUserId());
 
         String password = null;
-        if (preferences.isUseSavedPassword() && !isEmpty(rseUserId)) {
+        if (preferences.isUseSavedPassword() && !StringUtils.isBlank(rseUserId)) {
             password = findSavedPassword(aHost, rseUserId);
         }
 
@@ -128,7 +129,7 @@ public final class RseConnections {
             IBMiConnection connection = IBMiConnection.getConnection(aHost);
             if (connection != null) {
                 String userId = connection.getUserID();
-                if (!isEmpty(userId)) {
+                if (!StringUtils.isBlank(userId)) {
                     return userId;
                 }
             }
@@ -162,7 +163,7 @@ public final class RseConnections {
         ToolTipInputDialog dialog = new ToolTipInputDialog(aShell, Messages.Title_IFS_Projects,
             Messages.bind(Messages.Label_Enter_user_ID_for_A, aHost.getHostName()), "", new IInputValidator() { //$NON-NLS-1$
                 public String isValid(String aNewText) {
-                    if (isEmpty(aNewText)) {
+                    if (StringUtils.isBlank(aNewText)) {
                         return Messages.Error_User_ID_must_not_be_empty;
                     }
                     return null;
@@ -174,9 +175,5 @@ public final class RseConnections {
         }
 
         return dialog.getValue().trim();
-    }
-
-    private static boolean isEmpty(String aValue) {
-        return aValue == null || aValue.trim().length() == 0;
     }
 }

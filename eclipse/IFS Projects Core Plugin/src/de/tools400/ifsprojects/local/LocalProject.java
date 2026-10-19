@@ -33,15 +33,17 @@ import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
 import de.tools400.ifsprojects.rse.RseConnections;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
- * Local IFS project: a project of the workspace, whose files are uploaded to
- * a deploy directory in the IFS and built there, see {@link Deployment}.
+ * Local IFS project: a project of the workspace, whose files are uploaded to a
+ * deploy directory in the IFS and built there, see {@link Deployment}.
  * <p>
  * The RSE connection, the deploy directory and the environment variables of
- * each connection are stored as persistent properties of the project. They are specific for the user
- * and the workspace and therefore are not stored in the files of the project
- * (<code>.project</code>, <code>.settings</code>), which are usually shared.
+ * each connection are stored as persistent properties of the project. They are
+ * specific for the user and the workspace and therefore are not stored in the
+ * files of the project (<code>.project</code>, <code>.settings</code>), which
+ * are usually shared.
  */
 public final class LocalProject {
 
@@ -50,7 +52,10 @@ public final class LocalProject {
     private static final String ENVIRONMENT_PREFIX = "environment."; //$NON-NLS-1$
     private static final String EXPORT_PREFIX = "export."; //$NON-NLS-1$
 
-    /** Characters of a project name, that are kept in the default deploy directory. */
+    /**
+     * Characters of a project name, that are kept in the default deploy
+     * directory.
+     */
     private static final String INVALID_DIRECTORY_CHARACTERS = "[^A-Za-z0-9._-]"; //$NON-NLS-1$
     private static final String REPLACEMENT = "_"; //$NON-NLS-1$
     private static final char SEPARATOR = '/';
@@ -68,8 +73,8 @@ public final class LocalProject {
      * Returns the local IFS project of a project of the workspace.
      *
      * @param aProject - project or <code>null</code>
-     * @return local IFS project or <code>null</code>, if the project is
-     *         closed or not configured as IFS project
+     * @return local IFS project or <code>null</code>, if the project is closed
+     *         or not configured as IFS project
      */
     public static LocalProject get(IProject aProject) {
 
@@ -97,8 +102,8 @@ public final class LocalProject {
     }
 
     /**
-     * Returns the deploy directory of a project for a connection, that has
-     * been entered by the user.
+     * Returns the deploy directory of a project for a connection, that has been
+     * entered by the user.
      *
      * @param aProject - open project
      * @param aConnectionName - name of the RSE connection
@@ -122,16 +127,16 @@ public final class LocalProject {
      */
     public static void configure(IProject aProject, String aConnectionName, String aDeployDirectory) throws CoreException {
 
-        aProject.setPersistentProperty(CONNECTION, emptyToNull(aConnectionName));
-        if (emptyToNull(aConnectionName) != null) {
-            aProject.setPersistentProperty(getDeployDirectoryKey(aConnectionName), emptyToNull(aDeployDirectory));
+        aProject.setPersistentProperty(CONNECTION, StringUtils.trimToNull(aConnectionName));
+        if (StringUtils.trimToNull(aConnectionName) != null) {
+            aProject.setPersistentProperty(getDeployDirectoryKey(aConnectionName), StringUtils.trimToNull(aDeployDirectory));
         }
     }
 
     /**
-     * Returns the environment variables of a project for a connection, that
-     * are exported before the build and compile commands, like the variables
-     * of IFS projects, see
+     * Returns the environment variables of a project for a connection, that are
+     * exported before the build and compile commands, like the variables of IFS
+     * projects, see
      * {@link de.tools400.ifsprojects.subsystem.IfsProjectEnvironment}.
      *
      * @param aProject - open project
@@ -154,8 +159,8 @@ public final class LocalProject {
      * @param aProject - open project
      * @param aConnectionName - name of the RSE connection
      * @param aVariables - variables, an empty map removes all variables
-     * @throws CoreException if the variables could not be saved, e.g.
-     *         because they are longer than 2048 characters
+     * @throws CoreException if the variables could not be saved, e.g. because
+     *         they are longer than 2048 characters
      */
     public static void setEnvironmentVariables(IProject aProject, String aConnectionName, Map<String, String> aVariables) throws CoreException {
         aProject.setPersistentProperty(getEnvironmentKey(aConnectionName), aVariables.isEmpty() ? null : EnvironmentVariables.format(aVariables));
@@ -200,10 +205,11 @@ public final class LocalProject {
      *
      * @param aHomeDirectory - home directory of the user profile
      * @param aProjectName - name of the project
-     * @return directory, e.g. <code>/home/jsmith/.ifsprojects/builds/demo</code>.
-     *         Characters of the project name, that are not letters, digits,
-     *         dots, underscores or hyphens, are replaced by underscores,
-     *         because make does not support blanks in paths.
+     * @return directory, e.g.
+     *         <code>/home/jsmith/.ifsprojects/builds/demo</code>. Characters of
+     *         the project name, that are not letters, digits, dots, underscores
+     *         or hyphens, are replaced by underscores, because make does not
+     *         support blanks in paths.
      */
     public static String getDefaultDeployDirectory(String aHomeDirectory, String aProjectName) {
         return RemoteJobs.getBuildsDirectory(aHomeDirectory) + SEPARATOR + aProjectName.replaceAll(INVALID_DIRECTORY_CHARACTERS, REPLACEMENT);
@@ -220,7 +226,7 @@ public final class LocalProject {
      */
     public static String normalizeDeployDirectory(String aDirectory) {
 
-        if (aDirectory == null || aDirectory.trim().length() == 0) {
+        if (StringUtils.isBlank(aDirectory)) {
             return ""; //$NON-NLS-1$
         }
 
@@ -329,10 +335,11 @@ public final class LocalProject {
      *
      * @param aProject - open project
      * @param aContent - text of the file
-     * @param aPrevious - content read before or <code>null</code> to
-     *        overwrite the file without checking for changes
-     * @throws IProjFileException if the file could not be written or has
-     *         been changed since it was read ({@link IProjFileException#isConflict()})
+     * @param aPrevious - content read before or <code>null</code> to overwrite
+     *        the file without checking for changes
+     * @throws IProjFileException if the file could not be written or has been
+     *         changed since it was read
+     *         ({@link IProjFileException#isConflict()})
      */
     public static void writeConfigFile(IProject aProject, String aContent, IProjFileContent aPrevious) throws IProjFileException {
 
@@ -398,19 +405,10 @@ public final class LocalProject {
     private static String getProperty(IProject aProject, QualifiedName aKey) {
 
         try {
-            return emptyToNull(aProject.getPersistentProperty(aKey));
+            return StringUtils.trimToNull(aProject.getPersistentProperty(aKey));
         } catch (CoreException e) {
             IfsProjectsPlugin.logError("Could not read property " + aKey.getLocalName() + " of project: " + aProject.getName(), e); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
-    }
-
-    private static String emptyToNull(String aValue) {
-
-        if (aValue == null || aValue.trim().length() == 0) {
-            return null;
-        }
-
-        return aValue.trim();
     }
 }

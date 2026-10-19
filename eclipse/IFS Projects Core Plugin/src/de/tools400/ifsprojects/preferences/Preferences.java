@@ -19,6 +19,7 @@ import de.tools400.ifsprojects.export.ExportSettings;
 import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Preferences of the IFS Projects plug-in.
@@ -109,11 +110,7 @@ public final class Preferences {
     }
 
     public String getEncoding() {
-        String encoding = preferenceStore.getString(ENCODING);
-        if (encoding == null || encoding.trim().length() == 0) {
-            return DEFAULT_ENCODING;
-        }
-        return encoding.trim();
+        return getString(ENCODING, DEFAULT_ENCODING);
     }
 
     public boolean isLowercaseUserId() {
@@ -125,11 +122,7 @@ public final class Preferences {
     }
 
     public String getDefaultBuildCommand() {
-        String command = preferenceStore.getString(DEFAULT_BUILD_COMMAND);
-        if (command == null || command.trim().length() == 0) {
-            return DEFAULT_DEFAULT_BUILD_COMMAND;
-        }
-        return command.trim();
+        return getString(DEFAULT_BUILD_COMMAND, DEFAULT_DEFAULT_BUILD_COMMAND);
     }
 
     /**
@@ -137,11 +130,7 @@ public final class Preferences {
      * of the project does not specify a compile command.
      */
     public String getDefaultCompileCommand() {
-        String command = preferenceStore.getString(DEFAULT_COMPILE_COMMAND);
-        if (command == null || command.trim().length() == 0) {
-            return DEFAULT_DEFAULT_COMPILE_COMMAND;
-        }
-        return command.trim();
+        return getString(DEFAULT_COMPILE_COMMAND, DEFAULT_DEFAULT_COMPILE_COMMAND);
     }
 
     public boolean isReuseBuildTerminal() {
@@ -203,6 +192,18 @@ public final class Preferences {
     private int getInt(String aKey, int aMinimum, int aMaximum, int aDefault) {
         int value = preferenceStore.getInt(aKey);
         if (value < aMinimum || value > aMaximum) {
+            return aDefault;
+        }
+        return value;
+    }
+
+    /**
+     * Returns the trimmed value of a string preference or the default value,
+     * if the preference is empty.
+     */
+    private String getString(String aKey, String aDefault) {
+        String value = StringUtils.trimToNull(preferenceStore.getString(aKey));
+        if (value == null) {
             return aDefault;
         }
         return value;

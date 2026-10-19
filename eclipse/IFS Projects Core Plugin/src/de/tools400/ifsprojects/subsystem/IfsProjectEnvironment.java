@@ -17,6 +17,7 @@ import org.eclipse.rse.core.model.IPropertySet;
 
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Stores the environment variables of an IFS project in a property set of the
@@ -115,7 +116,7 @@ public final class IfsProjectEnvironment {
             int number = 0;
             for (Map.Entry<String, String> entry : aVariables.entrySet()) {
                 number++;
-                String value = entry.getValue() == null ? "" : entry.getValue(); //$NON-NLS-1$
+                String value = StringUtils.nullToEmpty(entry.getValue());
                 propertySet.addProperty(KEY_VARIABLE_PREFIX + number, entry.getKey() + ASSIGNMENT + value);
             }
         }

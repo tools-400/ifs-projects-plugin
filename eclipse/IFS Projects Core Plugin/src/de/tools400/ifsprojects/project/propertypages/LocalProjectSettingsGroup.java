@@ -27,6 +27,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.rse.RseConnections;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Controls of the settings of a local IFS project, see {@link LocalProject}:
@@ -219,7 +220,7 @@ public class LocalProjectSettingsGroup {
         String connectionName = getConnectionName();
         String directory = connectionName == null ? null : LocalProject.getDeployDirectory(project, connectionName);
 
-        directoryText.setText(directory == null ? EMPTY : directory);
+        directoryText.setText(StringUtils.nullToEmpty(directory));
     }
 
     /**

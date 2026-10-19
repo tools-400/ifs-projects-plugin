@@ -10,6 +10,8 @@ package de.tools400.ifsprojects.project;
 
 import java.util.regex.Pattern;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Build tools with their build and compile commands. They are offered as
  * presets on the preference page and in the 'New IFS Project' wizard.
@@ -103,7 +105,7 @@ public enum BuildTool {
     public static BuildTool findExisting(String aBuildCommand, String aCompileCommand) {
 
         String command = aBuildCommand;
-        if (command == null || command.trim().length() == 0) {
+        if (StringUtils.isBlank(command)) {
             command = aCompileCommand;
         }
 

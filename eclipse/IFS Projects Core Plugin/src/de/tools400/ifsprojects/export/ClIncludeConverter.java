@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.tools400.ifsprojects.utils.StringUtils;
+
 /**
  * Converts the <code>INCLUDE SRCSTMF('...')</code> commands of ILE CL sources,
  * e.g. to <code>INCLUDE SRCMBR(CONSTS) SRCFILE(INC)</code>.
@@ -78,7 +80,7 @@ final class ClIncludeConverter extends IncludeConverter {
                 }
 
                 Matcher matcher = INCLUDE_SRCSTMF.matcher(aLine);
-                if (!matcher.matches() || removeComments(matcher.group(4)).trim().length() > 0) {
+                if (!matcher.matches() || !StringUtils.isBlank(removeComments(matcher.group(4)))) {
                     checkUnsupported(aLineNumber, code, aResult);
                     return aLine;
                 }

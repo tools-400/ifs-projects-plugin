@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * First page of the 'Import Local IFS Project' wizard: the directory of the
@@ -237,7 +238,7 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
 
         String errorMessage = null;
 
-        if (directoryText.getText().trim().length() == 0) {
+        if (StringUtils.isBlank(directoryText.getText())) {
             setErrorMessage(null);
             setPageComplete(false);
             return;
