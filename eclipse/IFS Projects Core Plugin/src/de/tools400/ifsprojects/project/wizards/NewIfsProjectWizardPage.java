@@ -8,12 +8,15 @@
 
 package de.tools400.ifsprojects.project.wizards;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.rse.core.model.IHost;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.ModifyEvent;
@@ -24,6 +27,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -64,7 +69,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
     private boolean isNameModifiedByUser;
     private boolean isUpdatingName;
 
-    /** Directory, whose iproj.json has been checked. */
+    /** Directory, whose iproj.json is checked or has been checked. */
     private String checkedDirectory;
 
     public NewIfsProjectWizardPage(IHost aHost, String anInitialDirectory) {
@@ -167,6 +172,11 @@ public class NewIfsProjectWizardPage extends WizardPage {
     /**
      * Checks, whether the project directory contains an iproj.json file. An
      * existing file is shown read-only and is used as it is.
+     * <p>
+     * The file is read in a job, so that the wizard stays responsive, if the
+     * connection hangs, and a click, that has moved the focus, is not lost.
+     * The connection is established before on the UI thread, because RSE may
+     * prompt for the password.
      */
     private void checkIProjFile() {
 
@@ -175,37 +185,71 @@ public class NewIfsProjectWizardPage extends WizardPage {
             return;
         }
 
-        checkedDirectory = directory;
-
-        final IProjFileContent[] fileContent = new IProjFileContent[1];
         try {
             IProjFileStore.connect(host);
-            final IProjFileException[] error = new IProjFileException[1];
-            BusyIndicator.showWhile(getShell().getDisplay(), new Runnable() {
-                public void run() {
-                    try {
-                        fileContent[0] = IProjFileStore.read(host, directory);
-                    } catch (IProjFileException e) {
-                        error[0] = e;
-                    }
-                }
-            });
-            if (error[0] != null) {
-                throw error[0];
-            }
         } catch (IProjFileException e) {
             IfsProjectsPlugin.logError("Could not check iproj.json of directory: " + directory, e); //$NON-NLS-1$
             showNewIProj(e.getLocalizedMessage());
             return;
         }
 
-        if (!fileContent[0].exists()) {
+        checkedDirectory = directory;
+        setMessage(Messages.bind(Messages.Task_Reading_A, directory), IMessageProvider.INFORMATION);
+
+        final Display display = getShell().getDisplay();
+        Job job = new Job(Messages.bind(Messages.Task_Reading_A, directory)) {
+            @Override
+            protected IStatus run(IProgressMonitor aMonitor) {
+
+                IProjFileContent fileContent = null;
+                IProjFileException error = null;
+                try {
+                    fileContent = IProjFileStore.read(host, directory);
+                } catch (IProjFileException e) {
+                    error = e;
+                }
+
+                final IProjFileContent result = fileContent;
+                final IProjFileException resultError = error;
+                display.asyncExec(new Runnable() {
+                    public void run() {
+                        showCheckResult(directory, result, resultError);
+                    }
+                });
+
+                return Status.OK_STATUS;
+            }
+        };
+        job.setSystem(true);
+        job.schedule();
+    }
+
+    /**
+     * Shows the result of {@link #checkIProjFile()}, unless the page has been
+     * closed or another directory is checked meanwhile.
+     */
+    private void showCheckResult(String aDirectory, IProjFileContent aFileContent, IProjFileException anError) {
+
+        Control control = getControl();
+        if (control == null || control.isDisposed() || !aDirectory.equals(checkedDirectory)) {
+            return;
+        }
+
+        if (anError != null) {
+            IfsProjectsPlugin.logError("Could not check iproj.json of directory: " + aDirectory, anError); //$NON-NLS-1$
+            // Checks the directory again, when the focus leaves the field.
+            checkedDirectory = null;
+            showNewIProj(anError.getLocalizedMessage());
+            return;
+        }
+
+        if (!aFileContent.exists()) {
             showNewIProj(null);
             return;
         }
 
         try {
-            showExistingIProj(IProjConfig.parse(fileContent[0].getContent()), null);
+            showExistingIProj(IProjConfig.parse(aFileContent.getContent()), null);
         } catch (IProjParseException e) {
             showExistingIProj(null, Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, e.getLocalizedMessage()));
         }
