@@ -70,6 +70,13 @@ class TerminalSession {
 
     private static final String FONT_DEFINITION = "terminal.views.view.font.definition"; //$NON-NLS-1$
 
+    /**
+     * Terminal type exported in the shell, if the SSH connector requests
+     * <code>ansi</code>, see {@link TmConnectorFactory#isAnsiTerminalType}.
+     * It is the terminal type of the SSH connector of RDi 9.8.
+     */
+    private static final String TERMINAL_TYPE = "xterm"; //$NON-NLS-1$
+
     /** History size of the command input field (same as RDi 9.8). */
     private static final int COMMAND_HISTORY_SIZE = 100;
 
@@ -95,6 +102,7 @@ class TerminalSession {
     private AbstractTerminalAction[] contextMenuActions;
     private TerminalKeyHandler keyHandler;
     private String errorMessage;
+    private boolean isAnsiTerminalType;
 
     private CommandLine pendingCommandLine;
     private int connectGeneration;
@@ -170,6 +178,8 @@ class TerminalSession {
             return false;
         }
 
+        isAnsiTerminalType = TmConnectorFactory.isAnsiTerminalType(connector);
+
         // Observe the output of the shell, see sendPendingCommandLineWhenReady().
         outputMonitor = new TerminalOutputMonitor();
         ITerminalConnector observedConnector = outputMonitor.observe(connector);
@@ -196,21 +206,24 @@ class TerminalSession {
 
     /**
      * Connects the terminal. The command line is sent to the shell, once it is
-     * ready.
+     * ready. If the SSH connector requests the terminal type
+     * <code>ansi</code>, the command line exports {@link #TERMINAL_TYPE}
+     * before.
      *
      * @param aCommandLine - command line or <code>null</code>
      * @return command line passed to the session
      */
     ITerminalCommandLine connect(String aCommandLine) {
 
-        CommandLine commandLine = createCommandLine(aCommandLine);
+        String initialCommandLine = isAnsiTerminalType ? ShellCommands.addTerminalType(TERMINAL_TYPE, aCommandLine) : aCommandLine;
+        CommandLine commandLine = createCommandLine(initialCommandLine);
 
         if (!isAlive()) {
             closeCount++;
             return commandLine;
         }
 
-        pendingCommandLine = aCommandLine == null ? null : commandLine;
+        pendingCommandLine = initialCommandLine == null ? null : commandLine;
         connectGeneration++;
 
         try {

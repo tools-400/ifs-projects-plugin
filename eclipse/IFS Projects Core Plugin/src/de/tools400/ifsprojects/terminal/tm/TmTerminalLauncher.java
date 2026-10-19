@@ -49,8 +49,8 @@ public class TmTerminalLauncher implements ITerminalLauncher {
      * </ul>
      */
     private static final String[][] SSH_CONNECTORS = { //
-        { "org.eclipse.tm.terminal.control.connectors", "org.eclipse.tm.terminal.connector.ssh.SshConnector" }, //$NON-NLS-1$ //$NON-NLS-2$
-        { "org.eclipse.tm.terminal.terminalConnectors", "org.eclipse.tm.internal.terminal.ssh.SshConnector" } }; //$NON-NLS-1$ //$NON-NLS-2$
+        { "org.eclipse.tm.terminal.control.connectors", TmConnectorFactory.SSH_CONNECTOR_ID }, //$NON-NLS-1$
+        { "org.eclipse.tm.terminal.terminalConnectors", TmConnectorFactory.OLD_SSH_CONNECTOR_ID } }; //$NON-NLS-1$
 
     public boolean isAvailable() {
 

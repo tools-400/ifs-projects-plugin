@@ -34,6 +34,12 @@ final class TmConnectorFactory {
     static final String SETTING_TIMEOUT = "Timeout"; //$NON-NLS-1$
     static final String SETTING_KEEP_ALIVE = "Keepalive"; //$NON-NLS-1$
 
+    /** ID of the SSH connector of the new TM terminal (RDi 9.8). */
+    static final String SSH_CONNECTOR_ID = "org.eclipse.tm.terminal.connector.ssh.SshConnector"; //$NON-NLS-1$
+
+    /** ID of the SSH connector of the old TM terminal (RDi 9.6, 9.9). */
+    static final String OLD_SSH_CONNECTOR_ID = "org.eclipse.tm.internal.terminal.ssh.SshConnector"; //$NON-NLS-1$
+
     private static final String ATTRIBUTE_NAME = "name"; //$NON-NLS-1$
     private static final String ATTRIBUTE_CLASS = "class"; //$NON-NLS-1$
 
@@ -61,5 +67,19 @@ final class TmConnectorFactory {
         };
 
         return new TerminalConnector(factory, element.getAttribute(TmTerminalLauncher.ATTRIBUTE_ID), element.getAttribute(ATTRIBUTE_NAME), true);
+    }
+
+    /**
+     * Returns <code>true</code>, if the SSH connector requests the terminal
+     * type <code>ansi</code> for the shell, like the SSH connector of the old TM
+     * terminal does. IBM i PASE does not know it, so that e.g.
+     * <code>clear</code> does nothing. The SSH connector of the new TM terminal
+     * requests <code>xterm</code>.
+     *
+     * @param aConnector - SSH connector
+     * @return <code>true</code>, if the terminal type is <code>ansi</code>
+     */
+    static boolean isAnsiTerminalType(ITerminalConnector aConnector) {
+        return OLD_SSH_CONNECTOR_ID.equals(aConnector.getId());
     }
 }

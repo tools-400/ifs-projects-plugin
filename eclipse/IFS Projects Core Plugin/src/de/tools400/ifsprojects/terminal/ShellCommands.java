@@ -8,7 +8,10 @@
 
 package de.tools400.ifsprojects.terminal;
 
+import java.util.Collections;
+
 import de.tools400.ifsprojects.ibmi.PaseCommands;
+import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -19,6 +22,10 @@ public final class ShellCommands {
 
     /** Line terminator sent to the terminal (Enter key). */
     public static final String ENTER = "\r"; //$NON-NLS-1$
+
+    private static final String AND = " && "; //$NON-NLS-1$
+
+    private static final String TERMINAL_TYPE = "TERM"; //$NON-NLS-1$
 
     private ShellCommands() {
         // Utility class
@@ -60,7 +67,7 @@ public final class ShellCommands {
 
         if (command != null) {
             if (buffer.length() > 0) {
-                buffer.append(" && "); //$NON-NLS-1$
+                buffer.append(AND);
             }
             buffer.append(command);
         }
@@ -68,5 +75,24 @@ public final class ShellCommands {
         buffer.append(ENTER);
 
         return buffer.toString();
+    }
+
+    /**
+     * Returns the command line, that exports the terminal type and then
+     * executes the specified command line.
+     *
+     * @param aTerminalType - terminal type, e.g. <code>xterm</code>
+     * @param aCommandLine - command line, see
+     *        {@link #toCommandLine(String, String)}, or <code>null</code>
+     * @return command line terminated by {@link #ENTER}
+     */
+    public static String addTerminalType(String aTerminalType, String aCommandLine) {
+
+        String export = EnvironmentVariables.addExports(Collections.singletonMap(TERMINAL_TYPE, aTerminalType), null);
+        if (aCommandLine == null) {
+            return export + ENTER;
+        }
+
+        return export + AND + aCommandLine;
     }
 }

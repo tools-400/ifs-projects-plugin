@@ -56,6 +56,17 @@ public class ShellCommandsTest {
         ShellCommands.toCommandLine("/home/jsmith", "gmake\rrm -rf /");
     }
 
+    @Test
+    public void testAddTerminalType_noCommandLine() {
+        assertEquals("TERM='xterm' && export TERM\r", ShellCommands.addTerminalType("xterm", null));
+    }
+
+    @Test
+    public void testAddTerminalType_commandLine() {
+        assertEquals("TERM='xterm' && export TERM && cd '/home/jsmith/src' && gmake\r",
+            ShellCommands.addTerminalType("xterm", ShellCommands.toCommandLine("/home/jsmith/src", "gmake")));
+    }
+
 
 
 
