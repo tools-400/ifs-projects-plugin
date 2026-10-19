@@ -7,10 +7,19 @@ How the plug-in works and how it is built. For its use, see [README.md](README.m
 * Clone the repository into the RDi workspace. The target platform is the running platform (RDi).
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.
 * Launch configurations for RDi 9.8 and 9.9 (German and English):
-  `eclipse/IFS Projects Core Plugin/launches`. The 9.9 configurations set
-  `-Dcom.ibm.cic.licensing.p2.home.dir=C:\ProgramData`; without it the license check of the IBM i
-  connection fails (RDi 9.8 has it in `config.ini`).
-* Unit tests: fragment `eclipse/IFS Projects JUnit` (*Run As > JUnit Test*).
+  `eclipse/IFS Projects Core Plugin/launches`. VM arguments of the 9.9 configurations:
+  * `-Dcom.ibm.cic.licensing.p2.home.dir=C:\ProgramData`: without it the license check of the
+    IBM i connection fails (RDi 9.8 has it in `config.ini`).
+  * `-Declipse.bundle.setTCCL=false`: PDE adds `-Djava.security.manager=allow` on Java 17 and
+    later, so that Java 21 runs the common `ForkJoinPool` in threads that forbid
+    `setContextClassLoader()`. Without the option, Equinox cannot activate a bundle whose first
+    class is loaded in such a thread, e.g. `org.eclipse.ltk.core.refactoring` by LSP4E, when an
+    editor is opened: `SecurityException: setContextClassLoader`, then `NoClassDefFoundError`,
+    and the Java perspective does not open. Auto-start of single bundles is not enough, LSP4E
+    loads several of them. RDi itself does not allow the security manager.
+* Unit tests: fragment `eclipse/IFS Projects JUnit` (*Run As > JUnit Test*) with Java 11 or
+  later. The bundles of RDi 9.8 are Java 11 class files; with Java 8 (e.g. the J9 of RDi 9.6) the
+  tests that load Eclipse classes fail with `UnsupportedClassVersionError`.
 * Update site: *Build All* in `eclipse/IFS Projects Update Site/site.xml`.
 * Release: `build/IFS Projects Build/build/build.xml` (same script as iSphere, iRPGUnit and
   JCRCMDS, settings in `build.properties`). Update site and home page go to `docs/` of the
