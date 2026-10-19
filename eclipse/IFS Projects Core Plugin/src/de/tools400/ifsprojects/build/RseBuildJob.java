@@ -101,8 +101,6 @@ public class RseBuildJob extends Job {
         try (RemoteSession session = new RemoteSession(rseSystem)) {
 
             AS400 system = session.getSystem();
-            CommandCall commandCall = session.getCommandCall();
-            String home = RemoteJobs.getHomeDirectory(system);
             String shell = new IFSFile(system, PaseCommands.BASH).exists() ? PaseCommands.BASH : PaseCommands.SH;
 
             IFSFile logFile = session.newTemporaryFile(LOG_FILE_SUFFIX);
@@ -113,50 +111,16 @@ public class RseBuildJob extends Job {
             IFSFile exitCodeFile = session.newTemporaryFile(EXIT_CODE_FILE_SUFFIX);
             IFSFile processIdFile = session.newTemporaryFile(PROCESS_ID_FILE_SUFFIX);
 
-            String script = RseBuildCommands.getScript(shell, home, logFile.getAbsolutePath(), exitCodeFile.getAbsolutePath(),
-                processIdFile.getAbsolutePath(), directory, command);
-            CommandThread commandThread = new CommandThread(commandCall, PaseCommands.getCallCommand(shell, script));
+            String script = RseBuildCommands.getScript(shell, RemoteJobs.getHomeDirectory(system), logFile.getAbsolutePath(),
+                exitCodeFile.getAbsolutePath(), processIdFile.getAbsolutePath(), directory, command);
+            CommandThread commandThread = new CommandThread(session.getCommandCall(), PaseCommands.getCallCommand(shell, script));
             commandThread.start();
 
-            LogLines logLines = new LogLines();
-            long offset = 0;
-            while (commandThread.isAlive()) {
-                if (aMonitor.isCanceled()) {
-                    boolean isStopped = stop(processIdFile.getAbsolutePath(), commandThread);
-                    logNewLines(logFile, offset, logLines);
-                    if (isStopped) {
-                        CommandsLog.log(host, Messages.Log_Canceled);
-                    } else {
-                        // Ends the remote command server job. Jobs started by
-                        // the command may still be running.
-                        system.disconnectAllServices();
-                        CommandsLog.log(host, Messages.Log_Canceled_command_may_still_be_running);
-                    }
-                    return Status.CANCEL_STATUS;
-                }
-                commandThread.join(POLL_INTERVAL_MILLIS);
-                offset = logNewLines(logFile, offset, logLines);
-            }
-            logNewLines(logFile, offset, logLines);
-            String lastLine = logLines.flush();
-            if (lastLine != null) {
-                CommandsLog.log(host, lastLine);
+            if (!logOutput(system, commandThread, logFile, processIdFile, aMonitor)) {
+                return Status.CANCEL_STATUS;
             }
 
-            if (commandThread.getException() != null) {
-                throw commandThread.getException();
-            }
-
-            if (!commandThread.isSuccessful()) {
-                CommandsLog.log(host, RemoteJobs.getMessages(commandCall));
-            }
-
-            Integer exitCode = exitCodeFile.exists() ? RseBuildCommands.parseExitCode(RemoteJobs.readText(exitCodeFile)) : null;
-            if (exitCode == null) {
-                CommandsLog.log(host, Messages.Log_Finished);
-            } else {
-                CommandsLog.log(host, Messages.bind(Messages.Log_Finished_with_exit_code_A, exitCode));
-            }
+            logResult(commandThread, session.getCommandCall(), exitCodeFile);
 
             String events = BuildEvents.collect(session, directory, objectLibrary, startTime);
             if (events == null) {
@@ -177,6 +141,70 @@ public class RseBuildJob extends Job {
         }
 
         return Status.OK_STATUS;
+    }
+
+    /**
+     * Logs the output of the command line by line, until the command has ended
+     * or the job has been canceled. The command of a canceled job is stopped,
+     * see {@link #stop(String, Thread)}.
+     *
+     * @param aSystem - system object of the job, which runs the command
+     * @return <code>false</code>, if the job has been canceled
+     */
+    private boolean logOutput(AS400 aSystem, CommandThread aCommandThread, IFSFile aLogFile, IFSFile aProcessIdFile, IProgressMonitor aMonitor)
+        throws Exception {
+
+        LogLines logLines = new LogLines();
+        long offset = 0;
+        while (aCommandThread.isAlive()) {
+            if (aMonitor.isCanceled()) {
+                boolean isStopped = stop(aProcessIdFile.getAbsolutePath(), aCommandThread);
+                logNewLines(aLogFile, offset, logLines);
+                if (isStopped) {
+                    CommandsLog.log(host, Messages.Log_Canceled);
+                } else {
+                    // Ends the remote command server job. Jobs started by the
+                    // command may still be running.
+                    aSystem.disconnectAllServices();
+                    CommandsLog.log(host, Messages.Log_Canceled_command_may_still_be_running);
+                }
+                return false;
+            }
+            aCommandThread.join(POLL_INTERVAL_MILLIS);
+            offset = logNewLines(aLogFile, offset, logLines);
+        }
+
+        logNewLines(aLogFile, offset, logLines);
+        String lastLine = logLines.flush();
+        if (lastLine != null) {
+            CommandsLog.log(host, lastLine);
+        }
+
+        return true;
+    }
+
+    /**
+     * Logs the end of the command: the messages of a failed CL command and the
+     * exit code of the shell.
+     *
+     * @throws Exception if the CL command could not be run
+     */
+    private void logResult(CommandThread aCommandThread, CommandCall aCommandCall, IFSFile anExitCodeFile) throws Exception {
+
+        if (aCommandThread.getException() != null) {
+            throw aCommandThread.getException();
+        }
+
+        if (!aCommandThread.isSuccessful()) {
+            CommandsLog.log(host, RemoteJobs.getMessages(aCommandCall));
+        }
+
+        Integer exitCode = anExitCodeFile.exists() ? RseBuildCommands.parseExitCode(RemoteJobs.readText(anExitCodeFile)) : null;
+        if (exitCode == null) {
+            CommandsLog.log(host, Messages.Log_Finished);
+        } else {
+            CommandsLog.log(host, Messages.bind(Messages.Log_Finished_with_exit_code_A, exitCode));
+        }
     }
 
     /**

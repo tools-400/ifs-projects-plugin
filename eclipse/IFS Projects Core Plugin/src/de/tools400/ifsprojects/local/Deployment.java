@@ -144,27 +144,8 @@ public final class Deployment {
         Set<String> directories = new HashSet<String>();
         createDirectory(aSystem, aDeployDirectory, directories);
 
-        // An untrusted manifest only tells, which files have been uploaded
-        // before and may be deleted.
         IFSFile tokenFile = new IFSFile(aSystem, aDeployDirectory + SEPARATOR + ProjectFiles.DEPLOY_TOKEN_FILE);
-        boolean isTrusted = !anIsAll && manifest.getToken() != null && manifest.getToken().equals(readToken(tokenFile));
-        if (!isTrusted) {
-            manifest.removeAllEntries();
-        } else {
-            Map<String, DeployManifest.RemoteFile> remoteFiles = listRemoteFiles(aSystem, aDeployDirectory);
-            for (String path : manifest.getMissingRemoteFiles(remoteFiles)) {
-                manifest.removeEntry(path);
-            }
-            List<String> changedFiles = manifest.getChangedRemoteFiles(remoteFiles);
-            if (!changedFiles.isEmpty()) {
-                if (!aConflictHandler.isOverwrite(changedFiles)) {
-                    throw new InterruptedException();
-                }
-                for (String path : changedFiles) {
-                    manifest.removeEntry(path);
-                }
-            }
-        }
+        verifyManifest(aSystem, aDeployDirectory, tokenFile, manifest, anIsAll, aConflictHandler);
 
         // Invalidates the manifests of other workspaces, before the deploy
         // directory is changed.
@@ -186,25 +167,11 @@ public final class Deployment {
 
             for (Map.Entry<String, IFile> entry : files.entrySet()) {
                 checkCanceled(aMonitor);
-                String path = entry.getKey();
-                IFile file = entry.getValue();
-
-                long size = file.getLocation().toFile().length();
-                long modified = file.getLocalTimeStamp();
-                int ccsid = getCcsid(file.getCharset());
-
-                DeployManifest.Entry previous = manifest.getEntry(path);
-                if (previous != null && previous.isUnchanged(size, modified, ccsid)) {
-                    result.unchanged++;
-                } else if (previous != null && previous.getCcsid() == ccsid && previous.getHash().equals(getHash(file))) {
-                    // Touched, but not changed, e.g. by git
-                    manifest.putEntry(path, new DeployManifest.Entry(size, modified, ccsid, previous.getHash()));
-                    result.unchanged++;
-                } else {
-                    aMonitor.subTask(path);
-                    String hash = upload(aSystem, file, aDeployDirectory + SEPARATOR + path, ccsid, directories);
-                    manifest.putEntry(path, new DeployManifest.Entry(size, modified, ccsid, hash));
+                aMonitor.subTask(entry.getKey());
+                if (deployFile(aSystem, aDeployDirectory, entry.getKey(), entry.getValue(), manifest, directories)) {
                     result.uploaded++;
+                } else {
+                    result.unchanged++;
                 }
                 aMonitor.worked(1);
             }
@@ -223,6 +190,76 @@ public final class Deployment {
         }
 
         return result;
+    }
+
+    /**
+     * Checks the manifest of the last upload against the deploy directory:
+     * <ul>
+     * <li>An untrusted manifest, e.g. of another workspace, only tells, which
+     * files have been uploaded before and may be deleted. All files are
+     * uploaded.</li>
+     * <li>The entries of a trusted manifest are removed for the stream files,
+     * that are missing or have been changed in the IFS, so that they are
+     * uploaded again. The user is asked, before changed files are
+     * replaced.</li>
+     * </ul>
+     *
+     * @throws InterruptedException if the user does not want to replace the
+     *         changed files
+     */
+    private static void verifyManifest(AS400 aSystem, String aDeployDirectory, IFSFile aTokenFile, DeployManifest aManifest, boolean anIsAll,
+        ConflictHandler aConflictHandler) throws Exception {
+
+        boolean isTrusted = !anIsAll && aManifest.getToken() != null && aManifest.getToken().equals(readToken(aTokenFile));
+        if (!isTrusted) {
+            aManifest.removeAllEntries();
+            return;
+        }
+
+        Map<String, DeployManifest.RemoteFile> remoteFiles = listRemoteFiles(aSystem, aDeployDirectory);
+        for (String path : aManifest.getMissingRemoteFiles(remoteFiles)) {
+            aManifest.removeEntry(path);
+        }
+
+        List<String> changedFiles = aManifest.getChangedRemoteFiles(remoteFiles);
+        if (!changedFiles.isEmpty()) {
+            if (!aConflictHandler.isOverwrite(changedFiles)) {
+                throw new InterruptedException();
+            }
+            for (String path : changedFiles) {
+                aManifest.removeEntry(path);
+            }
+        }
+    }
+
+    /**
+     * Uploads a file, unless it is unchanged since the last upload, and
+     * updates its entry of the manifest.
+     *
+     * @return <code>true</code>, if the file has been uploaded
+     */
+    private static boolean deployFile(AS400 aSystem, String aDeployDirectory, String aPath, IFile aFile, DeployManifest aManifest,
+        Set<String> aDirectories) throws Exception {
+
+        long size = aFile.getLocation().toFile().length();
+        long modified = aFile.getLocalTimeStamp();
+        int ccsid = getCcsid(aFile.getCharset());
+
+        DeployManifest.Entry previous = aManifest.getEntry(aPath);
+        if (previous != null && previous.isUnchanged(size, modified, ccsid)) {
+            return false;
+        }
+
+        if (previous != null && previous.getCcsid() == ccsid && previous.getHash().equals(getHash(aFile))) {
+            // Touched, but not changed, e.g. by git
+            aManifest.putEntry(aPath, new DeployManifest.Entry(size, modified, ccsid, previous.getHash()));
+            return false;
+        }
+
+        String hash = upload(aSystem, aFile, aDeployDirectory + SEPARATOR + aPath, ccsid, aDirectories);
+        aManifest.putEntry(aPath, new DeployManifest.Entry(size, modified, ccsid, hash));
+
+        return true;
     }
 
     /**

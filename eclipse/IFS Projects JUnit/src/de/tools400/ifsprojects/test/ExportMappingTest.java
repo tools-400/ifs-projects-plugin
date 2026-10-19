@@ -9,7 +9,9 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -136,5 +138,13 @@ public class ExportMappingTest {
         assertEquals(aMember, anEntry.getMember());
         assertEquals(aSourceType, anEntry.getSourceType());
         assertEquals(aStatus, anEntry.getStatus());
+    }
+
+    @Test
+    public void testIsExported() {
+        assertTrue(ExportMapping.isExported("src/hello.pgm.rpgle"));
+        assertTrue(ExportMapping.isExported("hello.pgm.clle"));
+        assertFalse(ExportMapping.isExported("src/Rules.mk"));
+        assertFalse(ExportMapping.isExported("iproj.json"));
     }
 }

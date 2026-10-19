@@ -93,6 +93,17 @@ public final class ExportMapping {
     }
 
     /**
+     * Returns <code>true</code>, if a file of a project is exported: it has a
+     * source type, see {@link #getSourceType(String)}.
+     *
+     * @param aPath - path of the file, e.g. <code>src/hello.pgm.rpgle</code>
+     * @return <code>true</code>, if the file is exported
+     */
+    public static boolean isExported(String aPath) {
+        return getSourceType(IfsPaths.getFileName(aPath)) != null;
+    }
+
+    /**
      * Returns the source type of a stream file.
      *
      * @param aFileName - name of the stream file

@@ -75,6 +75,9 @@ public class ExportJob extends Job {
     private int replaced;
     private int skipped;
 
+    /** Answer 'Yes To All' or 'No To All' of the user, see askOverwrite(). */
+    private OverwriteQuery.Answer answerToAll;
+
     /**
      * Creates the job.
      *
@@ -118,15 +121,8 @@ public class ExportJob extends Job {
                 return Status.OK_STATUS;
             }
 
-            Set<String> failedSourceFiles = new HashSet<String>();
-            for (Map.Entry<String, Integer> sourceFile : newSourceFiles.entrySet()) {
-                String command = ExportCommands.getCreateSourceFileCommand(library, sourceFile.getKey(), sourceFile.getValue().intValue(), ccsid);
-                if (!run(commandCall, command, sourceFile.getKey())) {
-                    failedSourceFiles.add(sourceFile.getKey());
-                }
-            }
+            Set<String> failedSourceFiles = createSourceFiles(commandCall);
 
-            OverwriteQuery.Answer answerToAll = null;
             for (ExportPlan.Item item : items) {
 
                 if (aMonitor.isCanceled()) {
@@ -136,26 +132,9 @@ public class ExportJob extends Job {
 
                 aMonitor.subTask(item.getPath());
 
-                if (failedSourceFiles.contains(item.getSourceFile())) {
-                    errors.add(Messages.bind(Messages.Error_A_B, item.getPath(), Messages.bind(Messages.Error_Source_file_A_not_created,
-                        item.getSourceFile())));
-                } else if (item.isExistingMember()) {
-                    OverwriteQuery.Answer answer = answerToAll != null ? answerToAll : overwriteQuery.ask(getMemberName(item));
-                    if (answer == OverwriteQuery.Answer.YES_TO_ALL || answer == OverwriteQuery.Answer.NO_TO_ALL) {
-                        answerToAll = answer;
-                    }
-                    if (answer == OverwriteQuery.Answer.CANCEL) {
-                        isCanceled = true;
-                        break;
-                    }
-                    if (answer == OverwriteQuery.Answer.YES || answer == OverwriteQuery.Answer.YES_TO_ALL) {
-                        replace(commandCall, temporaryFile, item);
-                    } else {
-                        skipped++;
-                        CommandsLog.log(host, Messages.bind(Messages.Log_Member_A_skipped, getMemberName(item)));
-                    }
-                } else {
-                    create(commandCall, temporaryFile, item);
+                if (!exportItem(commandCall, temporaryFile, item, failedSourceFiles)) {
+                    isCanceled = true;
+                    break;
                 }
 
                 aMonitor.worked(1);
@@ -172,6 +151,77 @@ public class ExportJob extends Job {
         }
 
         return isCanceled ? Status.CANCEL_STATUS : Status.OK_STATUS;
+    }
+
+    /**
+     * Creates the new source files of the plan.
+     *
+     * @return source files, that could not be created
+     */
+    private Set<String> createSourceFiles(CommandCall aCommandCall) throws Exception {
+
+        Set<String> failedSourceFiles = new HashSet<String>();
+        for (Map.Entry<String, Integer> sourceFile : newSourceFiles.entrySet()) {
+            String command = ExportCommands.getCreateSourceFileCommand(library, sourceFile.getKey(), sourceFile.getValue().intValue(), ccsid);
+            if (!run(aCommandCall, command, sourceFile.getKey())) {
+                failedSourceFiles.add(sourceFile.getKey());
+            }
+        }
+
+        return failedSourceFiles;
+    }
+
+    /**
+     * Exports a file of the project: adds a new member or replaces an existing
+     * member, if the user agrees.
+     *
+     * @return <code>false</code>, if the user canceled the export
+     */
+    private boolean exportItem(CommandCall aCommandCall, IFSFile aTemporaryFile, ExportPlan.Item anItem, Set<String> aFailedSourceFiles)
+        throws Exception {
+
+        if (aFailedSourceFiles.contains(anItem.getSourceFile())) {
+            errors.add(Messages.bind(Messages.Error_A_B, anItem.getPath(), Messages.bind(Messages.Error_Source_file_A_not_created,
+                anItem.getSourceFile())));
+            return true;
+        }
+
+        if (!anItem.isExistingMember()) {
+            create(aCommandCall, aTemporaryFile, anItem);
+            return true;
+        }
+
+        OverwriteQuery.Answer answer = askOverwrite(anItem);
+        if (answer == OverwriteQuery.Answer.CANCEL) {
+            return false;
+        }
+
+        if (answer == OverwriteQuery.Answer.YES || answer == OverwriteQuery.Answer.YES_TO_ALL) {
+            replace(aCommandCall, aTemporaryFile, anItem);
+        } else {
+            skipped++;
+            CommandsLog.log(host, Messages.bind(Messages.Log_Member_A_skipped, getMemberName(anItem)));
+        }
+
+        return true;
+    }
+
+    /**
+     * Asks the user, whether an existing member is replaced, unless the user
+     * has answered 'Yes To All' or 'No To All' before.
+     */
+    private OverwriteQuery.Answer askOverwrite(ExportPlan.Item anItem) {
+
+        if (answerToAll != null) {
+            return answerToAll;
+        }
+
+        OverwriteQuery.Answer answer = overwriteQuery.ask(getMemberName(anItem));
+        if (answer == OverwriteQuery.Answer.YES_TO_ALL || answer == OverwriteQuery.Answer.NO_TO_ALL) {
+            answerToAll = answer;
+        }
+
+        return answer;
     }
 
     private void create(CommandCall aCommandCall, IFSFile aTemporaryFile, ExportPlan.Item anItem) throws Exception {

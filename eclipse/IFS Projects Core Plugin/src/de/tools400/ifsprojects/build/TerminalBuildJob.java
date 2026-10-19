@@ -70,6 +70,9 @@ public class TerminalBuildJob extends Job {
      */
     private static final int CLOSED_SESSION_POLLS = 2;
 
+    /** Start time, if the shell has not started the command. */
+    private static final long NOT_STARTED = -1;
+
     private final IHost host;
     private final AS400 rseSystem;
     private final String directory;
@@ -189,67 +192,19 @@ public class TerminalBuildJob extends Job {
 
         try (RemoteSession session = new RemoteSession(rseSystem)) {
 
-            CommandCall commandCall = session.getCommandCall();
-
             IFSFile startFile = session.newTemporaryFile(id, TerminalBuildCommands.START_FILE_SUFFIX);
             IFSFile exitCodeFile = session.newTemporaryFile(id, TerminalBuildCommands.EXIT_CODE_FILE_SUFFIX);
             IFSFile goneFile = session.newTemporaryFile(id, TerminalBuildCommands.GONE_FILE_SUFFIX);
 
-            long sentTime = 0;
-            long startTime = 0;
-            Integer processId = null;
-            long checkTime = 0;
-            int closedSessionPolls = 0;
-            boolean isGone = false;
-
-            while (!exitCodeFile.exists()) {
-
-                if (aMonitor.isCanceled()) {
-                    return Status.CANCEL_STATUS;
-                }
-
-                if (startTime == 0 && startFile.exists()) {
-                    startTime = startFile.lastModified();
-                    checkTime = System.currentTimeMillis();
-                    aMonitor.subTask(Messages.Task_Waiting_for_command_to_end);
-                }
-
-                if (startTime == 0) {
-                    if (commandLine != null && commandLine.isSessionClosed() && ++closedSessionPolls > CLOSED_SESSION_POLLS) {
-                        // The shell has not read the command line.
-                        return Status.OK_STATUS;
-                    }
-                    if (sentTime == 0 && commandLine != null && commandLine.isSent()) {
-                        sentTime = System.currentTimeMillis();
-                    }
-                    if (sentTime != 0 && System.currentTimeMillis() - sentTime >= START_TIMEOUT_MILLIS) {
-                        IfsProjectsPlugin.logWarning("The command in the terminal has not started in time, e.g. because the directory does not exist: " + directory); //$NON-NLS-1$
-                        return Status.OK_STATUS;
-                    }
-                } else {
-                    if (processId == null) {
-                        // The file may be empty, until the shell has written
-                        // the process ID.
-                        processId = TerminalBuildCommands.parseProcessId(RemoteJobs.readText(startFile));
-                    }
-                    if (processId != null && System.currentTimeMillis() - checkTime >= CHECK_INTERVAL_MILLIS) {
-                        checkTime = System.currentTimeMillis();
-                        if (isGone(commandCall, processId.intValue(), exitCodeFile, goneFile)) {
-                            isGone = true;
-                            break;
-                        }
-                    }
-                }
-
-                Thread.sleep(POLL_INTERVAL_MILLIS);
+            long startTime = waitForStart(startFile, exitCodeFile, aMonitor);
+            if (startTime == NOT_STARTED) {
+                return Status.OK_STATUS;
             }
 
             if (startTime == 0) {
                 // Short command: the exit code file has been found first.
                 startTime = startFile.exists() ? startFile.lastModified() : exitCodeFile.lastModified();
-            }
-
-            if (isGone) {
+            } else if (waitForEnd(session.getCommandCall(), startFile, exitCodeFile, goneFile, aMonitor)) {
                 IfsProjectsPlugin.logWarning("The command in the terminal has ended without exit code, e.g. because it has been killed: " + directory); //$NON-NLS-1$
             }
 
@@ -267,6 +222,91 @@ public class TerminalBuildJob extends Job {
         }
 
         return Status.OK_STATUS;
+    }
+
+    /**
+     * Waits, until the shell has started the command: the start file exists.
+     *
+     * @return modification time of the start file, 0, if the command has
+     *         already ended, or {@link #NOT_STARTED}, if the shell has not
+     *         started the command: the terminal session has been closed or the
+     *         command has not started in time
+     * @throws InterruptedException if the job has been canceled
+     */
+    private long waitForStart(IFSFile aStartFile, IFSFile anExitCodeFile, IProgressMonitor aMonitor) throws Exception {
+
+        long sentTime = 0;
+        int closedSessionPolls = 0;
+
+        while (!anExitCodeFile.exists()) {
+
+            checkCanceled(aMonitor);
+
+            long startTime = aStartFile.exists() ? aStartFile.lastModified() : 0;
+            if (startTime != 0) {
+                return startTime;
+            }
+
+            if (commandLine != null && commandLine.isSessionClosed() && ++closedSessionPolls > CLOSED_SESSION_POLLS) {
+                // The shell has not read the command line.
+                return NOT_STARTED;
+            }
+            if (sentTime == 0 && commandLine != null && commandLine.isSent()) {
+                sentTime = System.currentTimeMillis();
+            }
+            if (sentTime != 0 && System.currentTimeMillis() - sentTime >= START_TIMEOUT_MILLIS) {
+                IfsProjectsPlugin.logWarning("The command in the terminal has not started in time, e.g. because the directory does not exist: " + directory); //$NON-NLS-1$
+                return NOT_STARTED;
+            }
+
+            Thread.sleep(POLL_INTERVAL_MILLIS);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Waits, until the command has ended: the exit code file exists. Checks
+     * periodically, whether the subshell of the command still exists.
+     *
+     * @return <code>true</code>, if the command has ended without exit code,
+     *         e.g. because it has been killed
+     * @throws InterruptedException if the job has been canceled
+     */
+    private boolean waitForEnd(CommandCall aCommandCall, IFSFile aStartFile, IFSFile anExitCodeFile, IFSFile aGoneFile, IProgressMonitor aMonitor)
+        throws Exception {
+
+        aMonitor.subTask(Messages.Task_Waiting_for_command_to_end);
+
+        Integer processId = null;
+        long checkTime = System.currentTimeMillis();
+
+        while (!anExitCodeFile.exists()) {
+
+            checkCanceled(aMonitor);
+
+            if (processId == null) {
+                // The file may be empty, until the shell has written the
+                // process ID.
+                processId = TerminalBuildCommands.parseProcessId(RemoteJobs.readText(aStartFile));
+            }
+            if (processId != null && System.currentTimeMillis() - checkTime >= CHECK_INTERVAL_MILLIS) {
+                checkTime = System.currentTimeMillis();
+                if (isGone(aCommandCall, processId.intValue(), anExitCodeFile, aGoneFile)) {
+                    return true;
+                }
+            }
+
+            Thread.sleep(POLL_INTERVAL_MILLIS);
+        }
+
+        return false;
+    }
+
+    private void checkCanceled(IProgressMonitor aMonitor) throws InterruptedException {
+        if (aMonitor.isCanceled()) {
+            throw new InterruptedException();
+        }
     }
 
     /**

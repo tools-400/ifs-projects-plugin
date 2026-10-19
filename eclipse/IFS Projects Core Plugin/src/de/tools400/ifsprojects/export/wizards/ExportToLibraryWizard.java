@@ -9,9 +9,6 @@
 package de.tools400.ifsprojects.export.wizards;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -25,14 +22,11 @@ import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.export.ExportAnalyzer;
 import de.tools400.ifsprojects.export.ExportJob;
-import de.tools400.ifsprojects.export.ExportMapping;
 import de.tools400.ifsprojects.export.ExportPlan;
 import de.tools400.ifsprojects.export.ExportSettings;
 import de.tools400.ifsprojects.export.ExportSource;
-import de.tools400.ifsprojects.export.IncludeResolver;
-import de.tools400.ifsprojects.export.LibraryInfo;
-import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteSession;
@@ -40,10 +34,8 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Exports the source files of a project into members of a library, see
- * {@link ExportPlan} and {@link ExportJob}.
- * <p>
- * The files of the project are read once, when the preview is shown first.
- * The library is read again, if another library is entered.
+ * {@link ExportPlan} and {@link ExportJob}. The plan is computed by the
+ * {@link ExportAnalyzer}.
  */
 public class ExportToLibraryWizard extends Wizard {
 
@@ -55,16 +47,10 @@ public class ExportToLibraryWizard extends Wizard {
     private final AS400 rseSystem;
     private final ExportSettings initialSettings;
 
+    private final ExportAnalyzer analyzer;
+
     private ExportSettingsWizardPage settingsPage;
     private ExportPreviewWizardPage previewPage;
-
-    private String projectDirectory;
-    private List<String> files;
-    private Map<String, String> contents;
-    private Map<String, String> readErrors;
-
-    private String libraryName;
-    private LibraryInfo libraryInfo;
 
     /**
      * Creates the wizard.
@@ -75,6 +61,7 @@ public class ExportToLibraryWizard extends Wizard {
     public ExportToLibraryWizard(ExportSource aSource, AS400 aRseSystem) {
         this.source = aSource;
         this.rseSystem = aRseSystem;
+        this.analyzer = new ExportAnalyzer(aSource);
 
         Preferences preferences = Preferences.getInstance();
         String objectLibrary = IProjValues.getObjectLibrary(aSource.getConfig(), aSource.getVariables());
@@ -130,17 +117,7 @@ public class ExportToLibraryWizard extends Wizard {
             getContainer().run(true, true, new IRunnableWithProgress() {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException, InterruptedException {
                     try (RemoteSession session = new RemoteSession(rseSystem)) {
-                        AS400 system = session.getSystem();
-                        readProject(system, aMonitor);
-                        if (!settings.getLibrary().equals(libraryName)) {
-                            aMonitor.subTask(Messages.bind(Messages.Task_Reading_library_A, settings.getLibrary()));
-                            libraryInfo = LibraryInfo.read(system, settings.getLibrary());
-                            libraryName = settings.getLibrary();
-                        }
-                        List<String> includeDirectories = IProjValues.getIncludeDirectories(projectDirectory, source.getConfig(),
-                            source.getVariables());
-                        IncludeResolver resolver = new IncludeResolver(projectDirectory, includeDirectories, files);
-                        plan[0] = new ExportPlan(settings, files, contents, readErrors, resolver, libraryInfo);
+                        plan[0] = analyzer.analyze(session.getSystem(), settings, aMonitor);
                     } catch (InterruptedException e) {
                         throw e;
                     } catch (Exception e) {
@@ -169,45 +146,6 @@ public class ExportToLibraryWizard extends Wizard {
         previewPage.setPlan(plan[0]);
 
         return previewPage;
-    }
-
-    /**
-     * Lists the files of the project and reads the files with an exported
-     * source type, once per wizard.
-     */
-    private void readProject(AS400 aSystem, IProgressMonitor aMonitor) throws Exception {
-
-        if (files != null) {
-            return;
-        }
-
-        aMonitor.beginTask(Messages.bind(Messages.Task_Reading_files_of_A, source.getName()), IProgressMonitor.UNKNOWN);
-
-        String directory = source.getProjectDirectory(aSystem);
-        List<String> projectFiles = source.listFiles(aSystem);
-        Map<String, String> fileContents = new HashMap<String, String>();
-        Map<String, String> errors = new HashMap<String, String>();
-
-        for (String path : projectFiles) {
-            if (aMonitor.isCanceled()) {
-                throw new InterruptedException();
-            }
-            if (ExportMapping.getSourceType(IfsPaths.getFileName(path)) == null) {
-                continue;
-            }
-            aMonitor.subTask(path);
-            try {
-                fileContents.put(path, source.readFile(aSystem, path));
-            } catch (Exception e) {
-                IfsProjectsPlugin.logError("Could not read the file for the export: " + path, e); //$NON-NLS-1$
-                errors.put(path, e.getLocalizedMessage());
-            }
-        }
-
-        projectDirectory = directory;
-        contents = fileContents;
-        readErrors = errors;
-        files = projectFiles;
     }
 
     /**
