@@ -11,7 +11,11 @@ package de.tools400.ifsprojects.project;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.rse.core.model.IHost;
 
 import com.ibm.as400.access.AS400;
@@ -20,6 +24,7 @@ import com.ibm.as400.access.IFSFileReader;
 import com.ibm.as400.access.IFSFileWriter;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
+import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 
 /**
@@ -27,7 +32,9 @@ import de.tools400.ifsprojects.Messages;
  * <p>
  * The methods of this class access the remote system and must not be called
  * on the UI thread. The connection must have been established before, see
- * {@link #connect(IHost)}.
+ * {@link #connect(IHost)}. Exceptions are the methods with an
+ * {@link IRunnableContext}: they must be called on the UI thread, connect and
+ * access the remote system in the context, which shows the progress.
  */
 public final class IProjFileStore {
 
@@ -75,6 +82,57 @@ public final class IProjFileStore {
     public static AS400 getConnectedSystem(IHost aHost) throws IProjFileException {
         connect(aHost);
         return getSystem(aHost);
+    }
+
+    /**
+     * Connects the RSE connection, if it is not connected, and reads the
+     * <code>iproj.json</code> file of a project in a runnable context, e.g. a
+     * progress monitor dialog. Must be called on the UI thread.
+     *
+     * @param aContext - runnable context, which shows the progress
+     * @param aHost - RSE connection
+     * @param aDirectory - project directory
+     * @return content of the file, see {@link #read(IHost, String)}
+     * @throws IProjFileException if the file could not be read
+     */
+    public static IProjFileContent read(IRunnableContext aContext, final IHost aHost, final String aDirectory) throws IProjFileException {
+
+        connect(aHost);
+
+        final IProjFileContent[] result = new IProjFileContent[1];
+        run(aContext, Messages.bind(Messages.Task_Reading_A, aDirectory), aDirectory, new Operation() {
+            public void run() throws IProjFileException {
+                result[0] = read(aHost, aDirectory);
+            }
+        });
+
+        return result[0];
+    }
+
+    /**
+     * Connects the RSE connection, if it is not connected, and writes the
+     * <code>iproj.json</code> file of a project in a runnable context, e.g. a
+     * progress monitor dialog. Must be called on the UI thread.
+     *
+     * @param aContext - runnable context, which shows the progress
+     * @param aHost - RSE connection
+     * @param aDirectory - project directory
+     * @param aContent - new content
+     * @param aPrevious - content that has been read before or <code>null</code>,
+     *        see {@link #write(IHost, String, String, IProjFileContent)}
+     * @throws IProjFileException if the file could not be written or has been
+     *         changed by someone else ({@link IProjFileException#isConflict()})
+     */
+    public static void write(IRunnableContext aContext, final IHost aHost, final String aDirectory, final String aContent,
+        final IProjFileContent aPrevious) throws IProjFileException {
+
+        connect(aHost);
+
+        run(aContext, Messages.bind(Messages.Task_Writing_A, aDirectory), aDirectory, new Operation() {
+            public void run() throws IProjFileException {
+                write(aHost, aDirectory, aContent, aPrevious);
+            }
+        });
     }
 
     /**
@@ -218,6 +276,36 @@ public final class IProjFileStore {
         }
     }
 
+    /**
+     * Runs an operation in a runnable context. Unexpected errors are logged.
+     */
+    private static void run(IRunnableContext aContext, final String aTaskName, String aDirectory, final Operation anOperation)
+        throws IProjFileException {
+
+        try {
+            aContext.run(true, false, new IRunnableWithProgress() {
+                public void run(IProgressMonitor aMonitor) throws InvocationTargetException {
+                    aMonitor.beginTask(aTaskName, IProgressMonitor.UNKNOWN);
+                    try {
+                        anOperation.run();
+                    } catch (IProjFileException e) {
+                        throw new InvocationTargetException(e);
+                    } finally {
+                        aMonitor.done();
+                    }
+                }
+            });
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof IProjFileException) {
+                throw (IProjFileException)e.getCause();
+            }
+            IfsProjectsPlugin.logError("Unexpected error accessing iproj.json: " + aDirectory, e.getCause()); //$NON-NLS-1$
+            throw new IProjFileException(Messages.bind(Messages.Error_Unexpected_error_A, e.getCause().getLocalizedMessage()), e.getCause());
+        } catch (InterruptedException e) {
+            throw new IProjFileException(e.getLocalizedMessage(), e);
+        }
+    }
+
     private static String getPath(String aDirectory) {
 
         if (aDirectory.length() > 0 && aDirectory.charAt(aDirectory.length() - 1) == SEPARATOR) {
@@ -272,5 +360,12 @@ public final class IProjFileStore {
         } catch (IOException e) {
             // Ignore errors on close
         }
+    }
+
+    /**
+     * Access to the remote system, that runs in a runnable context.
+     */
+    private interface Operation {
+        void run() throws IProjFileException;
     }
 }

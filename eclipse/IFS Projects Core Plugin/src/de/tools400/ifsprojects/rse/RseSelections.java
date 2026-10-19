@@ -8,6 +8,7 @@
 
 package de.tools400.ifsprojects.rse;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.ISystemFilterReference;
@@ -46,6 +47,30 @@ public final class RseSelections {
         }
 
         return structuredSelection.getFirstElement();
+    }
+
+    /**
+     * Returns the filter reference of an element, e.g. of the element of a
+     * property page.
+     *
+     * @param anElement - filter reference or element, that adapts to a filter
+     *        reference
+     * @return filter reference or <code>null</code>
+     */
+    public static ISystemFilterReference getFilterReference(Object anElement) {
+
+        if (anElement instanceof ISystemFilterReference) {
+            return (ISystemFilterReference)anElement;
+        }
+
+        if (anElement instanceof IAdaptable) {
+            Object adapter = ((IAdaptable)anElement).getAdapter(ISystemFilterReference.class);
+            if (adapter instanceof ISystemFilterReference) {
+                return (ISystemFilterReference)adapter;
+            }
+        }
+
+        return null;
     }
 
     /**

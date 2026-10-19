@@ -8,8 +8,6 @@
 
 package de.tools400.ifsprojects.handlers;
 
-import java.util.Map;
-
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.rse.core.filters.ISystemFilter;
@@ -18,25 +16,18 @@ import org.eclipse.rse.core.model.IHost;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.ibm.as400.access.AS400;
-
 import de.tools400.ifsprojects.Messages;
-import de.tools400.ifsprojects.build.BuildMode;
-import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.rse.RseConnections;
 import de.tools400.ifsprojects.rse.RseSelections;
 import de.tools400.ifsprojects.subsystem.IfsProjectEnvironment;
-import de.tools400.ifsprojects.terminal.TerminalRequest;
 
 /**
  * Builds the selected IFS project with the build command of the
  * <code>iproj.json</code> file or the default build command of the
  * preferences. The environment variables of the project are exported before.
  * <p>
- * Depending on the preferences, the command runs in the terminal of the project,
- * see {@link TerminalBuildLauncher}, or in a job of the RSE connection, see
- * {@link RseBuildLauncher}.
+ * Depending on the preferences, the command runs in the terminal of the project
+ * or in a job of the RSE connection, see {@link BuildLauncher}.
  */
 public class BuildIfsProjectHandler extends AbstractTerminalHandler {
 
@@ -55,14 +46,9 @@ public class BuildIfsProjectHandler extends AbstractTerminalHandler {
             return null;
         }
 
-        boolean isRse = Preferences.getInstance().getBuildMode() == BuildMode.RSE;
-
-        TerminalRequest.Builder builder = null;
-        if (!isRse) {
-            builder = RseConnections.createRequestBuilder(shell, host);
-            if (builder == null) {
-                return null;
-            }
+        BuildLauncher launcher = BuildLauncher.create(shell, host);
+        if (launcher == null) {
+            return null;
         }
 
         IProjConfig config = ProjectCommands.readConfig(shell, host, directory);
@@ -70,28 +56,10 @@ public class BuildIfsProjectHandler extends AbstractTerminalHandler {
             return null;
         }
 
-        String buildCommand = config.getBuildCommand();
-        if (buildCommand == null) {
-            buildCommand = Preferences.getInstance().getDefaultBuildCommand();
-        }
-
         ISystemFilter filter = ((ISystemFilterReference)element).getReferencedFilter();
-        Map<String, String> variables = IfsProjectEnvironment.getEffectiveVariables(filter);
 
-        String jobName = Messages.bind(Messages.Task_Building_A, filter.getName());
-
-        if (isRse) {
-            AS400 system = RseBuildLauncher.getConnectedSystem(shell, host);
-            if (system != null) {
-                RseBuildLauncher.launch(jobName, host, system, directory, config, variables, buildCommand, null);
-            }
-            return null;
-        }
-
-        builder.directory(directory);
-        builder.reuseKey(ProjectCommands.getReuseKey(host, directory));
-
-        TerminalBuildLauncher.launch(shell, jobName, host, directory, config, variables, buildCommand, builder, null);
+        launcher.launch(Messages.bind(Messages.Task_Building_A, filter.getName()), directory, config,
+            IfsProjectEnvironment.getEffectiveVariables(filter), BuildLauncher.getBuildCommand(config), null);
 
         return null;
     }

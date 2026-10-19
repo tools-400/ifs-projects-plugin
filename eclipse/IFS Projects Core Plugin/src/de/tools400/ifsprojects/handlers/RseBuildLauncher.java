@@ -10,47 +10,24 @@ package de.tools400.ifsprojects.handlers;
 
 import java.util.Map;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
-import org.eclipse.swt.widgets.Shell;
 
 import com.ibm.as400.access.AS400;
 
-import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.build.RseBuildCommands;
 import de.tools400.ifsprojects.build.RseBuildJob;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.project.IProjFileException;
-import de.tools400.ifsprojects.project.IProjFileStore;
 import de.tools400.ifsprojects.terminal.ShellCommands;
 
 /**
  * Starts a build or compile command of an IFS project in a job of the RSE
- * connection, see {@link RseBuildJob}.
+ * connection, see {@link RseBuildJob}. Used by {@link BuildLauncher}.
  */
 final class RseBuildLauncher {
 
     private RseBuildLauncher() {
         // Utility class
-    }
-
-    /**
-     * Returns the connected system object of RSE. Errors are reported to the
-     * user. Must be called on the UI thread.
-     *
-     * @param aShell - parent shell
-     * @param aHost - RSE connection
-     * @return system or <code>null</code>
-     */
-    static AS400 getConnectedSystem(Shell aShell, IHost aHost) {
-
-        try {
-            return IProjFileStore.getConnectedSystem(aHost);
-        } catch (IProjFileException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, e.getLocalizedMessage());
-            return null;
-        }
     }
 
     /**

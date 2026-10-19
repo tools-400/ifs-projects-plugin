@@ -9,9 +9,7 @@
 package de.tools400.ifsprojects.handlers;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
@@ -32,7 +30,6 @@ import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
-import de.tools400.ifsprojects.build.BuildMode;
 import de.tools400.ifsprojects.local.Deployment;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.local.SourceMapping;
@@ -41,10 +38,7 @@ import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.remote.RemoteJobs;
-import de.tools400.ifsprojects.rse.RseConnections;
 import de.tools400.ifsprojects.rse.RseSelections;
-import de.tools400.ifsprojects.terminal.ShellCommands;
-import de.tools400.ifsprojects.terminal.TerminalRequest;
 
 /**
  * Common code of the handlers of local IFS projects. Errors are reported to
@@ -60,6 +54,38 @@ final class LocalProjectCommands {
 
     private LocalProjectCommands() {
         // Utility class
+    }
+
+    /**
+     * Local IFS project with its connected RSE connection, see
+     * {@link LocalProjectCommands#prepare(Shell, IProject)}.
+     */
+    static final class ConnectedProject {
+
+        private final LocalProject localProject;
+        private final IHost host;
+        private final AS400 system;
+
+        private ConnectedProject(LocalProject aLocalProject, IHost aHost, AS400 aSystem) {
+            this.localProject = aLocalProject;
+            this.host = aHost;
+            this.system = aSystem;
+        }
+
+        LocalProject getLocalProject() {
+            return localProject;
+        }
+
+        IHost getHost() {
+            return host;
+        }
+
+        /**
+         * @return connected system object of RSE
+         */
+        AS400 getSystem() {
+            return system;
+        }
     }
 
     /**
@@ -104,6 +130,39 @@ final class LocalProjectCommands {
     }
 
     /**
+     * Prepares a command of a local IFS project: returns the local IFS
+     * project, asks the user to save the editors of the files of the project,
+     * that have unsaved changes, and connects the RSE connection of the
+     * project.
+     *
+     * @param aShell - parent shell
+     * @param aProject - project or <code>null</code>
+     * @return local IFS project with its connected RSE connection or
+     *         <code>null</code>, if the project is not configured as IFS
+     *         project, the connection could not be established or the user
+     *         canceled
+     */
+    static ConnectedProject prepare(Shell aShell, IProject aProject) {
+
+        LocalProject localProject = getLocalProject(aShell, aProject);
+        if (localProject == null) {
+            return null;
+        }
+
+        IHost host = getHost(aShell, localProject);
+        if (host == null || !saveEditors(aProject)) {
+            return null;
+        }
+
+        AS400 system = ProjectCommands.getConnectedSystem(aShell, host);
+        if (system == null) {
+            return null;
+        }
+
+        return new ConnectedProject(localProject, host, system);
+    }
+
+    /**
      * Returns the local IFS project of a project.
      *
      * @param aShell - parent shell
@@ -145,20 +204,22 @@ final class LocalProjectCommands {
     }
 
     /**
-     * Asks the user to save the editors of the files of a project, that have
-     * unsaved changes.
+     * Returns the environment variables, that are exported before the
+     * commands of a local IFS project: the default environment variables of
+     * the preferences and the environment variables of the project.
      *
-     * @param aProject - project
-     * @return <code>false</code>, if the user canceled
+     * @param aLocalProject - local IFS project
+     * @return variables, never <code>null</code>
      */
-    static boolean saveEditors(IProject aProject) {
-        return IDE.saveAllEditors(new IResource[] { aProject }, true);
+    static Map<String, String> getEffectiveVariables(LocalProject aLocalProject) {
+        return EnvironmentVariables.merge(Preferences.getInstance().getDefaultEnvironmentVariables(), aLocalProject.getEnvironmentVariables());
     }
 
     /**
      * Uploads the changes of a local IFS project and builds the project or
      * compiles a file in the deploy directory, like the build and compile of
-     * IFS projects. The errors are shown for the local files.
+     * IFS projects, see {@link BuildLauncher}. The errors are shown for the
+     * local files.
      * <p>
      * The build runs the build command of the <code>iproj.json</code> file or
      * the default build command, the compile the compile command or the
@@ -172,80 +233,39 @@ final class LocalProjectCommands {
      */
     static void build(Shell aShell, IProject aProject, IFile aFile) {
 
-        LocalProject localProject = getLocalProject(aShell, aProject);
-        if (localProject == null) {
+        ConnectedProject project = prepare(aShell, aProject);
+        if (project == null) {
             return;
         }
 
-        IHost host = getHost(aShell, localProject);
-        if (host == null || !saveEditors(aProject)) {
+        BuildLauncher launcher = BuildLauncher.create(aShell, project.getHost());
+        if (launcher == null) {
             return;
         }
 
-        boolean isRse = Preferences.getInstance().getBuildMode() == BuildMode.RSE;
-
-        TerminalRequest.Builder builder = null;
-        if (!isRse) {
-            builder = RseConnections.createRequestBuilder(aShell, host);
-            if (builder == null) {
-                return;
-            }
-        }
-
-        AS400 system = RseBuildLauncher.getConnectedSystem(aShell, host);
-        if (system == null) {
-            return;
-        }
-
+        LocalProject localProject = project.getLocalProject();
         IProjConfig config = readConfig(aShell, localProject);
         if (config == null) {
             return;
         }
 
-        Map<String, String> variables = EnvironmentVariables.merge(Preferences.getInstance().getDefaultEnvironmentVariables(),
-            localProject.getEnvironmentVariables());
-
         String command;
         String jobName;
         if (aFile == null) {
-            command = config.getBuildCommand();
-            if (command == null) {
-                command = Preferences.getInstance().getDefaultBuildCommand();
-            }
+            command = BuildLauncher.getBuildCommand(config);
             jobName = Messages.bind(Messages.Task_Building_A, aProject.getName());
         } else {
-            String compileCommand = config.getCompileCommand();
-            if (compileCommand == null) {
-                compileCommand = Preferences.getInstance().getDefaultCompileCommand();
-            }
-            String userId = isRse ? system.getUserId() : builder.build().getUserId();
-            command = ShellCommands.replacePlaceholders(compileCommand, getPlaceholders(aFile, host, userId));
+            command = launcher.getCompileCommand(config, aFile.getName());
             jobName = Messages.bind(Messages.Task_Compiling_A, aFile.getName());
         }
 
-        Deployment.Result upload = upload(aShell, system, localProject, false);
+        Deployment.Result upload = uploadChanges(aShell, project.getSystem(), localProject, aFile);
         if (upload == null) {
             return;
         }
 
-        if (aFile != null && !upload.isDeployed(aFile.getProjectRelativePath().toString())) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_File_A_is_not_uploaded,
-                aFile.getProjectRelativePath().toString()));
-            return;
-        }
-
         String directory = upload.getDirectory();
-        SourceMapping sourceMapping = new SourceMapping(directory, aProject.getName());
-
-        if (isRse) {
-            RseBuildLauncher.launch(jobName, host, system, directory, config, variables, command, sourceMapping);
-            return;
-        }
-
-        builder.directory(directory);
-        builder.reuseKey(ProjectCommands.getReuseKey(host, directory));
-
-        TerminalBuildLauncher.launch(aShell, jobName, host, directory, config, variables, command, builder, sourceMapping);
+        launcher.launch(jobName, directory, config, getEffectiveVariables(localProject), command, new SourceMapping(directory, aProject.getName()));
     }
 
     /**
@@ -270,6 +290,35 @@ final class LocalProjectCommands {
         }
 
         return null;
+    }
+
+    /**
+     * Uploads the changes of a local IFS project before a command processes a
+     * file of the project, see {@link #upload}, and checks, that the file has
+     * been uploaded.
+     *
+     * @param aShell - parent shell
+     * @param aRseSystem - connected system object of RSE, which is copied
+     * @param aLocalProject - local IFS project
+     * @param aFile - file processed by the command or <code>null</code>
+     * @return result or <code>null</code>, if the upload failed or has been
+     *         canceled or the file has not been uploaded, e.g. because it is
+     *         ignored
+     */
+    static Deployment.Result uploadChanges(Shell aShell, AS400 aRseSystem, LocalProject aLocalProject, IFile aFile) {
+
+        Deployment.Result upload = upload(aShell, aRseSystem, aLocalProject, false);
+        if (upload == null || aFile == null) {
+            return upload;
+        }
+
+        String relativePath = aFile.getProjectRelativePath().toString();
+        if (!upload.isDeployed(relativePath)) {
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_File_A_is_not_uploaded, relativePath));
+            return null;
+        }
+
+        return upload;
     }
 
     /**
@@ -334,20 +383,14 @@ final class LocalProjectCommands {
     }
 
     /**
-     * Returns the values of the placeholders of the compile command, like
-     * {@link CompileIfsFileHandler}.
+     * Asks the user to save the editors of the files of a project, that have
+     * unsaved changes.
+     *
+     * @param aProject - project
+     * @return <code>false</code>, if the user canceled
      */
-    private static Map<String, String> getPlaceholders(IFile aFile, IHost aHost, String aUserId) {
-
-        String fileName = CompileIfsFileHandler.toShellFileName(aFile.getName());
-
-        Map<String, String> values = new HashMap<String, String>();
-        values.put(CompileIfsFileHandler.PLACEHOLDER_FILENAME, fileName);
-        values.put(CompileIfsFileHandler.PLACEHOLDER_FILES, fileName);
-        values.put(CompileIfsFileHandler.PLACEHOLDER_HOST, aHost.getHostName());
-        values.put(CompileIfsFileHandler.PLACEHOLDER_USRPRF, aUserId.toUpperCase(Locale.ROOT));
-
-        return values;
+    private static boolean saveEditors(IProject aProject) {
+        return IDE.saveAllEditors(new IResource[] { aProject }, true);
     }
 
     /**

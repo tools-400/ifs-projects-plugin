@@ -38,6 +38,8 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
  * <p>
  * If the build cannot be prepared or the command cannot be wrapped, the
  * command runs unchanged and the errors are not shown.
+ * <p>
+ * Used by {@link BuildLauncher}.
  */
 final class TerminalBuildLauncher {
 

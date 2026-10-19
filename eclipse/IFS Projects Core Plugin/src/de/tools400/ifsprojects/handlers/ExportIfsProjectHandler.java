@@ -52,7 +52,7 @@ public class ExportIfsProjectHandler extends AbstractHandler {
             return null;
         }
 
-        AS400 system = RseBuildLauncher.getConnectedSystem(shell, host);
+        AS400 system = ProjectCommands.getConnectedSystem(shell, host);
         if (system == null) {
             return null;
         }

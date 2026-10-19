@@ -10,7 +10,6 @@ package de.tools400.ifsprojects.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -29,11 +28,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.Deployment;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.local.SourceMapping;
-import de.tools400.ifsprojects.preferences.Preferences;
-import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.project.IProjFileException;
-import de.tools400.ifsprojects.project.IProjFileStore;
 import de.tools400.ifsprojects.rse.RemoteEditors;
 import de.tools400.ifsprojects.subsystem.IfsProject;
 import de.tools400.ifsprojects.subsystem.IfsProjects;
@@ -92,11 +87,8 @@ public final class SyntaxCheckLauncher {
             return;
         }
 
-        AS400 system;
-        try {
-            system = IProjFileStore.getConnectedSystem(aHost);
-        } catch (IProjFileException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, e.getLocalizedMessage());
+        AS400 system = ProjectCommands.getConnectedSystem(aShell, aHost);
+        if (system == null) {
             return;
         }
 
@@ -131,7 +123,7 @@ public final class SyntaxCheckLauncher {
             return;
         }
 
-        AS400 system = RseBuildLauncher.getConnectedSystem(aShell, host);
+        AS400 system = ProjectCommands.getConnectedSystem(aShell, host);
         if (system == null) {
             return;
         }
@@ -141,23 +133,16 @@ public final class SyntaxCheckLauncher {
             return;
         }
 
-        Deployment.Result upload = LocalProjectCommands.upload(aShell, system, localProject, false);
+        Deployment.Result upload = LocalProjectCommands.uploadChanges(aShell, system, localProject, aFile);
         if (upload == null) {
             return;
         }
 
-        String relativePath = aFile.getProjectRelativePath().toString();
-        if (!upload.isDeployed(relativePath)) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_File_A_is_not_uploaded, relativePath));
-            return;
-        }
-
         String directory = upload.getDirectory();
-        Map<String, String> variables = EnvironmentVariables.merge(Preferences.getInstance().getDefaultEnvironmentVariables(),
-            localProject.getEnvironmentVariables());
+        String path = directory + SEPARATOR + aFile.getProjectRelativePath().toString();
 
-        new SyntaxCheckJob(host, system, directory, config, variables, directory + SEPARATOR + relativePath, aFile.getName(), sourceType,
-            new ArrayList<IFile>(), new SourceMapping(directory, aFile.getProject().getName())).schedule();
+        new SyntaxCheckJob(host, system, directory, config, LocalProjectCommands.getEffectiveVariables(localProject), path, aFile.getName(),
+            sourceType, new ArrayList<IFile>(), new SourceMapping(directory, aFile.getProject().getName())).schedule();
     }
 
     /**
