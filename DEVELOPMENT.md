@@ -80,6 +80,8 @@ for Java.
 * Shutdown: unless *Restore terminals after a restart* is set, `TmTerminalLauncher` closes the
   sessions. The view stays open, so that the workbench restores it like other views. Password and
   command are never saved.
+* Clear (toolbar and context menu) keeps the line of the cursor, usually the prompt, see
+  `TmCompatibility.clearTerminal()`.
 
 ## Build in the terminal
 
