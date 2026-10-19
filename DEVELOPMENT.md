@@ -24,7 +24,7 @@ Packages below `de.tools400.ifsprojects`:
 |---|---|
 | `subsystem` | Subsystem *IFS Projects*. Delegates its filter strings (`/directory/*`) to the IFS subsystem of IBM instead of extending it. Connector service from `ToolboxConnectorServiceManager`. |
 | `terminal` | `ITerminalLauncher`, the only interface the handlers know. `launch()` returns an `ITerminalCommandLine`, which tells whether the session has been closed since. Backends come from the extension point `terminalLaunchers`; the available one with the highest priority is used. |
-| `terminal.tm` | Backend for the TM Terminal of RDi 9.6 - 9.9: a view around `TerminalViewControlFactory.makeControl()`. The SSH connector is created from the extension registry, because extension points and connector IDs differ between the TM versions. A backend for `org.eclipse.terminal.*` can be added as a separate bundle. |
+| `terminal.tm` | Backend for the TM Terminal of RDi 9.6 - 9.9: a view around `TerminalViewControlFactory.makeControl()`. `TmTerminalView` with `TerminalActionGroup` (actions) and `TerminalRequestMemento` (restore), `TerminalSession` with `TerminalKeyHandler` (keys); calls, that differ between the TM versions, in `TmCompatibility`. The SSH connector is created from the extension registry, because extension points and connector IDs differ between the TM versions. A backend for `org.eclipse.terminal.*` can be added as a separate bundle. |
 | `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuildJob`, `CommandsLog`, `LogLines`. Both: `BuildEvents`, the errors are shown by `errorlist.ErrorList`. Started by `handlers.BuildLauncher` (build mode of the preferences, placeholders of the compile command) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
 | `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). |
 | `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. `RemoteSession`: copy of the system object of RSE for a job, with its command call and temporary files, closed with try-with-resources. |
@@ -60,14 +60,14 @@ for Java.
 * The VT100 terminal and the SSH connector (JSch) of the Eclipse TM Terminal, which is part of
   RDi 9.6 - 9.9. The plug-in provides the view: session list, restore, reuse, sending command
   lines.
-* Keys: a display filter of `TerminalSession` handles Ctrl+C (copy the selection and clear it),
+* Keys: a display filter of `TerminalKeyHandler` handles Ctrl+C (copy the selection and clear it),
   Ctrl+V, Shift+Page Up/Down and Ctrl+Shift+Home/End before TM. The TM bindings (Ctrl+Shift+C/V,
   Ctrl+Insert/Shift+Insert) still work. On macOS, Ctrl+C and Ctrl+V go to the shell.
 * A connected terminal with the focus receives all keys, not the key bindings of the workbench.
   RDi 9.9 does so only while the mouse pointer is over the terminal;
-  `TerminalSession.updateKeyCapture()` makes it follow the focus.
+  `TerminalKeyHandler.updateKeyCapture()` makes it follow the focus.
 * RDi 9.9 stops the display updates on disconnect and does not restart them on reconnect;
-  `TerminalSession.restartDisplayUpdates()` does.
+  `TmCompatibility.restartDisplayUpdates()` does.
 * Shutdown: unless *Restore terminals after a restart* is set, `TmTerminalLauncher` closes the
   sessions. The view stays open, so that the workbench restores it like other views. Password and
   command are never saved.

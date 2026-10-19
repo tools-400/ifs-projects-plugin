@@ -9,9 +9,7 @@
 package de.tools400.ifsprojects.terminal.tm;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -20,19 +18,12 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.ScrollBar;
-import org.eclipse.swt.widgets.Scrollable;
 import org.eclipse.tm.internal.terminal.control.CommandInputFieldWithHistory;
 import org.eclipse.tm.internal.terminal.control.ITerminalListener;
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
@@ -44,12 +35,6 @@ import org.eclipse.tm.internal.terminal.control.actions.TerminalActionPaste;
 import org.eclipse.tm.internal.terminal.control.actions.TerminalActionSelectAll;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.internal.terminal.provisional.api.TerminalState;
-import org.eclipse.tm.internal.terminal.textcanvas.ITextCanvasModel;
-import org.eclipse.tm.internal.terminal.textcanvas.TextCanvas;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.contexts.IContextActivation;
-import org.eclipse.ui.contexts.IContextService;
-import org.eclipse.ui.keys.IBindingService;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
@@ -57,6 +42,7 @@ import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
 import de.tools400.ifsprojects.terminal.ShellCommands;
 import de.tools400.ifsprojects.terminal.TerminalException;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -65,31 +51,12 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * <p>
  * Notes on the supported TM terminal versions (RDi 9.6, 9.8, 9.9):
  * <ul>
- * <li><code>ITerminalViewControl.connectTerminal()</code> returns
- * <code>boolean</code> in the old TM terminal, but <code>void</code> in the new
- * one. Therefore it is called by reflection.</li>
+ * <li>Calls, that differ between the versions, are made by reflection, see
+ * {@link TmCompatibility}.</li>
  * <li><code>ITerminalListener2</code> does not exist in RDi 9.6.</li>
  * <li>The terminal listener is called on the connector thread.</li>
- * <li><code>TextCanvas.clearSelection()</code> does not exist in RDi 9.6.
- * Therefore the selection is cleared in the model of the canvas.</li>
- * <li>The TM terminal of RDi 9.9 stops updating the display, when it is
- * disconnected, but does not start again, when it is connected again, see
- * {@link #restartDisplayUpdates()}.</li>
  * </ul>
- * <p>
- * Keys handled by the session before the TM terminal, see
- * {@link #handleKey(Event)}: Ctrl+C copies the selected text, if there is any,
- * and Ctrl+V pastes, like in Windows Terminal (not on the Mac, where Cmd+C and
- * Cmd+V do so). Without a selection, the TM terminal sends Ctrl+C to the
- * shell. Shift+Page Up/Down and Ctrl+Shift+Home/End scroll the terminal, which
- * the TM terminal does not do.
- * <p>
- * The terminal receives all keys (instead of the key bindings of the
- * workbench), while it has the focus and is connected, see
- * {@link #updateKeyCapture()}. The TM terminal of RDi 9.6 and 9.8 does so
- * itself, but the TM terminal of RDi 9.9 captures the keys only while the mouse
- * pointer is over the terminal, even if the focus is elsewhere, e.g. in an
- * editor.
+ * The keys of the terminal are handled by the {@link TerminalKeyHandler}.
  */
 @SuppressWarnings("restriction")
 class TerminalSession {
@@ -102,21 +69,6 @@ class TerminalSession {
     }
 
     private static final String FONT_DEFINITION = "terminal.views.view.font.definition"; //$NON-NLS-1$
-
-    private static final String METHOD_CONNECT_TERMINAL = "connectTerminal"; //$NON-NLS-1$
-
-    private static final String FIELD_CELL_CANVAS_MODEL = "fCellCanvasModel"; //$NON-NLS-1$
-
-    private static final String FIELD_POLLING_TEXT_CANVAS_MODEL = "fPollingTextCanvasModel"; //$NON-NLS-1$
-
-    private static final String METHOD_START_POLLING = "startPolling"; //$NON-NLS-1$
-
-    /*
-     * Contexts of the TM terminal: bindings, that disable the menu keys (Alt+F,
-     * ...), and the bindings of copy and paste (Ctrl+Shift+C/V, ...).
-     */
-    private static final String CONTEXT_TERMINAL = "org.eclipse.tm.terminal.TerminalContext"; //$NON-NLS-1$
-    private static final String CONTEXT_EDIT = "org.eclipse.tm.terminal.EditContext"; //$NON-NLS-1$
 
     /** History size of the command input field (same as RDi 9.8). */
     private static final int COMMAND_HISTORY_SIZE = 100;
@@ -141,14 +93,8 @@ class TerminalSession {
     private TerminalOutputMonitor outputMonitor;
     private CommandInputFieldWithHistory commandInputField;
     private AbstractTerminalAction[] contextMenuActions;
-    private org.eclipse.swt.widgets.Listener keyFilter;
+    private TerminalKeyHandler keyHandler;
     private String errorMessage;
-
-    /* Key capture, see updateKeyCapture(). */
-    private org.eclipse.swt.widgets.Listener mouseTrackFilter;
-    private boolean isKeyFilterEnabledBeforeMouseTrack;
-    private boolean hasFocus;
-    private IContextActivation[] contextActivations;
 
     private CommandLine pendingCommandLine;
     private int connectGeneration;
@@ -241,8 +187,9 @@ class TerminalSession {
         }
 
         hookContextMenu();
-        hookKeyFilter();
-        hookKeyCapture();
+
+        keyHandler = new TerminalKeyHandler(this, control);
+        keyHandler.install();
 
         return true;
     }
@@ -267,8 +214,7 @@ class TerminalSession {
         connectGeneration++;
 
         try {
-            Method method = ITerminalViewControl.class.getMethod(METHOD_CONNECT_TERMINAL);
-            method.invoke(control);
+            TmCompatibility.connectTerminal(control);
         } catch (InvocationTargetException e) {
             pendingCommandLine = null;
             closeCount++;
@@ -289,6 +235,16 @@ class TerminalSession {
      */
     void reconnect() {
         connect(ShellCommands.toCommandLine(request.getDirectory(), null));
+    }
+
+    /**
+     * Connects the terminal again, if it is disconnected, see
+     * {@link #reconnect()}.
+     */
+    void reconnectIfDisconnected() {
+        if (isAlive() && !isConnectedOrConnecting()) {
+            reconnect();
+        }
     }
 
     void disconnect() {
@@ -391,7 +347,7 @@ class TerminalSession {
         return isAlive() && control.getState() != TerminalState.CLOSED;
     }
 
-    boolean isSession(String aSessionKey) {
+    boolean hasSessionKey(String aSessionKey) {
         return aSessionKey != null && aSessionKey.equals(request.getSessionKey());
     }
 
@@ -401,8 +357,7 @@ class TerminalSession {
      * command is not running, see {@link ITerminalCommandLine#setRunning}.
      */
     boolean isReusableFor(String aReuseKey) {
-        return aReuseKey != null && aReuseKey.equals(request.getReuseKey()) && isConnected()
-            && (lastCommandLine == null || !lastCommandLine.isRunning());
+        return isIdleFor(aReuseKey) && isConnected();
     }
 
     /**
@@ -411,8 +366,7 @@ class TerminalSession {
      * disconnected and its last command is not running.
      */
     boolean isReconnectableFor(String aReuseKey) {
-        return aReuseKey != null && aReuseKey.equals(request.getReuseKey()) && isAlive() && !isConnectedOrConnecting()
-            && (lastCommandLine == null || !lastCommandLine.isRunning());
+        return isIdleFor(aReuseKey) && isAlive() && !isConnectedOrConnecting();
     }
 
     void setFocus() {
@@ -428,16 +382,7 @@ class TerminalSession {
      * the terminal or its command input field.
      */
     boolean contains(Control aControl) {
-
-        Control current = aControl;
-        while (current != null) {
-            if (current == page) {
-                return true;
-            }
-            current = current.getParent();
-        }
-
-        return false;
+        return PlatformUtils.contains(page, aControl);
     }
 
     boolean isScrollLock() {
@@ -474,7 +419,7 @@ class TerminalSession {
         }
 
         control.copy();
-        clearSelection();
+        TmCompatibility.clearSelection(control);
 
         return true;
     }
@@ -555,21 +500,9 @@ class TerminalSession {
         isControlDisposed = true;
         closeCount++;
 
-        if (keyFilter != null) {
-            page.getDisplay().removeFilter(SWT.KeyDown, keyFilter);
-            keyFilter = null;
-        }
-
-        if (mouseTrackFilter != null) {
-            page.getDisplay().removeFilter(SWT.MouseEnter, mouseTrackFilter);
-            page.getDisplay().removeFilter(SWT.MouseExit, mouseTrackFilter);
-            mouseTrackFilter = null;
-        }
-
-        // A disposed control does not receive focusLost().
-        if (hasFocus) {
-            hasFocus = false;
-            updateKeyCapture();
+        if (keyHandler != null) {
+            keyHandler.dispose();
+            keyHandler = null;
         }
 
         if (control != null && !control.isDisposed()) {
@@ -605,12 +538,10 @@ class TerminalSession {
             return;
         }
 
-        if (hasFocus) {
-            updateKeyCapture();
-        }
+        keyHandler.stateChanged();
 
         if (aState == TerminalState.CONNECTED) {
-            restartDisplayUpdates();
+            TmCompatibility.restartDisplayUpdates(control);
             if (pendingCommandLine != null) {
                 sendPendingCommandLineWhenReady();
             }
@@ -619,6 +550,14 @@ class TerminalSession {
         }
 
         listener.sessionStateChanged(this);
+    }
+
+    /**
+     * Returns <code>true</code>, if the session has been opened for a request
+     * with the specified reuse key and its last command is not running.
+     */
+    private boolean isIdleFor(String aReuseKey) {
+        return aReuseKey != null && aReuseKey.equals(request.getReuseKey()) && (lastCommandLine == null || !lastCommandLine.isRunning());
     }
 
     private void showError(String aMessage, Throwable aCause) {
@@ -646,225 +585,6 @@ class TerminalSession {
         Control textControl = control.getControl();
         Menu menu = menuManager.createContextMenu(textControl);
         textControl.setMenu(menu);
-    }
-
-    /**
-     * Registers a display filter, that receives the keys of the terminal
-     * before the TM terminal and before the key bindings of the workbench, if
-     * the TM terminal has disabled them.
-     */
-    private void hookKeyFilter() {
-
-        keyFilter = new org.eclipse.swt.widgets.Listener() {
-            public void handleEvent(Event anEvent) {
-                if (isAlive() && anEvent.widget == control.getControl() && handleKey(anEvent)) {
-                    anEvent.doit = false;
-                    anEvent.type = SWT.None;
-                }
-            }
-        };
-
-        page.getDisplay().addFilter(SWT.KeyDown, keyFilter);
-    }
-
-    /**
-     * Makes the key capture follow the focus of the terminal. The listeners
-     * are called after the focus and mouse track listeners of the TM terminal,
-     * because they are added later. They correct, what the TM terminal of RDi
-     * 9.9 does on mouse track events: with the focus, the keys stay captured,
-     * when the mouse pointer leaves the terminal; without the focus, the key
-     * bindings of the workbench are restored, when the mouse pointer enters the
-     * terminal.
-     */
-    private void hookKeyCapture() {
-
-        final Control textControl = control.getControl();
-
-        textControl.addFocusListener(new FocusListener() {
-            public void focusGained(FocusEvent anEvent) {
-                hasFocus = true;
-                updateKeyCapture();
-            }
-
-            public void focusLost(FocusEvent anEvent) {
-                hasFocus = false;
-                updateKeyCapture();
-            }
-        });
-
-        // Remembers the state of the key bindings, before the TM terminal
-        // receives the mouse track event.
-        mouseTrackFilter = new org.eclipse.swt.widgets.Listener() {
-            public void handleEvent(Event anEvent) {
-                if (anEvent.widget == textControl) {
-                    isKeyFilterEnabledBeforeMouseTrack = getBindingService().isKeyFilterEnabled();
-                }
-            }
-        };
-        page.getDisplay().addFilter(SWT.MouseEnter, mouseTrackFilter);
-        page.getDisplay().addFilter(SWT.MouseExit, mouseTrackFilter);
-
-        textControl.addMouseTrackListener(new MouseTrackAdapter() {
-            @Override
-            public void mouseEnter(MouseEvent anEvent) {
-                mouseTracked();
-            }
-
-            @Override
-            public void mouseExit(MouseEvent anEvent) {
-                mouseTracked();
-            }
-        });
-    }
-
-    private void mouseTracked() {
-
-        if (hasFocus) {
-            updateKeyCapture();
-        } else {
-            setKeyFilterEnabled(isKeyFilterEnabledBeforeMouseTrack);
-        }
-    }
-
-    /**
-     * Captures the keys for the terminal, while it has the focus and is
-     * connected: the key bindings of the workbench are disabled and the
-     * contexts of the TM terminal are active. Otherwise the key bindings of the
-     * workbench are enabled.
-     */
-    private void updateKeyCapture() {
-
-        boolean isCapture = hasFocus && isConnected();
-
-        setKeyFilterEnabled(!isCapture);
-
-        IContextService contextService = (IContextService)PlatformUI.getWorkbench().getService(IContextService.class);
-        if (isCapture && contextActivations == null) {
-            contextActivations = new IContextActivation[] { contextService.activateContext(CONTEXT_TERMINAL),
-                contextService.activateContext(CONTEXT_EDIT) };
-        } else if (!isCapture && contextActivations != null) {
-            for (IContextActivation activation : contextActivations) {
-                contextService.deactivateContext(activation);
-            }
-            contextActivations = null;
-        }
-    }
-
-    private void setKeyFilterEnabled(boolean anIsEnabled) {
-
-        IBindingService bindingService = getBindingService();
-        if (bindingService.isKeyFilterEnabled() != anIsEnabled) {
-            bindingService.setKeyFilterEnabled(anIsEnabled);
-        }
-    }
-
-    private IBindingService getBindingService() {
-        return (IBindingService)PlatformUI.getWorkbench().getService(IBindingService.class);
-    }
-
-    /**
-     * Handles a key pressed in the terminal.
-     *
-     * @param anEvent - key down event
-     * @return <code>true</code>, if the key has been handled and must not reach
-     *         the TM terminal
-     */
-    private boolean handleKey(Event anEvent) {
-
-        int modifiers = anEvent.stateMask & SWT.MODIFIER_MASK;
-
-        if (modifiers == SWT.CTRL && SWT.MOD1 == SWT.CTRL) {
-            if (anEvent.keyCode == 'c') {
-                return copySelection();
-            }
-            if (anEvent.keyCode == 'v') {
-                paste();
-                return true;
-            }
-        } else if (modifiers == SWT.SHIFT) {
-            if (anEvent.keyCode == SWT.PAGE_UP) {
-                scrollBy(-1);
-                return true;
-            }
-            if (anEvent.keyCode == SWT.PAGE_DOWN) {
-                scrollBy(1);
-                return true;
-            }
-        } else if (modifiers == (SWT.CTRL | SWT.SHIFT)) {
-            if (anEvent.keyCode == SWT.HOME) {
-                scrollTo(Integer.MIN_VALUE);
-                return true;
-            }
-            if (anEvent.keyCode == SWT.END) {
-                scrollTo(Integer.MAX_VALUE);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Scrolls the terminal by the specified number of pages, like a click into
-     * the scroll bar.
-     */
-    private void scrollBy(int aPages) {
-
-        ScrollBar scrollBar = ((Scrollable)control.getControl()).getVerticalBar();
-        if (scrollBar != null) {
-            scrollTo(scrollBar.getSelection() + aPages * scrollBar.getPageIncrement());
-        }
-    }
-
-    /**
-     * Scrolls the terminal to the specified position of its scroll bar. The
-     * position is limited to the range of the scroll bar.
-     */
-    private void scrollTo(int aSelection) {
-
-        ScrollBar scrollBar = ((Scrollable)control.getControl()).getVerticalBar();
-        if (scrollBar == null) {
-            return;
-        }
-
-        int selection = Math.max(scrollBar.getMinimum(), Math.min(aSelection, scrollBar.getMaximum() - scrollBar.getThumb()));
-        scrollBar.setSelection(selection);
-
-        // The canvas scrolls, when its scroll bar reports the selection.
-        scrollBar.notifyListeners(SWT.Selection, new Event());
-    }
-
-    /**
-     * Restarts the display updates of the terminal. The TM terminal stops them,
-     * when it is disconnected. The TM terminal of RDi 9.8 starts them again,
-     * when it is connected again, but the TM terminal of RDi 9.9 does not: it
-     * shows neither the output of the shell nor the typed keys. The TM terminal
-     * of RDi 9.6 never stops them and has neither the field nor
-     * <code>startPolling()</code>, therefore the method is called by reflection.
-     */
-    private void restartDisplayUpdates() {
-
-        try {
-            Field field = control.getClass().getDeclaredField(FIELD_POLLING_TEXT_CANVAS_MODEL);
-            field.setAccessible(true);
-            Object model = field.get(control);
-            model.getClass().getMethod(METHOD_START_POLLING).invoke(model);
-        } catch (NoSuchFieldException e) {
-            // RDi 9.6: the display updates are never stopped
-        } catch (Exception e) {
-            IfsProjectsPlugin.logWarning("Could not restart the display updates of the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
-        }
-    }
-
-    private void clearSelection() {
-
-        try {
-            Field field = TextCanvas.class.getDeclaredField(FIELD_CELL_CANVAS_MODEL);
-            field.setAccessible(true);
-            ((ITextCanvasModel)field.get(control.getControl())).setSelection(-1, -1, -1, -1);
-        } catch (Exception e) {
-            IfsProjectsPlugin.logWarning("Could not clear the selection of the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
-        }
     }
 
     private void fillContextMenu(IMenuManager aManager) {

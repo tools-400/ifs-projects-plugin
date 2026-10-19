@@ -11,14 +11,9 @@ package de.tools400.ifsprojects.terminal.tm;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -37,15 +32,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.ViewPart;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
@@ -53,15 +45,14 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.dialogs.ToolTipInputDialog;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
-import de.tools400.ifsprojects.terminal.TerminalException;
-import de.tools400.ifsprojects.terminal.TerminalLaunchers;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * View that hosts all SSH terminal sessions. The active session is shown on the
- * left side, the list of all sessions on the right side. The toolbar actions
- * apply to the active session. The view menu contains actions for all sessions,
- * the context menu of the list actions for the selected sessions.
+ * left side, the list of all sessions on the right side. The actions are
+ * created by the {@link TerminalActionGroup}, the sessions are saved and
+ * restored by the {@link TerminalRequestMemento}.
  */
 public class TmTerminalView extends ViewPart implements TerminalSession.Listener {
 
@@ -72,15 +63,6 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     private static final String MEMENTO_SESSION = "session"; //$NON-NLS-1$
     private static final String MEMENTO_ACTIVE_SESSION = "activeSession"; //$NON-NLS-1$
     private static final String MEMENTO_NAME = "name"; //$NON-NLS-1$
-    private static final String MEMENTO_CONNECTION_NAME = "connectionName"; //$NON-NLS-1$
-    private static final String MEMENTO_HOST_NAME = "hostName"; //$NON-NLS-1$
-    private static final String MEMENTO_PORT = "port"; //$NON-NLS-1$
-    private static final String MEMENTO_USER_ID = "userId"; //$NON-NLS-1$
-    private static final String MEMENTO_ENCODING = "encoding"; //$NON-NLS-1$
-    private static final String MEMENTO_TIMEOUT = "timeout"; //$NON-NLS-1$
-    private static final String MEMENTO_KEEP_ALIVE = "keepAlive"; //$NON-NLS-1$
-    private static final String MEMENTO_DIRECTORY = "directory"; //$NON-NLS-1$
-    private static final String MEMENTO_REUSE_KEY = "reuseKey"; //$NON-NLS-1$
 
     private final List<TerminalSession> sessions = new ArrayList<TerminalSession>();
     private TerminalSession activeSession;
@@ -98,23 +80,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     private Image connectedImage;
     private Image disconnectedImage;
 
-    private Action connectionAction;
-    private Action scrollLockAction;
-    private Action clearAction;
-    private Action commandInputFieldAction;
-    private Action newTerminalAction;
-
-    private Action copyAction;
-    private Action pasteAction;
-
-    private Action connectAllAction;
-    private Action disconnectAllAction;
-    private Action closeAllAction;
-
-    private Action connectSelectedAction;
-    private Action disconnectSelectedAction;
-    private Action closeSelectedAction;
-    private Action renameSelectedAction;
+    private TerminalActionGroup actionGroup;
 
     @Override
     public void init(IViewSite aSite, IMemento aMemento) throws PartInitException {
@@ -144,8 +110,8 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         createSessionList(sashForm);
         sashForm.setWeights(SASH_WEIGHTS);
 
-        createActions();
-        contributeToActionBars();
+        actionGroup = new TerminalActionGroup(this);
+        actionGroup.fillActionBars(getViewSite().getActionBars());
         hookSessionListContextMenu();
 
         restoreSessions();
@@ -190,7 +156,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         TerminalSession disconnectedSession = null;
 
         for (TerminalSession session : sessions) {
-            if (session.isSession(aSessionKey) && session.isAlive()) {
+            if (session.hasSessionKey(aSessionKey) && session.isAlive()) {
                 if (session.isConnected()) {
                     return session;
                 }
@@ -268,10 +234,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     void activateSession(TerminalSession aSession) {
 
         setActiveSession(aSession);
-
-        if (aSession.isAlive() && !aSession.isConnectedOrConnecting()) {
-            aSession.reconnect();
-        }
+        aSession.reconnectIfDisconnected();
 
         updateActions();
         setFocus();
@@ -347,24 +310,9 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
             return;
         }
 
-        // Password and command are never saved.
         for (TerminalSession session : sessions) {
-            TerminalRequest request = session.getRequest();
             IMemento child = aMemento.createChild(MEMENTO_SESSION);
-            child.putString(MEMENTO_CONNECTION_NAME, request.getConnectionName());
-            child.putString(MEMENTO_HOST_NAME, request.getHostName());
-            child.putInteger(MEMENTO_PORT, request.getPort());
-            child.putString(MEMENTO_USER_ID, request.getUserId());
-            child.putString(MEMENTO_ENCODING, request.getEncoding());
-            child.putInteger(MEMENTO_TIMEOUT, request.getTimeout());
-            child.putInteger(MEMENTO_KEEP_ALIVE, request.getKeepAlive());
-            if (request.getDirectory() != null) {
-                child.putString(MEMENTO_DIRECTORY, request.getDirectory());
-            }
-            // A restored build terminal is reused, see findReconnectableSession().
-            if (request.getReuseKey() != null) {
-                child.putString(MEMENTO_REUSE_KEY, request.getReuseKey());
-            }
+            TerminalRequestMemento.save(child, session.getRequest());
             if (session.getCustomName() != null) {
                 child.putString(MEMENTO_NAME, session.getCustomName());
             }
@@ -377,6 +325,10 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
 
     @Override
     public void dispose() {
+
+        if (actionGroup != null) {
+            actionGroup.dispose();
+        }
 
         for (TerminalSession session : sessions) {
             session.dispose();
@@ -419,7 +371,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         }
 
         for (IMemento child : restoredState.getChildren(MEMENTO_SESSION)) {
-            TerminalRequest request = restoreRequest(child);
+            TerminalRequest request = TerminalRequestMemento.restore(child);
             if (request != null) {
                 TerminalSession session = addSession(request);
                 session.setCustomName(child.getString(MEMENTO_NAME));
@@ -435,45 +387,6 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
 
         sessionList.refresh();
         restoredState = null;
-    }
-
-    private TerminalRequest restoreRequest(IMemento aMemento) {
-
-        try {
-
-            TerminalRequest.Builder builder = TerminalRequest.builder();
-            builder.connectionName(aMemento.getString(MEMENTO_CONNECTION_NAME));
-            builder.hostName(aMemento.getString(MEMENTO_HOST_NAME));
-            builder.userId(aMemento.getString(MEMENTO_USER_ID));
-            builder.directory(aMemento.getString(MEMENTO_DIRECTORY));
-            builder.reuseKey(aMemento.getString(MEMENTO_REUSE_KEY));
-
-            String encoding = aMemento.getString(MEMENTO_ENCODING);
-            if (encoding != null) {
-                builder.encoding(encoding);
-            }
-
-            Integer port = aMemento.getInteger(MEMENTO_PORT);
-            if (port != null) {
-                builder.port(port.intValue());
-            }
-
-            Integer timeout = aMemento.getInteger(MEMENTO_TIMEOUT);
-            if (timeout != null) {
-                builder.timeout(timeout.intValue());
-            }
-
-            Integer keepAlive = aMemento.getInteger(MEMENTO_KEEP_ALIVE);
-            if (keepAlive != null) {
-                builder.keepAlive(keepAlive.intValue());
-            }
-
-            return builder.build();
-
-        } catch (IllegalStateException e) {
-            IfsProjectsPlugin.logWarning("Could not restore terminal session: " + e.getLocalizedMessage()); //$NON-NLS-1$
-            return null;
-        }
     }
 
     private void setActiveSession(TerminalSession aSession) {
@@ -504,7 +417,25 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         updateActions();
     }
 
-    private void closeSessions(List<TerminalSession> aSessions) {
+    /**
+     * Returns the active session, which is shown in the view.
+     *
+     * @return session or <code>null</code>, if no session is open
+     */
+    TerminalSession getActiveSession() {
+        return activeSession;
+    }
+
+    /**
+     * Returns all sessions.
+     *
+     * @return copy of the sessions in the order of the list
+     */
+    List<TerminalSession> getSessions() {
+        return new ArrayList<TerminalSession>(sessions);
+    }
+
+    void closeSessions(List<TerminalSession> aSessions) {
 
         if (aSessions.isEmpty()) {
             return;
@@ -531,7 +462,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         updateActions();
     }
 
-    private List<TerminalSession> getSelectedSessions() {
+    List<TerminalSession> getSelectedSessions() {
 
         List<TerminalSession> selectedSessions = new ArrayList<TerminalSession>();
 
@@ -545,23 +476,21 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         return selectedSessions;
     }
 
-    private void connect(List<TerminalSession> aSessions) {
+    void connect(List<TerminalSession> aSessions) {
         for (TerminalSession session : aSessions) {
-            if (session.isAlive() && !session.isConnectedOrConnecting()) {
-                session.reconnect();
-            }
+            session.reconnectIfDisconnected();
         }
         updateActions();
     }
 
-    private void disconnect(List<TerminalSession> aSessions) {
+    void disconnect(List<TerminalSession> aSessions) {
         for (TerminalSession session : aSessions) {
             session.disconnect();
         }
         updateActions();
     }
 
-    private void rename(TerminalSession aSession) {
+    void rename(TerminalSession aSession) {
 
         ToolTipInputDialog dialog = new ToolTipInputDialog(getSite().getShell(), Messages.Title_Rename_terminal, Messages.Label_New_name_colon,
             aSession.getName(), null, Messages.Tooltip_Terminal_name);
@@ -581,20 +510,13 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      * Opens another session with the same connection and directory as the
      * active session. The command of the request (build) is not repeated.
      */
-    private void openNewTerminal() {
+    void openNewTerminal() {
 
         if (activeSession == null) {
             return;
         }
 
-        TerminalRequest newRequest = activeSession.getRequest().toBuilder().command(null).reuseKey(null).forceNew(true).build();
-
-        try {
-            TerminalLaunchers.getLauncher().launch(newRequest);
-        } catch (TerminalException e) {
-            IfsProjectsPlugin.logError("Could not open terminal: " + newRequest.getToolTip(), e); //$NON-NLS-1$
-            MessageDialog.openError(getSite().getShell(), Messages.Title_IFS_Projects, e.getLocalizedMessage());
-        }
+        openSession(activeSession.getRequest().toBuilder().command(null).reuseKey(null).forceNew(true).build());
     }
 
     private void updateTitle() {
@@ -624,16 +546,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      * e.g. the terminal, its command input field or the session list.
      */
     private boolean isFocusInView() {
-
-        Control focusControl = sashForm.getDisplay().getFocusControl();
-        while (focusControl != null) {
-            if (focusControl == sashForm) {
-                return true;
-            }
-            focusControl = focusControl.getParent();
-        }
-
-        return false;
+        return PlatformUtils.contains(sashForm, sashForm.getDisplay().getFocusControl());
     }
 
     private void createSessionList(Composite aParent) {
@@ -685,216 +598,13 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         });
     }
 
-    /**
-     * Creates the actions. The toolbar actions and their icons are the same as
-     * in the 'Terminal' view of RDi 9.8. Connect and disconnect share one
-     * button.
-     */
-    private void createActions() {
-
-        connectionAction = new Action() {
-            @Override
-            public void run() {
-                if (activeSession == null) {
-                    return;
-                }
-                if (activeSession.isConnectedOrConnecting()) {
-                    activeSession.disconnect();
-                } else {
-                    activeSession.reconnect();
-                    activeSession.setFocus();
-                }
-                updateActions();
-            }
-        };
-        updateConnectionAction(false);
-
-        scrollLockAction = new Action(Messages.Label_Scroll_lock, IAction.AS_CHECK_BOX) {
-            @Override
-            public void run() {
-                if (activeSession != null) {
-                    activeSession.setScrollLock(isChecked());
-                }
-            }
-        };
-        setupAction(scrollLockAction, Messages.Tooltip_Scroll_lock, IfsProjectsPlugin.IMAGE_SCROLL_LOCK);
-
-        clearAction = new Action(Messages.Label_Clear) {
-            @Override
-            public void run() {
-                if (activeSession != null) {
-                    activeSession.clear();
-                }
-            }
-        };
-        setupAction(clearAction, Messages.Tooltip_Clear, IfsProjectsPlugin.IMAGE_CLEAR);
-
-        commandInputFieldAction = new Action(Messages.Label_Command_input_field, IAction.AS_CHECK_BOX) {
-            @Override
-            public void run() {
-                if (activeSession != null) {
-                    activeSession.setCommandInputFieldVisible(isChecked());
-                }
-            }
-        };
-        setupAction(commandInputFieldAction, Messages.Tooltip_Command_input_field, IfsProjectsPlugin.IMAGE_COMMAND_INPUT_FIELD);
-
-        newTerminalAction = new Action(Messages.Label_New_terminal) {
-            @Override
-            public void run() {
-                openNewTerminal();
-            }
-        };
-        setupAction(newTerminalAction, Messages.Tooltip_New_terminal, IfsProjectsPlugin.IMAGE_NEW_TERMINAL);
-
-        // Handlers of 'Edit > Copy' and 'Edit > Paste'. Ctrl+C and Ctrl+V reach
-        // them only, if the terminal does not capture the keys, e.g. while it
-        // is disconnected. Otherwise the session handles the keys, see
-        // TerminalSession.handleKey().
-        copyAction = new Action() {
-            @Override
-            public void run() {
-                Control focusControl = sashForm.getDisplay().getFocusControl();
-                if (focusControl instanceof Text) {
-                    ((Text)focusControl).copy();
-                } else if (activeSession != null && activeSession.contains(focusControl)) {
-                    activeSession.copySelection();
-                }
-            }
-        };
-
-        pasteAction = new Action() {
-            @Override
-            public void run() {
-                Control focusControl = sashForm.getDisplay().getFocusControl();
-                if (focusControl instanceof Text) {
-                    ((Text)focusControl).paste();
-                } else if (activeSession != null && activeSession.contains(focusControl)) {
-                    activeSession.paste();
-                }
-            }
-        };
-
-        connectAllAction = new Action(Messages.Label_Connect_all) {
-            @Override
-            public void run() {
-                connect(new ArrayList<TerminalSession>(sessions));
-            }
-        };
-        connectAllAction.setToolTipText(Messages.Tooltip_Connect_all);
-
-        disconnectAllAction = new Action(Messages.Label_Disconnect_all) {
-            @Override
-            public void run() {
-                disconnect(new ArrayList<TerminalSession>(sessions));
-            }
-        };
-        disconnectAllAction.setToolTipText(Messages.Tooltip_Disconnect_all);
-
-        closeAllAction = new Action(Messages.Label_Close_all) {
-            @Override
-            public void run() {
-                closeSessions(new ArrayList<TerminalSession>(sessions));
-            }
-        };
-        closeAllAction.setToolTipText(Messages.Tooltip_Close_all);
-
-        connectSelectedAction = new Action(Messages.Label_Connect) {
-            @Override
-            public void run() {
-                connect(getSelectedSessions());
-            }
-        };
-        connectSelectedAction.setImageDescriptor(IfsProjectsPlugin.getEnabledImageDescriptor(IfsProjectsPlugin.IMAGE_CONNECT));
-        connectSelectedAction.setToolTipText(Messages.Tooltip_Connect_selected);
-
-        disconnectSelectedAction = new Action(Messages.Label_Disconnect) {
-            @Override
-            public void run() {
-                disconnect(getSelectedSessions());
-            }
-        };
-        disconnectSelectedAction.setImageDescriptor(IfsProjectsPlugin.getEnabledImageDescriptor(IfsProjectsPlugin.IMAGE_DISCONNECT));
-        disconnectSelectedAction.setToolTipText(Messages.Tooltip_Disconnect_selected);
-
-        closeSelectedAction = new Action(Messages.Label_Close) {
-            @Override
-            public void run() {
-                closeSessions(getSelectedSessions());
-            }
-        };
-        closeSelectedAction.setToolTipText(Messages.Tooltip_Close_selected);
-
-        renameSelectedAction = new Action(Messages.Label_Rename) {
-            @Override
-            public void run() {
-                List<TerminalSession> selectedSessions = getSelectedSessions();
-                if (selectedSessions.size() == 1) {
-                    rename(selectedSessions.get(0));
-                }
-            }
-        };
-        renameSelectedAction.setToolTipText(Messages.Tooltip_Rename_selected);
-    }
-
-    private void setupAction(Action anAction, String aToolTip, String anImage) {
-        anAction.setToolTipText(aToolTip);
-        anAction.setImageDescriptor(IfsProjectsPlugin.getEnabledImageDescriptor(anImage));
-        anAction.setDisabledImageDescriptor(IfsProjectsPlugin.getDisabledImageDescriptor(anImage));
-    }
-
-    /**
-     * Switches the connection button between 'Connect' and 'Disconnect'.
-     *
-     * @param anIsConnected - <code>true</code>, if the terminal is connected or
-     *        connecting
-     */
-    private void updateConnectionAction(boolean anIsConnected) {
-
-        if (anIsConnected) {
-            connectionAction.setText(Messages.Label_Disconnect);
-            setupAction(connectionAction, Messages.Tooltip_Disconnect, IfsProjectsPlugin.IMAGE_DISCONNECT);
-        } else {
-            connectionAction.setText(Messages.Label_Connect);
-            setupAction(connectionAction, Messages.Tooltip_Connect, IfsProjectsPlugin.IMAGE_CONNECT);
-        }
-    }
-
-    private void contributeToActionBars() {
-
-        IActionBars actionBars = getViewSite().getActionBars();
-        actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
-        actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), pasteAction);
-
-        IToolBarManager toolBarManager = actionBars.getToolBarManager();
-        toolBarManager.add(connectionAction);
-        toolBarManager.add(new Separator());
-        toolBarManager.add(scrollLockAction);
-        toolBarManager.add(clearAction);
-        toolBarManager.add(commandInputFieldAction);
-        toolBarManager.add(new Separator());
-        toolBarManager.add(newTerminalAction);
-
-        IMenuManager menuManager = actionBars.getMenuManager();
-        menuManager.add(connectAllAction);
-        menuManager.add(disconnectAllAction);
-        menuManager.add(new Separator());
-        menuManager.add(closeAllAction);
-    }
-
     private void hookSessionListContextMenu() {
 
         MenuManager menuManager = new MenuManager("#PopupMenu"); //$NON-NLS-1$
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
             public void menuAboutToShow(IMenuManager aManager) {
-                aManager.add(connectSelectedAction);
-                aManager.add(disconnectSelectedAction);
-                aManager.add(new Separator());
-                aManager.add(renameSelectedAction);
-                aManager.add(new Separator());
-                aManager.add(closeSelectedAction);
-                updateSelectionActions();
+                actionGroup.fillContextMenu(aManager);
             }
         });
 
@@ -903,51 +613,8 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     }
 
     private void updateActions() {
-
-        if (connectionAction == null) {
-            return;
+        if (actionGroup != null) {
+            actionGroup.updateActionBars();
         }
-
-        boolean isAlive = activeSession != null && activeSession.isAlive();
-
-        updateConnectionAction(isAlive && activeSession.isConnectedOrConnecting());
-        connectionAction.setEnabled(isAlive);
-        scrollLockAction.setEnabled(isAlive);
-        scrollLockAction.setChecked(isAlive && activeSession.isScrollLock());
-        clearAction.setEnabled(isAlive);
-        commandInputFieldAction.setEnabled(isAlive);
-        commandInputFieldAction.setChecked(isAlive && activeSession.isCommandInputFieldVisible());
-        newTerminalAction.setEnabled(activeSession != null);
-        copyAction.setEnabled(isAlive);
-        pasteAction.setEnabled(isAlive);
-
-        boolean hasSessions = !sessions.isEmpty();
-        connectAllAction.setEnabled(hasSessions);
-        disconnectAllAction.setEnabled(hasSessions);
-        closeAllAction.setEnabled(hasSessions);
-
-        updateSelectionActions();
-    }
-
-    private void updateSelectionActions() {
-
-        List<TerminalSession> selectedSessions = getSelectedSessions();
-
-        boolean canConnect = false;
-        boolean canDisconnect = false;
-        for (TerminalSession session : selectedSessions) {
-            if (session.isAlive()) {
-                if (session.isConnectedOrConnecting()) {
-                    canDisconnect = true;
-                } else {
-                    canConnect = true;
-                }
-            }
-        }
-
-        connectSelectedAction.setEnabled(canConnect);
-        disconnectSelectedAction.setEnabled(canDisconnect);
-        closeSelectedAction.setEnabled(!selectedSessions.isEmpty());
-        renameSelectedAction.setEnabled(selectedSessions.size() == 1);
     }
 }

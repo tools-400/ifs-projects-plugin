@@ -9,6 +9,7 @@
 package de.tools400.ifsprojects.utils;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -38,6 +39,27 @@ public final class PlatformUtils {
         }
 
         return window.getShell();
+    }
+
+    /**
+     * Returns <code>true</code>, if a control is the specified container or
+     * one of its descendants.
+     *
+     * @param aContainer - container
+     * @param aControl - control or <code>null</code>
+     * @return <code>true</code>, if the control is part of the container
+     */
+    public static boolean contains(Control aContainer, Control aControl) {
+
+        Control current = aControl;
+        while (current != null) {
+            if (current == aContainer) {
+                return true;
+            }
+            current = current.getParent();
+        }
+
+        return false;
     }
 
     /**
