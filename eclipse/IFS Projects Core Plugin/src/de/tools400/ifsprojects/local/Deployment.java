@@ -433,7 +433,7 @@ public final class Deployment {
 
     private static void listRemoteFiles(IFSFile aDirectory, String aPrefix, Map<String, DeployManifest.RemoteFile> aFiles) throws Exception {
 
-        IFSFile[] children = aDirectory.listFiles();
+        IFSFile[] children = RemoteJobs.listFiles(aDirectory);
         if (children == null) {
             return;
         }

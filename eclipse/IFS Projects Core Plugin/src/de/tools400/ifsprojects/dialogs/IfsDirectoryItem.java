@@ -17,6 +17,8 @@ import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 import com.ibm.as400.access.IFSFileFilter;
 
+import de.tools400.ifsprojects.remote.RemoteJobs;
+
 /**
  * Directory of the IFS, as shown in the {@link SelectIfsDirectoryDialog}. The
  * sub-directories are retrieved, when they are requested for the first time.
@@ -88,7 +90,7 @@ class IfsDirectoryItem {
 
         try {
 
-            IFSFile[] directories = new IFSFile(system, path).listFiles(new IFSFileFilter() {
+            IFSFile[] directories = RemoteJobs.listFiles(new IFSFile(system, path), new IFSFileFilter() {
                 public boolean accept(IFSFile aFile) {
                     try {
                         return aFile.isDirectory();

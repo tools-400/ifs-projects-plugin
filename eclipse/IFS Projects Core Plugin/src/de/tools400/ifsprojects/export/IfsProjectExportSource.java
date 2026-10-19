@@ -130,7 +130,7 @@ public final class IfsProjectExportSource implements ExportSource {
 
     private void listFiles(IFSFile aDirectory, String aPrefix, IgnoreRules anIgnoreRules, List<String> aFiles) throws Exception {
 
-        IFSFile[] children = aDirectory.listFiles();
+        IFSFile[] children = RemoteJobs.listFiles(aDirectory);
         if (children == null) {
             return;
         }

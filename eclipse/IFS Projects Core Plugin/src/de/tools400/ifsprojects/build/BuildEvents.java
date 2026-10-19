@@ -133,7 +133,7 @@ public final class BuildEvents {
             return files;
         }
 
-        for (IFSFile file : aDirectory.listFiles()) {
+        for (IFSFile file : RemoteJobs.listFiles(aDirectory)) {
             if (file.isFile() && file.lastModified() >= aStartTime) {
                 files.add(file);
             }

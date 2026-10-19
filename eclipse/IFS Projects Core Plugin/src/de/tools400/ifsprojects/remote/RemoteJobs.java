@@ -21,6 +21,7 @@ import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.AS400Message;
 import com.ibm.as400.access.CommandCall;
 import com.ibm.as400.access.IFSFile;
+import com.ibm.as400.access.IFSFileFilter;
 import com.ibm.as400.access.IFSFileInputStream;
 import com.ibm.as400.access.IFSFileReader;
 import com.ibm.as400.access.IFSFileWriter;
@@ -429,6 +430,35 @@ public final class RemoteJobs {
         } finally {
             inputStream.close();
         }
+    }
+
+    /**
+     * Lists the files of a directory, also the files, whose names start with
+     * a period. By default, IBM Toolbox for Java uses POSIX pattern matching,
+     * which skips them.
+     *
+     * @param aDirectory - directory
+     * @return files or <code>null</code>, see {@link IFSFile#listFiles()}
+     * @throws IOException if the directory could not be listed
+     */
+    public static IFSFile[] listFiles(IFSFile aDirectory) throws IOException {
+        aDirectory.setPatternMatching(IFSFile.PATTERN_POSIX_ALL);
+        return aDirectory.listFiles();
+    }
+
+    /**
+     * Lists the files of a directory, that are accepted by a filter, also the
+     * files, whose names start with a period, see {@link #listFiles(IFSFile)}.
+     *
+     * @param aDirectory - directory
+     * @param aFilter - filter
+     * @return files or <code>null</code>, see
+     *         {@link IFSFile#listFiles(IFSFileFilter)}
+     * @throws IOException if the directory could not be listed
+     */
+    public static IFSFile[] listFiles(IFSFile aDirectory, IFSFileFilter aFilter) throws IOException {
+        aDirectory.setPatternMatching(IFSFile.PATTERN_POSIX_ALL);
+        return aDirectory.listFiles(aFilter);
     }
 
     /**
