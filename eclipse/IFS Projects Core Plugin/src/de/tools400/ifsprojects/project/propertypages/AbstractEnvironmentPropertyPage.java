@@ -31,6 +31,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.swt.ToolTips;
 
@@ -51,6 +52,7 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
     private static final String ASSIGNMENT = "="; //$NON-NLS-1$
     private static final String NAME_SEPARATOR = ", "; //$NON-NLS-1$
+    private static final String MESSAGE_SEPARATOR = ". "; //$NON-NLS-1$
     private static final String MNEMONIC = "&"; //$NON-NLS-1$
     private static final String ESCAPED_MNEMONIC = "&&"; //$NON-NLS-1$
 
@@ -62,7 +64,10 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
     private Label defaultsLabel;
     private Map<String, String> defaults;
     private boolean isModified;
-    private String information;
+
+    /* Message about the variables of iproj.json, see addVariablesOfIProj(). */
+    private String message;
+    private int messageType;
 
     /**
      * Creates the page.
@@ -227,8 +232,12 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
         } catch (IProjParseException e) {
             statusLabel.setText(Messages.bind(Messages.Error_Invalid_iproj_json_A, e.getLocalizedMessage()));
             return;
-        } catch (Exception e) {
+        } catch (IProjFileException e) {
             statusLabel.setText(e.getLocalizedMessage());
+            return;
+        } catch (Exception e) {
+            IfsProjectsPlugin.logError("Could not read iproj.json of project: " + getProjectName(), e); //$NON-NLS-1$
+            statusLabel.setText(Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
             return;
         }
 
@@ -263,11 +272,14 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
         if (!added.isEmpty()) {
             variablesText.setText(text.toString());
             isModified = true;
-            information = Messages.bind(Messages.Info_Variables_of_iproj_json_added_A, join(added));
+            message = Messages.bind(Messages.Info_Variables_of_iproj_json_added_A, join(added));
+            messageType = IMessageProvider.INFORMATION;
         }
 
         if (!unsupported.isEmpty()) {
-            information = Messages.bind(Messages.Warning_Variables_of_iproj_json_not_supported_A, join(unsupported));
+            String warning = Messages.bind(Messages.Warning_Variables_of_iproj_json_not_supported_A, join(unsupported));
+            message = message == null ? warning : message + MESSAGE_SEPARATOR + warning;
+            messageType = IMessageProvider.WARNING;
         }
     }
 
@@ -283,8 +295,8 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
         setErrorMessage(null);
         setValid(true);
 
-        if (information != null) {
-            setMessage(information, IMessageProvider.INFORMATION);
+        if (message != null) {
+            setMessage(message, messageType);
         }
     }
 

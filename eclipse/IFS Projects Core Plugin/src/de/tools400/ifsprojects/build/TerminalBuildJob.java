@@ -8,6 +8,8 @@
 
 package de.tools400.ifsprojects.build;
 
+import java.io.IOException;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -29,6 +31,7 @@ import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Waits for the end of a build or compile command, that runs in the SSH
@@ -208,10 +211,7 @@ public class TerminalBuildJob extends Job {
                 IfsProjectsPlugin.logWarning("The command in the terminal has ended without exit code, e.g. because it has been killed: " + directory); //$NON-NLS-1$
             }
 
-            String events = BuildEvents.collect(session, directory, objectLibrary, startTime);
-            if (events != null) {
-                ErrorList.showEvents(getName(), host, directory, events, session.getJobCcsid(), sourceMapping);
-            }
+            showEvents(session, startTime);
 
         } catch (InterruptedException e) {
             return Status.CANCEL_STATUS;
@@ -222,6 +222,26 @@ public class TerminalBuildJob extends Job {
         }
 
         return Status.OK_STATUS;
+    }
+
+    /**
+     * Shows the events files of the compiled objects in the 'Error List' view,
+     * see {@link BuildEvents}. Errors are logged and reported to the user.
+     */
+    private void showEvents(RemoteSession aSession, long aStartTime) {
+
+        String events;
+        try {
+            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
+        } catch (IOException e) {
+            IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
+            return;
+        }
+
+        if (events != null) {
+            ErrorList.showEvents(getName(), host, directory, events, aSession.getJobCcsid(), sourceMapping);
+        }
     }
 
     /**

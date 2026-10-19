@@ -8,6 +8,7 @@
 
 package de.tools400.ifsprojects.build;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -17,6 +18,7 @@ import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
+import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
@@ -57,8 +59,9 @@ public final class BuildEvents {
      * @param aStartTime - start time of the build (time of the server)
      * @return events, one events file after the other, or <code>null</code>,
      *         if no events files have been found
+     * @throws IOException if the events files could not be read
      */
-    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime) {
+    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime) throws IOException {
 
         List<String> events = collectStreamFiles(aSession.getSystem(), aProjectDirectory + EVENTS_DIRECTORY, aStartTime);
         if (events.isEmpty() && anObjectLibrary != null) {
@@ -80,7 +83,7 @@ public final class BuildEvents {
         return buffer.toString();
     }
 
-    private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime) {
+    private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime) throws IOException {
 
         List<String> events = new ArrayList<String>();
         try {
@@ -88,13 +91,13 @@ public final class BuildEvents {
                 events.add(RemoteJobs.readText(file));
             }
         } catch (Exception e) {
-            IfsProjectsPlugin.logError("Could not read the events files of directory: " + aDirectory, e); //$NON-NLS-1$
+            throw new IOException(Messages.bind(Messages.Error_Could_not_read_A_B, aDirectory, e.getLocalizedMessage()), e);
         }
 
         return events;
     }
 
-    private static List<String> collectMembers(RemoteSession aSession, String aLibrary, long aStartTime) {
+    private static List<String> collectMembers(RemoteSession aSession, String aLibrary, long aStartTime) throws IOException {
 
         List<String> events = new ArrayList<String>();
         String eventsFile = ClCommands.getFilePath(aLibrary, EventsFiles.EVENTS_FILE);
@@ -113,7 +116,7 @@ public final class BuildEvents {
                 events.add(content);
             }
         } catch (Exception e) {
-            IfsProjectsPlugin.logError("Could not read the events file of library: " + aLibrary, e); //$NON-NLS-1$
+            throw new IOException(Messages.bind(Messages.Error_Could_not_read_A_B, eventsFile, e.getLocalizedMessage()), e);
         }
 
         return events;

@@ -8,6 +8,8 @@
 
 package de.tools400.ifsprojects.build;
 
+import java.io.IOException;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -122,12 +124,7 @@ public class RseBuildJob extends Job {
 
             logResult(commandThread, session.getCommandCall(), exitCodeFile);
 
-            String events = BuildEvents.collect(session, directory, objectLibrary, startTime);
-            if (events == null) {
-                CommandsLog.log(host, Messages.Log_No_events_files_found);
-            } else {
-                ErrorList.showEvents(getName(), host, directory, events, session.getJobCcsid(), sourceMapping);
-            }
+            showEvents(session, startTime);
 
         } catch (InterruptedException e) {
             return Status.CANCEL_STATUS;
@@ -141,6 +138,30 @@ public class RseBuildJob extends Job {
         }
 
         return Status.OK_STATUS;
+    }
+
+    /**
+     * Shows the events files of the compiled objects in the 'Error List' view,
+     * see {@link BuildEvents}. Errors are logged and written to the 'Commands
+     * Log' view.
+     */
+    private void showEvents(RemoteSession aSession, long aStartTime) {
+
+        String events;
+        try {
+            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
+        } catch (IOException e) {
+            IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
+            CommandsLog.log(host, e.getLocalizedMessage());
+            return;
+        }
+
+        if (events == null) {
+            CommandsLog.log(host, Messages.Log_No_events_files_found);
+            return;
+        }
+
+        ErrorList.showEvents(getName(), host, directory, events, aSession.getJobCcsid(), sourceMapping);
     }
 
     /**
