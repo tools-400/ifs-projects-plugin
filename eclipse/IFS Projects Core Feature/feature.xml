@@ -2,7 +2,7 @@
 <feature
       id="de.tools400.ifsprojects.core.feature"
       label="IFS Projects"
-      version="1.0.0.b001"
+      version="1.0.0.b002"
       provider-name="Tools/400">
 
    <description url="">

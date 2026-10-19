@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: de.tools400.ifsprojects.core.plugin;singleton:=true
-Bundle-Version: 1.0.0.b001
+Bundle-Version: 1.0.0.b002
 Bundle-Activator: de.tools400.ifsprojects.IfsProjectsPlugin
 Bundle-Vendor: Tools/400
 Bundle-Localization: plugin
