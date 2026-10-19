@@ -18,7 +18,7 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
  * {@link TmTerminalView} and restores it, when the view is opened again.
  * Password and command are never saved.
  */
-final class TerminalRequestMemento {
+public final class TerminalRequestMemento {
 
     private static final String CONNECTION_NAME = "connectionName"; //$NON-NLS-1$
     private static final String HOST_NAME = "hostName"; //$NON-NLS-1$
@@ -40,7 +40,7 @@ final class TerminalRequestMemento {
      * @param aMemento - memento of the session
      * @param aRequest - request of the session
      */
-    static void save(IMemento aMemento, TerminalRequest aRequest) {
+    public static void save(IMemento aMemento, TerminalRequest aRequest) {
 
         aMemento.putString(CONNECTION_NAME, aRequest.getConnectionName());
         aMemento.putString(HOST_NAME, aRequest.getHostName());
@@ -65,7 +65,7 @@ final class TerminalRequestMemento {
      * @param aMemento - memento of the session
      * @return request or <code>null</code>, if the memento is incomplete
      */
-    static TerminalRequest restore(IMemento aMemento) {
+    public static TerminalRequest restore(IMemento aMemento) {
 
         try {
 

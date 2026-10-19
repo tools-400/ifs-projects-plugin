@@ -71,15 +71,13 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     /**
      * Order of the session list: alphabetically by the custom name or the
      * title, sessions with the same title by their instance numbers, so that
-     * <code>X (10)</code> follows <code>X (2)</code>.
+     * <code>X (10)</code> follows <code>X (2)</code>, see
+     * {@link SessionNames#compare(String, int, String, int)}.
      */
     private static final Comparator<TerminalSession> SESSION_ORDER = new Comparator<TerminalSession>() {
         public int compare(TerminalSession aSession1, TerminalSession aSession2) {
-            int result = getSortName(aSession1).compareToIgnoreCase(getSortName(aSession2));
-            if (result != 0) {
-                return result;
-            }
-            return aSession1.getInstanceNumber() - aSession2.getInstanceNumber();
+            return SessionNames.compare(getSortName(aSession1), aSession1.getInstanceNumber(), getSortName(aSession2),
+                aSession2.getInstanceNumber());
         }
 
         private String getSortName(TerminalSession aSession) {
@@ -392,8 +390,8 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
 
     /**
      * Returns the smallest instance number, that no session with the
-     * specified title has, so that the names of the sessions are unique, also
-     * after sessions have been closed.
+     * specified title has, see
+     * {@link SessionNames#getFreeInstanceNumber(java.util.Collection)}.
      */
     private int getFreeInstanceNumber(String aTitle) {
 
@@ -404,12 +402,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
             }
         }
 
-        int instanceNumber = 1;
-        while (instanceNumbers.contains(Integer.valueOf(instanceNumber))) {
-            instanceNumber++;
-        }
-
-        return instanceNumber;
+        return SessionNames.getFreeInstanceNumber(instanceNumbers);
     }
 
     private void restoreSessions() {
