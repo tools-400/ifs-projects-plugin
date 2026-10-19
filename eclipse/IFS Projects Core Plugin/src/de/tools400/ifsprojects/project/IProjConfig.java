@@ -162,6 +162,30 @@ public final class IProjConfig {
     }
 
     /**
+     * Returns the values of an attribute, that is a list of strings or a
+     * string, e.g. <code>includePath</code>.
+     *
+     * @param aKey - attribute name
+     * @return values, empty if the attribute does not exist or is neither a
+     *         list of strings nor a string
+     */
+    public List<String> getStrings(String aKey) {
+
+        List<String> values = getStringList(aKey);
+        if (values != null) {
+            return values;
+        }
+
+        values = new ArrayList<String>();
+        String value = getString(aKey);
+        if (value != null) {
+            values.add(value);
+        }
+
+        return values;
+    }
+
+    /**
      * Sets the value of a string list attribute. An empty list removes the
      * attribute.
      *

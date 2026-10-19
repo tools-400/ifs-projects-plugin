@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import de.tools400.ifsprojects.local.IgnoreRules;
+import de.tools400.ifsprojects.project.IgnoreRules;
 
 public class IgnoreRulesTest {
 

@@ -10,7 +10,7 @@ package de.tools400.ifsprojects.build;
 
 import java.util.regex.Pattern;
 
-import de.tools400.ifsprojects.terminal.ShellCommands;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 
 /**
  * Commands of a build, that runs in the SSH terminal of the project.
@@ -106,14 +106,14 @@ public final class TerminalBuildCommands {
         script.append("# IFS Projects: writes the marker files of a build or compile command in the terminal.").append(LINE_SEPARATOR); //$NON-NLS-1$
         script.append("# Sourced by: ( ").append(ID_VARIABLE).append("=<id>; . <this script>; <command>; ").append(END_FUNCTION) //$NON-NLS-1$ //$NON-NLS-2$
             .append(" $? )").append(LINE_SEPARATOR); //$NON-NLS-1$
-        script.append(FILE_VARIABLE).append('=').append(ShellCommands.quote(aTemporaryFilePrefix)).append("\"$").append(ID_VARIABLE).append('"') //$NON-NLS-1$
+        script.append(FILE_VARIABLE).append('=').append(PaseCommands.quote(aTemporaryFilePrefix)).append("\"$").append(ID_VARIABLE).append('"') //$NON-NLS-1$
             .append(LINE_SEPARATOR);
         script.append(END_FUNCTION).append("() { echo $1 > \"$").append(FILE_VARIABLE).append(EXIT_CODE_FILE_SUFFIX).append("\"; exit $1; }") //$NON-NLS-1$ //$NON-NLS-2$
             .append(LINE_SEPARATOR);
         appendTrap(script, EXIT_CODE_SIGHUP, 1);
         appendTrap(script, EXIT_CODE_SIGINT, 2);
         appendTrap(script, EXIT_CODE_SIGTERM, 15);
-        script.append(RseBuildCommands.SH).append(" -c 'echo $PPID' > \"$").append(FILE_VARIABLE).append(START_FILE_SUFFIX).append('"') //$NON-NLS-1$
+        script.append(PaseCommands.SH).append(" -c 'echo $PPID' > \"$").append(FILE_VARIABLE).append(START_FILE_SUFFIX).append('"') //$NON-NLS-1$
             .append(LINE_SEPARATOR);
 
         return script.toString();
@@ -143,7 +143,7 @@ public final class TerminalBuildCommands {
 
         StringBuilder buffer = new StringBuilder();
         buffer.append("( ").append(ID_VARIABLE).append('=').append(anId); //$NON-NLS-1$
-        buffer.append(STATEMENT_SEPARATOR).append(". ").append(ShellCommands.quote(aScriptFile)); //$NON-NLS-1$
+        buffer.append(STATEMENT_SEPARATOR).append(". ").append(PaseCommands.quote(aScriptFile)); //$NON-NLS-1$
         buffer.append(STATEMENT_SEPARATOR).append(command);
         buffer.append(STATEMENT_SEPARATOR).append(END_FUNCTION).append(" $? )"); //$NON-NLS-1$
 
@@ -167,7 +167,7 @@ public final class TerminalBuildCommands {
         script.append("exec < /dev/null > /dev/null 2>&1"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("[ -n \"$(").append(PS).append(" -p $$ -o pid=)\" ]"); //$NON-NLS-1$ //$NON-NLS-2$
         script.append(" && [ -z \"$(").append(PS).append(" -p ").append(aProcessId).append(" -o pid=)\" ]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        script.append(" && echo gone > ").append(ShellCommands.quote(aGoneFile)); //$NON-NLS-1$
+        script.append(" && echo gone > ").append(PaseCommands.quote(aGoneFile)); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("exit 0"); //$NON-NLS-1$
 
         return script.toString();

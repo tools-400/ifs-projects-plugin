@@ -25,7 +25,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.project.IProjToolTips;
+import de.tools400.ifsprojects.project.propertypages.IProjToolTips;
 import de.tools400.ifsprojects.swt.ToolTips;
 import de.tools400.ifsprojects.utils.StringUtils;
 

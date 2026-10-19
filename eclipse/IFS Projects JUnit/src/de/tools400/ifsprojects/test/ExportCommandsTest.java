@@ -16,10 +16,6 @@ import de.tools400.ifsprojects.export.ExportCommands;
 
 public class ExportCommandsTest {
 
-    @Test
-    public void testGetMemberPath() {
-        assertEquals("/QSYS.LIB/JSMITH#CL.LIB/QRPGLESRC.FILE/HELLO.MBR", ExportCommands.getMemberPath("JSMITH#CL", "QRPGLESRC", "HELLO"));
-    }
 
     @Test
     public void testGetCreateCommands() {

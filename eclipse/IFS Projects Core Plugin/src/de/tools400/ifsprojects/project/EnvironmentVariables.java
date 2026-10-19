@@ -8,14 +8,13 @@
 
 package de.tools400.ifsprojects.project;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -176,7 +175,7 @@ public final class EnvironmentVariables {
         Set<String> names = new LinkedHashSet<String>();
 
         for (String key : IPROJ_VARIABLE_KEYS) {
-            for (String value : getValues(aConfig, key)) {
+            for (String value : aConfig.getStrings(key)) {
                 for (String token : value.split(TOKEN_SEPARATOR_PATTERN)) {
                     if (token.length() > 1 && token.charAt(0) == VARIABLE_PREFIX) {
                         names.add(token.substring(1));
@@ -226,24 +225,59 @@ public final class EnvironmentVariables {
         return buffer.toString();
     }
 
-    private static boolean isTokenSeparator(char aChar) {
-        return aChar == ' ' || aChar == '/';
+    /**
+     * Returns the command, preceded by the export of environment variables.
+     * The variables are assigned first and then exported, because the Bourne
+     * shell (bsh) does not support <code>export NAME=value</code>:
+     * <code>A='1' B='2' &amp;&amp; export A B &amp;&amp; command</code>. The
+     * variables stay exported in the shell of the terminal.
+     *
+     * @param aVariables - environment variables, the names must be valid
+     *        shell names
+     * @param aCommand - command or <code>null</code>
+     * @return command line without line terminator or <code>null</code>, if
+     *         neither variables nor a command have been specified
+     */
+    public static String addExports(Map<String, String> aVariables, String aCommand) {
+
+        String command = StringUtils.trimToNull(aCommand);
+        if (aVariables == null || aVariables.isEmpty()) {
+            return command;
+        }
+
+        StringBuilder assignments = new StringBuilder();
+        StringBuilder names = new StringBuilder();
+        for (Map.Entry<String, String> entry : aVariables.entrySet()) {
+            String name = entry.getKey();
+            String value = StringUtils.nullToEmpty(entry.getValue());
+            if (!isValidName(name)) {
+                throw new IllegalArgumentException("Invalid name of environment variable: " + name); //$NON-NLS-1$
+            }
+            if (containsLineBreak(value)) {
+                throw new IllegalArgumentException("Environment variable must not contain line breaks: " + name); //$NON-NLS-1$
+            }
+            if (assignments.length() > 0) {
+                assignments.append(' ');
+                names.append(' ');
+            }
+            assignments.append(name).append(ASSIGNMENT).append(PaseCommands.quote(value));
+            names.append(name);
+        }
+
+        StringBuilder buffer = new StringBuilder();
+        buffer.append(assignments);
+        buffer.append(" && export "); //$NON-NLS-1$
+        buffer.append(names);
+        if (command != null) {
+            buffer.append(" && "); //$NON-NLS-1$
+            buffer.append(command);
+        }
+
+        return buffer.toString();
     }
 
-    private static List<String> getValues(IProjConfig aConfig, String aKey) {
-
-        List<String> values = aConfig.getStringList(aKey);
-        if (values != null) {
-            return values;
-        }
-
-        values = new ArrayList<String>();
-        String value = aConfig.getString(aKey);
-        if (value != null) {
-            values.add(value);
-        }
-
-        return values;
+    private static boolean isTokenSeparator(char aChar) {
+        return aChar == ' ' || aChar == '/';
     }
 
     private static boolean isIgnored(String aLine) {

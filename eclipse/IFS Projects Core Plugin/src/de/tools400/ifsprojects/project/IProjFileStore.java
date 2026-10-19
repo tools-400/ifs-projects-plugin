@@ -26,6 +26,7 @@ import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 
 /**
  * Reads and writes <code>iproj.json</code> files with IBM Toolbox for Java.
@@ -40,7 +41,6 @@ public final class IProjFileStore {
 
     private static final int CCSID_UTF8 = 1208;
     private static final int CCSID_NOT_SET = 65535;
-    private static final char SEPARATOR = '/';
 
     private IProjFileStore() {
         // Utility class
@@ -307,12 +307,7 @@ public final class IProjFileStore {
     }
 
     private static String getPath(String aDirectory) {
-
-        if (aDirectory.length() > 0 && aDirectory.charAt(aDirectory.length() - 1) == SEPARATOR) {
-            return aDirectory + IProjConfig.FILE_NAME;
-        }
-
-        return aDirectory + SEPARATOR + IProjConfig.FILE_NAME;
+        return IfsPaths.append(aDirectory, IProjConfig.FILE_NAME);
     }
 
     private static int getValidCcsid(int aCcsid) {

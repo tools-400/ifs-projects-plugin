@@ -1,0 +1,115 @@
+/*******************************************************************************
+ * Copyright (c) 2026 Thomas Raddatz
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ *******************************************************************************/
+
+package de.tools400.ifsprojects.ibmi;
+
+/**
+ * Paths of the IFS, separated by slashes.
+ */
+public final class IfsPaths {
+
+    private static final char SEPARATOR = '/';
+    private static final String ROOT = "/"; //$NON-NLS-1$
+
+    private IfsPaths() {
+        // Utility class
+    }
+
+    /**
+     * Normalizes an absolute IFS directory: removes trailing slashes, except
+     * for the root directory.
+     *
+     * @param aDirectory - directory
+     * @return normalized directory or <code>null</code>, if the directory is
+     *         empty, not absolute or contains wild cards
+     */
+    public static String normalizeDirectory(String aDirectory) {
+
+        if (aDirectory == null) {
+            return null;
+        }
+
+        String directory = aDirectory.trim();
+        if (directory.length() == 0 || directory.charAt(0) != SEPARATOR || directory.indexOf('*') >= 0 || directory.indexOf('?') >= 0) {
+            return null;
+        }
+
+        while (directory.length() > 1 && directory.charAt(directory.length() - 1) == SEPARATOR) {
+            directory = directory.substring(0, directory.length() - 1);
+        }
+
+        return directory;
+    }
+
+    /**
+     * Returns the last segment of a directory.
+     *
+     * @param aDirectory - directory, e.g. <code>/home/jsmith/src</code>
+     * @return last segment, e.g. <code>src</code>, or <code>/</code> for the
+     *         root directory
+     */
+    public static String getLastSegment(String aDirectory) {
+
+        String directory = normalizeDirectory(aDirectory);
+        if (directory == null || ROOT.equals(directory)) {
+            return directory;
+        }
+
+        return directory.substring(directory.lastIndexOf(SEPARATOR) + 1);
+    }
+
+    /**
+     * Returns the parent directory of an absolute path.
+     *
+     * @param aPath - absolute path, e.g. <code>/home/jsmith/src</code>
+     * @return parent directory, e.g. <code>/home/jsmith</code>, or
+     *         <code>null</code> for the root directory and for paths, that
+     *         are not absolute, see {@link #normalizeDirectory(String)}
+     */
+    public static String getParent(String aPath) {
+
+        String path = normalizeDirectory(aPath);
+        if (path == null || ROOT.equals(path)) {
+            return null;
+        }
+
+        int index = path.lastIndexOf(SEPARATOR);
+        if (index == 0) {
+            return ROOT;
+        }
+
+        return path.substring(0, index);
+    }
+
+    /**
+     * Returns the name of a file: the part of the path after the last slash.
+     *
+     * @param aPath - path, e.g. <code>/home/jsmith/src/hello.rpgle</code>
+     * @return file name, e.g. <code>hello.rpgle</code>, or the path itself, if
+     *         it has no slash
+     */
+    public static String getFileName(String aPath) {
+        return aPath.substring(aPath.lastIndexOf(SEPARATOR) + 1);
+    }
+
+    /**
+     * Appends a relative path to a directory.
+     *
+     * @param aDirectory - directory, with or without trailing slash
+     * @param aRelativePath - relative path, e.g. <code>iproj.json</code>
+     * @return path, e.g. <code>/home/jsmith/src/iproj.json</code>
+     */
+    public static String append(String aDirectory, String aRelativePath) {
+
+        if (aDirectory.length() > 0 && aDirectory.charAt(aDirectory.length() - 1) == SEPARATOR) {
+            return aDirectory + aRelativePath;
+        }
+
+        return aDirectory + SEPARATOR + aRelativePath;
+    }
+}

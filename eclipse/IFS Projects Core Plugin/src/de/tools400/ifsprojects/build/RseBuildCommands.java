@@ -8,13 +8,7 @@
 
 package de.tools400.ifsprojects.build;
 
-import java.util.Locale;
-import java.util.Map;
-
-import de.tools400.ifsprojects.project.EnvironmentVariables;
-import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
-import de.tools400.ifsprojects.terminal.ShellCommands;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 
 /**
  * Commands of a build, that runs in a remote command server job of the RSE
@@ -35,13 +29,6 @@ import de.tools400.ifsprojects.terminal.ShellCommands;
  */
 public final class RseBuildCommands {
 
-    /** Bash of the IBM i open source packages. */
-    public static final String BASH = "/QOpenSys/pkgs/bin/bash"; //$NON-NLS-1$
-
-    /** Default shell of PASE, used if bash is not installed. */
-    public static final String SH = "/QOpenSys/usr/bin/sh"; //$NON-NLS-1$
-
-    private static final String OBJECT_NAME_PATTERN = "[A-Z$#@][A-Z0-9$#@_]{0,9}"; //$NON-NLS-1$
     private static final String STATEMENT_SEPARATOR = "; "; //$NON-NLS-1$
 
     private RseBuildCommands() {
@@ -51,7 +38,8 @@ public final class RseBuildCommands {
     /**
      * Returns the shell script of a build.
      *
-     * @param aShell - shell, {@link #BASH} or {@link #SH}
+     * @param aShell - shell, {@link PaseCommands#BASH} or
+     *        {@link PaseCommands#SH}
      * @param aHome - home directory of the user
      * @param aLogFile - stream file, to which the output is appended
      * @param anExitCodeFile - stream file, into which the exit code of the
@@ -67,33 +55,21 @@ public final class RseBuildCommands {
         String aCommand) {
 
         StringBuilder script = new StringBuilder();
-        script.append("exec < /dev/null >> ").append(ShellCommands.quote(aLogFile)).append(" 2>&1"); //$NON-NLS-1$ //$NON-NLS-2$
-        script.append(STATEMENT_SEPARATOR).append("echo $$ > ").append(ShellCommands.quote(aProcessIdFile)); //$NON-NLS-1$
-        script.append(STATEMENT_SEPARATOR).append("export HOME=").append(ShellCommands.quote(aHome)); //$NON-NLS-1$
+        script.append("exec < /dev/null >> ").append(PaseCommands.quote(aLogFile)).append(" 2>&1"); //$NON-NLS-1$ //$NON-NLS-2$
+        script.append(STATEMENT_SEPARATOR).append("echo $$ > ").append(PaseCommands.quote(aProcessIdFile)); //$NON-NLS-1$
+        script.append(STATEMENT_SEPARATOR).append("export HOME=").append(PaseCommands.quote(aHome)); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("[ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile"); //$NON-NLS-1$
-        if (BASH.equals(aShell)) {
+        if (PaseCommands.BASH.equals(aShell)) {
             script.append(STATEMENT_SEPARATOR).append("if [ -f \"$HOME/.bash_profile\" ]; then . \"$HOME/.bash_profile\";"); //$NON-NLS-1$
             script.append(" elif [ -f \"$HOME/.bash_login\" ]; then . \"$HOME/.bash_login\";"); //$NON-NLS-1$
             script.append(" elif [ -f \"$HOME/.profile\" ]; then . \"$HOME/.profile\"; fi"); //$NON-NLS-1$
         } else {
             script.append(STATEMENT_SEPARATOR).append("[ -f \"$HOME/.profile\" ] && . \"$HOME/.profile\""); //$NON-NLS-1$
         }
-        script.append(STATEMENT_SEPARATOR).append("cd ").append(ShellCommands.quote(aDirectory)).append(" && ").append(aCommand.trim()); //$NON-NLS-1$ //$NON-NLS-2$
-        script.append(STATEMENT_SEPARATOR).append("echo $? > ").append(ShellCommands.quote(anExitCodeFile)); //$NON-NLS-1$
+        script.append(STATEMENT_SEPARATOR).append("cd ").append(PaseCommands.quote(aDirectory)).append(" && ").append(aCommand.trim()); //$NON-NLS-1$ //$NON-NLS-2$
+        script.append(STATEMENT_SEPARATOR).append("echo $? > ").append(PaseCommands.quote(anExitCodeFile)); //$NON-NLS-1$
 
         return script.toString();
-    }
-
-    /**
-     * Returns the CL command, that runs a shell script with
-     * <code>QP2SHELL2</code>.
-     *
-     * @param aShell - shell, {@link #BASH} or {@link #SH}
-     * @param aScript - script, see {@link #getScript}
-     * @return CL command
-     */
-    public static String getCallCommand(String aShell, String aScript) {
-        return "CALL PGM(QP2SHELL2) PARM(" + SyntaxCheckCommands.quote(aShell) + " '-c' " + SyntaxCheckCommands.quote(aScript) + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     /**
@@ -103,39 +79,19 @@ public final class RseBuildCommands {
      * terminated, because terminated processes lose their parent.
      *
      * @param aProcessIdFile - stream file with the process ID of the shell
-     * @return script for {@link #SH}
+     * @return script for {@link PaseCommands#SH}
      */
     public static String getStopScript(String aProcessIdFile) {
 
         StringBuilder script = new StringBuilder();
         script.append("exec < /dev/null > /dev/null 2>&1"); //$NON-NLS-1$
-        script.append(STATEMENT_SEPARATOR).append("pid=$(cat ").append(ShellCommands.quote(aProcessIdFile)).append(')'); //$NON-NLS-1$
+        script.append(STATEMENT_SEPARATOR).append("pid=$(cat ").append(PaseCommands.quote(aProcessIdFile)).append(')'); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("[ -n \"$pid\" ] || exit 0"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("tree() { echo $1; for child in $(ps -e -o pid= -o ppid= | awk -v p=$1 '$2 == p { print $1 }'); do tree $child; done; }"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("kill -TERM $(tree $pid)"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("exit 0"); //$NON-NLS-1$
 
         return script.toString();
-    }
-
-    /**
-     * Returns the library, whose events file (EVFEVENT) contains the events of
-     * the objects created by a build: <code>objlib</code> of
-     * <code>iproj.json</code> or, without <code>objlib</code>,
-     * <code>curlib</code>. Variables are resolved.
-     *
-     * @param aConfig - content of <code>iproj.json</code>
-     * @param aVariables - environment variables of the project
-     * @return library or <code>null</code>, if the library is unknown
-     */
-    public static String getObjectLibrary(IProjConfig aConfig, Map<String, String> aVariables) {
-
-        String library = getLibrary(aConfig, IProjConfig.OBJLIB, aVariables);
-        if (library == null) {
-            library = getLibrary(aConfig, IProjConfig.CURLIB, aVariables);
-        }
-
-        return library;
     }
 
     /**
@@ -155,20 +111,5 @@ public final class RseBuildCommands {
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-
-    private static String getLibrary(IProjConfig aConfig, String aKey, Map<String, String> aVariables) {
-
-        String value = EnvironmentVariables.resolveReferences(aConfig.getString(aKey), aVariables);
-        if (value == null) {
-            return null;
-        }
-
-        String library = value.trim().toUpperCase(Locale.ROOT);
-        if (!library.matches(OBJECT_NAME_PATTERN)) {
-            return null;
-        }
-
-        return library;
     }
 }

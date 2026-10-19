@@ -14,8 +14,8 @@ import org.eclipse.rse.core.model.IHost;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import de.tools400.ifsprojects.rse.RseConnections;
 import de.tools400.ifsprojects.rse.RseSelections;
+import de.tools400.ifsprojects.rse.RseTerminalRequests;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
 
 /**
@@ -33,7 +33,7 @@ public class OpenTerminalHandler extends AbstractTerminalHandler {
             return null;
         }
 
-        TerminalRequest.Builder builder = RseConnections.createRequestBuilder(shell, host);
+        TerminalRequest.Builder builder = RseTerminalRequests.createBuilder(shell, host);
         if (builder == null) {
             return null;
         }

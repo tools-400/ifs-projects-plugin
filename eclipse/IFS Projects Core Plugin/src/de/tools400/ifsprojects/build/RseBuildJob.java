@@ -23,6 +23,7 @@ import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.utils.PlatformUtils;
@@ -106,7 +107,7 @@ public class RseBuildJob extends Job {
             String temporaryDirectory = RemoteJobs.getTemporaryDirectory(system);
             RemoteJobs.deleteObsoleteTemporaryFiles(system, temporaryDirectory);
             String home = RemoteJobs.getHomeDirectory(system);
-            String shell = new IFSFile(system, RseBuildCommands.BASH).exists() ? RseBuildCommands.BASH : RseBuildCommands.SH;
+            String shell = new IFSFile(system, PaseCommands.BASH).exists() ? PaseCommands.BASH : PaseCommands.SH;
 
             logFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, LOG_FILE_SUFFIX));
             logFile.createNewFile();
@@ -118,7 +119,7 @@ public class RseBuildJob extends Job {
 
             String script = RseBuildCommands.getScript(shell, home, logFile.getAbsolutePath(), exitCodeFile.getAbsolutePath(),
                 processIdFile.getAbsolutePath(), directory, command);
-            CommandThread commandThread = new CommandThread(commandCall, RseBuildCommands.getCallCommand(shell, script));
+            CommandThread commandThread = new CommandThread(commandCall, PaseCommands.getCallCommand(shell, script));
             commandThread.start();
 
             LogLines logLines = new LogLines();
@@ -203,7 +204,7 @@ public class RseBuildJob extends Job {
         AS400 stopSystem = RemoteJobs.copySystem(rseSystem);
         try {
             CommandCall commandCall = RemoteJobs.createCommandCall(stopSystem);
-            commandCall.run(RseBuildCommands.getCallCommand(RseBuildCommands.SH, RseBuildCommands.getStopScript(aProcessIdFile)));
+            commandCall.run(PaseCommands.getCallCommand(PaseCommands.SH, RseBuildCommands.getStopScript(aProcessIdFile)));
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not stop command: " + displayCommand, e); //$NON-NLS-1$
         } finally {

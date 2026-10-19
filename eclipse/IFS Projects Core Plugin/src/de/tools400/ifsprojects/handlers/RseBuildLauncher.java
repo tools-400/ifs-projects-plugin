@@ -14,11 +14,11 @@ import org.eclipse.rse.core.model.IHost;
 
 import com.ibm.as400.access.AS400;
 
-import de.tools400.ifsprojects.build.RseBuildCommands;
 import de.tools400.ifsprojects.build.RseBuildJob;
 import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.terminal.ShellCommands;
+import de.tools400.ifsprojects.project.IProjValues;
 
 /**
  * Starts a build or compile command of an IFS project in a job of the RSE
@@ -46,8 +46,8 @@ final class RseBuildLauncher {
     static void launch(String aJobName, IHost aHost, AS400 aSystem, String aDirectory, IProjConfig aConfig, Map<String, String> aVariables,
         String aCommand, SourceMapping aSourceMapping) {
 
-        String objectLibrary = RseBuildCommands.getObjectLibrary(aConfig, aVariables);
-        String command = ShellCommands.addExports(aVariables, aCommand);
+        String objectLibrary = IProjValues.getObjectLibrary(aConfig, aVariables);
+        String command = EnvironmentVariables.addExports(aVariables, aCommand);
 
         new RseBuildJob(aJobName, aHost, aSystem, aDirectory, objectLibrary, aCommand.trim(), command, aSourceMapping).schedule();
     }

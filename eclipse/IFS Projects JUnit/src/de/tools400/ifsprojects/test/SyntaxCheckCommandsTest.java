@@ -141,20 +141,6 @@ public class SyntaxCheckCommandsTest {
             SyntaxCheckCommands.getSetupCommands("/p", config, variables));
     }
 
-    @Test
-    public void testGetIncludeDirectories() throws Exception {
-
-        IProjConfig config = IProjConfig.parse("{\"includePath\": [\"qprotsrc\", \"/QIBM/include\", \"&INCDIR\", \"\"]}");
-
-        Map<String, String> variables = new LinkedHashMap<String, String>();
-        variables.put("INCDIR", "/home/jsmith/inc");
-
-        assertEquals(Arrays.asList("/home/jsmith/git/dspsrc/qprotsrc", "/QIBM/include", "/home/jsmith/inc"),
-            SyntaxCheckCommands.getIncludeDirectories("/home/jsmith/git/dspsrc", config, variables));
-        assertEquals(Arrays.asList("/qprotsrc"), SyntaxCheckCommands.getIncludeDirectories("/", IProjConfig.parse("{\"includePath\": \"qprotsrc\"}"),
-            new LinkedHashMap<String, String>()));
-        assertTrue(SyntaxCheckCommands.getIncludeDirectories("/p", IProjConfig.parse("{}"), new LinkedHashMap<String, String>()).isEmpty());
-    }
 
     @Test
     public void testEventsMemberCommands() {
@@ -166,10 +152,4 @@ public class SyntaxCheckCommandsTest {
             SyntaxCheckCommands.getCopyEventsMemberCommand("JSMITH#CL", "HELLO", "/home/jsmith/.ifsprojects/tmp/x.evfevent"));
     }
 
-    @Test
-    public void testQuote() {
-        assertEquals("'/home/jsmith'", SyntaxCheckCommands.quote("/home/jsmith"));
-        assertEquals("'it''s'", SyntaxCheckCommands.quote("it's"));
-        assertEquals("''", SyntaxCheckCommands.quote(""));
-    }
 }

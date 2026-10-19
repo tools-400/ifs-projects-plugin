@@ -32,13 +32,13 @@ import com.ibm.as400.access.AS400;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.dialogs.SelectIfsDirectoryDialog;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjFileStore;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.project.IfsProjectFilters;
-import de.tools400.ifsprojects.rse.IfsFilterStrings;
 import de.tools400.ifsprojects.swt.ToolTips;
 import de.tools400.ifsprojects.utils.StringUtils;
 
@@ -133,7 +133,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
     }
 
     public String getDirectory() {
-        return IfsFilterStrings.normalizeDirectory(directoryText.getText());
+        return IfsPaths.normalizeDirectory(directoryText.getText());
     }
 
     public boolean isCreateDirectory() {
@@ -239,7 +239,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
             return;
         }
 
-        String lastSegment = IfsFilterStrings.getLastSegment(directoryText.getText());
+        String lastSegment = IfsPaths.getLastSegment(directoryText.getText());
 
         isUpdatingName = true;
         try {

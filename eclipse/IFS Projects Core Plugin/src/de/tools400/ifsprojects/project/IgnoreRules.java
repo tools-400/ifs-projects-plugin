@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.ifsprojects.local;
+package de.tools400.ifsprojects.project;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,8 +16,8 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * Rules of the <code>.deployignore</code> or <code>.gitignore</code> file of
- * the project directory, that exclude files from the upload, see
- * {@link Deployment}.
+ * the project directory, that exclude files from the upload of local IFS
+ * projects and from the export to a library, see {@link ProjectFiles}.
  * <p>
  * The syntax of git is supported for a single file in the project directory:
  * comments (<code>#</code>), negation (<code>!</code>), directories (trailing

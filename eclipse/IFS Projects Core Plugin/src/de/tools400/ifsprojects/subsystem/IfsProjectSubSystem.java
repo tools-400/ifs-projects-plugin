@@ -25,6 +25,7 @@ import com.ibm.etools.iseries.connectorservice.IToolboxSubSystem;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
 
 /**
@@ -35,7 +36,6 @@ import de.tools400.ifsprojects.rse.IfsFilterStrings;
  */
 public class IfsProjectSubSystem extends SubSystem implements IToolboxSubSystem {
 
-    private static final char SEPARATOR = '/';
 
     public IfsProjectSubSystem(IHost aHost, IConnectorService aConnectorService) {
         super(aHost, aConnectorService);
@@ -68,7 +68,7 @@ public class IfsProjectSubSystem extends SubSystem implements IToolboxSubSystem 
     public boolean doesFilterStringMatch(String aFilterString, String aRemoteObjectAbsoluteName, boolean aCaseSensitive) {
 
         String directory = IfsFilterStrings.getDirectory(aFilterString);
-        String parentDirectory = getParentDirectory(aRemoteObjectAbsoluteName);
+        String parentDirectory = IfsPaths.getParent(aRemoteObjectAbsoluteName);
         if (directory == null || parentDirectory == null) {
             return false;
         }
@@ -88,7 +88,7 @@ public class IfsProjectSubSystem extends SubSystem implements IToolboxSubSystem 
     public boolean doesFilterStringListContentsOf(ISystemFilterString aFilterString, String aRemoteObjectAbsoluteName) {
 
         String directory = IfsFilterStrings.getDirectory(aFilterString.getString());
-        String remoteDirectory = IfsFilterStrings.normalizeDirectory(aRemoteObjectAbsoluteName);
+        String remoteDirectory = IfsPaths.normalizeDirectory(aRemoteObjectAbsoluteName);
         if (directory == null || remoteDirectory == null) {
             return false;
         }
@@ -104,20 +104,5 @@ public class IfsProjectSubSystem extends SubSystem implements IToolboxSubSystem 
     private Object[] createErrorMessage(String aMessage) {
         SimpleSystemMessage message = new SimpleSystemMessage(IfsProjectsPlugin.PLUGIN_ID, IStatus.ERROR, aMessage);
         return new Object[] { new SystemMessageObject(message, ISystemMessageObject.MSGTYPE_ERROR, null) };
-    }
-
-    private String getParentDirectory(String anAbsoluteName) {
-
-        String path = IfsFilterStrings.normalizeDirectory(anAbsoluteName);
-        if (path == null || path.length() <= 1) {
-            return null;
-        }
-
-        int index = path.lastIndexOf(SEPARATOR);
-        if (index == 0) {
-            return String.valueOf(SEPARATOR);
-        }
-
-        return path.substring(0, index);
     }
 }

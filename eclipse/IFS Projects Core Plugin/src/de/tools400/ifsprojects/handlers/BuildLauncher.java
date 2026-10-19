@@ -18,11 +18,11 @@ import org.eclipse.swt.widgets.Shell;
 import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.build.BuildMode;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.rse.RseConnections;
-import de.tools400.ifsprojects.terminal.ShellCommands;
+import de.tools400.ifsprojects.rse.RseTerminalRequests;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
 
 /**
@@ -84,7 +84,7 @@ final class BuildLauncher {
             return new BuildLauncher(aShell, aHost, system, null);
         }
 
-        TerminalRequest.Builder requestBuilder = RseConnections.createRequestBuilder(aShell, aHost);
+        TerminalRequest.Builder requestBuilder = RseTerminalRequests.createBuilder(aShell, aHost);
         if (requestBuilder == null) {
             return null;
         }
@@ -131,7 +131,7 @@ final class BuildLauncher {
         values.put(PLACEHOLDER_HOST, host.getHostName());
         values.put(PLACEHOLDER_USRPRF, getUserId().toUpperCase(Locale.ROOT));
 
-        return ShellCommands.replacePlaceholders(command, values);
+        return PaseCommands.replacePlaceholders(command, values);
     }
 
     /**
@@ -178,6 +178,6 @@ final class BuildLauncher {
             return aFileName;
         }
 
-        return ShellCommands.quote(aFileName);
+        return PaseCommands.quote(aFileName);
     }
 }

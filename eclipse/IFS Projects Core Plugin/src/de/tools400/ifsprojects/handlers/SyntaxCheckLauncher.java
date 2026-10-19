@@ -25,6 +25,7 @@ import org.eclipse.ui.PlatformUI;
 import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.local.Deployment;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.local.SourceMapping;
@@ -63,7 +64,7 @@ public final class SyntaxCheckLauncher {
      */
     public static void launch(Shell aShell, IHost aHost, String aPath) {
 
-        String fileName = aPath.substring(aPath.lastIndexOf(SEPARATOR) + 1);
+        String fileName = IfsPaths.getFileName(aPath);
 
         SourceType sourceType = SourceType.fromFileName(fileName);
         if (sourceType == null) {

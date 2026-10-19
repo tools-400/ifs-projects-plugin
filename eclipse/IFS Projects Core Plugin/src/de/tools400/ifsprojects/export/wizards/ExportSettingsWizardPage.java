@@ -28,9 +28,9 @@ import org.eclipse.swt.widgets.Text;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.export.ExportSettings;
 import de.tools400.ifsprojects.export.SourceFileRule;
+import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.swt.CcsidCombo;
 import de.tools400.ifsprojects.swt.ToolTips;
-import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -213,11 +213,11 @@ public class ExportSettingsWizardPage extends WizardPage {
         String errorMessage = null;
         String ccsidErrorMessage = ccsidCombo.getErrorMessage();
 
-        if (!SyntaxCheckCommands.isObjectName(getLibrary())) {
+        if (!ClCommands.isObjectName(getLibrary())) {
             errorMessage = Messages.Error_Library_name_invalid;
         } else if (QTEMP.equals(getLibrary())) {
             errorMessage = Messages.Error_QTEMP_not_allowed;
-        } else if (singleFileButton.getSelection() && !SyntaxCheckCommands.isObjectName(getSourceFile())) {
+        } else if (singleFileButton.getSelection() && !ClCommands.isObjectName(getSourceFile())) {
             errorMessage = Messages.Error_Source_file_name_invalid;
         } else if (ccsidErrorMessage != null) {
             errorMessage = ccsidErrorMessage;

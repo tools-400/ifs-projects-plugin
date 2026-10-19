@@ -30,7 +30,6 @@ import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
-import de.tools400.ifsprojects.project.IProjToolTips;
 import de.tools400.ifsprojects.swt.ToolTips;
 import de.tools400.ifsprojects.utils.StringUtils;
 

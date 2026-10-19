@@ -18,7 +18,6 @@ import java.nio.charset.Charset;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +41,8 @@ import com.ibm.as400.access.IFSFileOutputStream;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.project.IgnoreRules;
+import de.tools400.ifsprojects.project.ProjectFiles;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 
 /**
@@ -72,20 +73,13 @@ import de.tools400.ifsprojects.remote.RemoteJobs;
  * that make rebuilds the objects of every uploaded change.</li>
  * <li>Not uploaded are derived, team private and hidden resources, the files of
  * git, Eclipse and the plug-in and the output directories of TOBi in the
- * project directory, see {@link #isExcluded(String)}, and the files excluded
+ * project directory, see {@link ProjectFiles#isExcluded(String)}, and the files excluded
  * by the ignore file, see {@link IgnoreRules}.</li>
  * </ul>
  * The methods access the remote system and must not be called on the UI
  * thread.
  */
 public final class Deployment {
-
-    /** File of the deploy directory, that contains the token of the manifest. */
-    public static final String TOKEN_FILE_NAME = ".ifsprojects-deploy"; //$NON-NLS-1$
-
-    /** Files and directories of the project directory, that are not uploaded. */
-    private static final Set<String> EXCLUDED_NAMES = new HashSet<String>(Arrays.asList(".git", ".project", ".settings", ".logs", ".evfevent", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-        ".deps", IgnoreRules.DEPLOY_IGNORE_FILE, TOKEN_FILE_NAME)); //$NON-NLS-1$
 
     private static final String MANIFEST_DIRECTORY = "deploy"; //$NON-NLS-1$
     private static final String MANIFEST_SUFFIX = ".manifest"; //$NON-NLS-1$
@@ -152,7 +146,7 @@ public final class Deployment {
 
         // An untrusted manifest only tells, which files have been uploaded
         // before and may be deleted.
-        IFSFile tokenFile = new IFSFile(aSystem, aDeployDirectory + SEPARATOR + TOKEN_FILE_NAME);
+        IFSFile tokenFile = new IFSFile(aSystem, aDeployDirectory + SEPARATOR + ProjectFiles.DEPLOY_TOKEN_FILE);
         boolean isTrusted = !anIsAll && manifest.getToken() != null && manifest.getToken().equals(readToken(tokenFile));
         if (!isTrusted) {
             manifest.removeAllEntries();
@@ -232,25 +226,6 @@ public final class Deployment {
     }
 
     /**
-     * Returns <code>true</code>, if a file or directory of a project is not
-     * uploaded, because its first segment is excluded: <code>.git</code>,
-     * <code>.project</code>, <code>.settings</code>, the output directories of
-     * TOBi <code>.logs</code>, <code>.evfevent</code> and <code>.deps</code>,
-     * <code>.deployignore</code> and <code>.ifsprojects-deploy</code>.
-     *
-     * @param aRelativePath - path relative to the project, e.g.
-     *        <code>src/hello.rpgle</code>
-     * @return <code>true</code>, if the resource is not uploaded
-     */
-    public static boolean isExcluded(String aRelativePath) {
-
-        int index = aRelativePath.indexOf(SEPARATOR);
-        String firstSegment = index < 0 ? aRelativePath : aRelativePath.substring(0, index);
-
-        return EXCLUDED_NAMES.contains(firstSegment);
-    }
-
-    /**
      * Returns the CCSID of a new stream file, that contains text of the
      * specified encoding.
      *
@@ -308,15 +283,15 @@ public final class Deployment {
 
     /**
      * Returns the files of a project, that are uploaded: all files except of
-     * the excluded files, see {@link #isExcluded(String)}, and the files of the
+     * the excluded files, see {@link ProjectFiles#isExcluded(String)}, and the files of the
      * ignore file, see {@link IgnoreRules}. The project is not refreshed.
      *
      * @param aProject - project
      * @return files by path relative to the project
-     * @throws CoreException if the files could not be listed
-     * @throws IOException if the ignore file could not be read
+     * @throws Exception if the files could not be listed or the ignore file
+     *         could not be read
      */
-    static Map<String, IFile> getFiles(IProject aProject) throws CoreException, IOException {
+    static Map<String, IFile> getFiles(IProject aProject) throws Exception {
         return getFiles(aProject, readIgnoreRules(aProject));
     }
 
@@ -332,7 +307,7 @@ public final class Deployment {
                 }
                 String path = aResource.getProjectRelativePath().toString();
                 boolean isFile = aResource.getType() == IResource.FILE;
-                if (isExcluded(path) || anIgnoreRules.isIgnored(path, !isFile) || aResource.getLocation() == null) {
+                if (ProjectFiles.isExcluded(path) || anIgnoreRules.isIgnored(path, !isFile) || aResource.getLocation() == null) {
                     return false;
                 }
                 if (isFile) {
@@ -346,21 +321,17 @@ public final class Deployment {
     }
 
     /**
-     * Reads the rules of <code>.deployignore</code> or, if it does not exist,
-     * of <code>.gitignore</code>.
+     * Reads the rules of the ignore file of a project, see
+     * {@link ProjectFiles#readIgnoreRules(ProjectFiles.ProjectDirectory)}.
      */
-    private static IgnoreRules readIgnoreRules(IProject aProject) throws CoreException, IOException {
+    private static IgnoreRules readIgnoreRules(final IProject aProject) throws Exception {
 
-        IFile file = aProject.getFile(IgnoreRules.DEPLOY_IGNORE_FILE);
-        if (!file.exists()) {
-            file = aProject.getFile(IgnoreRules.GIT_IGNORE_FILE);
-        }
-
-        if (!file.exists()) {
-            return IgnoreRules.empty();
-        }
-
-        return IgnoreRules.parse(LocalProject.readText(file));
+        return ProjectFiles.readIgnoreRules(new ProjectFiles.ProjectDirectory() {
+            public String readFile(String aName) throws Exception {
+                IFile file = aProject.getFile(aName);
+                return file.exists() ? LocalProject.readText(file) : null;
+            }
+        });
     }
 
     private static File getManifestFile(String aConnectionName, String aDeployDirectory, String aProjectName) {
@@ -410,7 +381,7 @@ public final class Deployment {
 
     /**
      * Returns the stream files of the deploy directory, except of the
-     * excluded files and directories, see {@link #isExcluded(String)}. The
+     * excluded files and directories, see {@link ProjectFiles#isExcluded(String)}. The
      * attributes of the files are returned by the list operation.
      *
      * @return files by path relative to the deploy directory
@@ -432,7 +403,7 @@ public final class Deployment {
 
         for (IFSFile child : children) {
             String path = aPrefix + child.getName();
-            if (aPrefix.length() == 0 && isExcluded(path)) {
+            if (aPrefix.length() == 0 && ProjectFiles.isExcluded(path)) {
                 continue;
             }
             if (child.isDirectory()) {

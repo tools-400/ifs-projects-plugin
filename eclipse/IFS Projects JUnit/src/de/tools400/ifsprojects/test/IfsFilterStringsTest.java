@@ -50,24 +50,5 @@ public class IfsFilterStringsTest {
         assertNull(IfsFilterStrings.getDirectory((String[])null));
     }
 
-    @Test
-    public void testNormalizeDirectory() {
-        assertEquals("/home/jsmith", IfsFilterStrings.normalizeDirectory("/home/jsmith/"));
-        assertEquals("/", IfsFilterStrings.normalizeDirectory("/"));
-        assertEquals("/", IfsFilterStrings.normalizeDirectory("///"));
-        assertNull(IfsFilterStrings.normalizeDirectory("/home/*"));
-        assertNull(IfsFilterStrings.normalizeDirectory("/home/jsmith?"));
-        assertNull(IfsFilterStrings.normalizeDirectory("home"));
-        assertNull(IfsFilterStrings.normalizeDirectory("  "));
-        assertNull(IfsFilterStrings.normalizeDirectory(null));
-    }
 
-    @Test
-    public void testGetLastSegment() {
-        assertEquals("src", IfsFilterStrings.getLastSegment("/home/jsmith/src"));
-        assertEquals("src", IfsFilterStrings.getLastSegment("/home/jsmith/src/"));
-        assertEquals("home", IfsFilterStrings.getLastSegment("/home"));
-        assertEquals("/", IfsFilterStrings.getLastSegment("/"));
-        assertNull(IfsFilterStrings.getLastSegment("src"));
-    }
 }

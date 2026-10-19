@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import de.tools400.ifsprojects.rse.RseConnections;
+import de.tools400.ifsprojects.rse.RseTerminalRequests;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
 
 public class TerminalRequestTest {
@@ -118,8 +118,8 @@ public class TerminalRequestTest {
 
     @Test
     public void testSshUserId() {
-        assertEquals("jsmith", RseConnections.toSshUserId("JSMITH", true));
-        assertEquals("JSMITH", RseConnections.toSshUserId(" JSMITH ", false));
-        assertNull(RseConnections.toSshUserId(null, true));
+        assertEquals("jsmith", RseTerminalRequests.toSshUserId("JSMITH", true));
+        assertEquals("JSMITH", RseTerminalRequests.toSshUserId(" JSMITH ", false));
+        assertNull(RseTerminalRequests.toSshUserId(null, true));
     }
 }

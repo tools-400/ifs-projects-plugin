@@ -25,13 +25,13 @@ import org.eclipse.rse.core.model.IHost;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.remote.RemoteJobs;
-import de.tools400.ifsprojects.rse.IfsFilterStrings;
 import de.tools400.ifsprojects.rse.RseConnections;
 import de.tools400.ifsprojects.utils.StringUtils;
 
@@ -230,7 +230,7 @@ public final class LocalProject {
             return ""; //$NON-NLS-1$
         }
 
-        String directory = IfsFilterStrings.normalizeDirectory(aDirectory);
+        String directory = IfsPaths.normalizeDirectory(aDirectory);
         if (directory == null || ROOT_DIRECTORY.equals(directory)) {
             return null;
         }

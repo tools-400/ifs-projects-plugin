@@ -28,14 +28,17 @@ Packages below `de.tools400.ifsprojects`:
 | `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuildJob`, `CommandsLog`, `LogLines`. Both: `BuildEvents`, `BuildErrors`. Started by `handlers.BuildLauncher` (build mode of the preferences, placeholders of the compile command) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
 | `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `ErrorList` (parser and view of RDi), `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). |
 | `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. |
-| `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `IgnoreRules`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `BuildErrors`. |
-| `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. |
+| `ibmi` | Syntax of the IBM i, without dependencies on the other packages: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, placeholders, `QP2SHELL2`), `IfsPaths`. |
+| `rse` | RSE helpers: `RseSelections` (host and directory of the selection), `RseConnections` (lookup of a connection), `RseTerminalRequests` (terminal request of a connection, may prompt for the user ID), `IfsFilterStrings`, `RemoteEditors`. |
+| `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `BuildErrors`. |
+| `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables` (also their export before a command), `BuildTool`. `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. |
+| `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
 | `export` | Export to a library: `ExportMapping` (stream file to member), `MemberText`, `IncludeResolver` and `IncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview), `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
 | `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. |
 | `swt` | `ToolTips` and `CcsidCombo` (CCSID of new source files, used by the preferences and the export). |
-| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. |
+| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`. |
 
 The `*Commands` classes have no RDi dependency. Neither have `ExportMapping`, `MemberText`,
 `IncludeResolver`, `IncludeConverter`, `SourceCheck` and `ExportPlan`, which only use IBM Toolbox
@@ -204,7 +207,7 @@ source members, e.g. for a change management system. The facts below were verifi
   deselecting a file computes it again. The job exports exactly the content of the plan.
 * Files: IFS projects are listed with `IFSFile.listFiles()` and read with the CCSID of the stream
   file. Local IFS projects are refreshed and read from the workspace. Both skip the files that the
-  upload skips (`Deployment.isExcluded()`, `IgnoreRules`). The deploy directory of a local IFS
+  upload skips (`ProjectFiles`, `IgnoreRules`). The deploy directory of a local IFS
   project is only used to resolve absolute include paths and `includePath`; it is not changed.
 * Library: `OBJECT_STATISTICS(lib, '*FILE')` joined with `SYSTABLES` (`FILE_TYPE` `S`) and
   `SYSCOLUMNS` (length and CCSID of `SRCDTA`) over the JDBC driver of IBM Toolbox for Java, the

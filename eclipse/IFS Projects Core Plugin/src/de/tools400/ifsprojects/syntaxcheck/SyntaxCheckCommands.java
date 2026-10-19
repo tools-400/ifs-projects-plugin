@@ -10,7 +10,6 @@ package de.tools400.ifsprojects.syntaxcheck;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -18,9 +17,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.tools400.ifsprojects.project.EnvironmentVariables;
+import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.utils.StringUtils;
+import de.tools400.ifsprojects.project.IProjValues;
 
 /**
  * CL commands of the syntax check of a stream file.
@@ -60,33 +59,17 @@ public final class SyntaxCheckCommands {
     /** Object name used, if the file name is not a valid object name. */
     static final String DEFAULT_OBJECT_NAME = "IFSCHECK"; //$NON-NLS-1$
 
-    private static final String OBJECT_NAME_PATTERN = "[A-Z$#@][A-Z0-9$#@_]{0,9}"; //$NON-NLS-1$
     private static final Pattern FREE_DIRECTIVE = Pattern.compile("^\\*\\*FREE\\b", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
     private static final Pattern CONTROL_STATEMENT = Pattern.compile("\\bCTL-OPT\\b([^;]*);?", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
     private static final Pattern NOMAIN = Pattern.compile("(?<![A-Z0-9_$#@])NOMAIN(?![A-Z0-9_$#@])", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
     private static final String LINE_SEPARATOR_PATTERN = "\\r?\\n"; //$NON-NLS-1$
-    private static final String WHITE_SPACE_PATTERN = "\\s+"; //$NON-NLS-1$
     private static final String LINE_COMMENT = "//"; //$NON-NLS-1$
     private static final int FIXED_SPEC_TYPE = 5;
     private static final int FIXED_COMMENT = 6;
     private static final char SEPARATOR = '/';
-    private static final char QUOTE = '\'';
 
     private SyntaxCheckCommands() {
         // Utility class
-    }
-
-    /**
-     * Returns <code>true</code>, if a name is a valid name of an object or
-     * member in uppercase: up to 10 characters, <code>A-Z</code>,
-     * <code>0-9</code>, <code>$#@_</code>, not starting with a digit or an
-     * underscore.
-     *
-     * @param aName - name or <code>null</code>
-     * @return <code>true</code> for a valid name
-     */
-    public static boolean isObjectName(String aName) {
-        return aName != null && aName.matches(OBJECT_NAME_PATTERN);
     }
 
     /**
@@ -110,7 +93,7 @@ public final class SyntaxCheckCommands {
         }
 
         name = name.toUpperCase(Locale.ROOT);
-        if (!isObjectName(name)) {
+        if (!ClCommands.isObjectName(name)) {
             return DEFAULT_OBJECT_NAME;
         }
 
@@ -187,9 +170,9 @@ public final class SyntaxCheckCommands {
             if (includeDirectories != null) {
                 compileOptions.append(' ').append(includeDirectories);
             }
-            command.append("CRTSQLRPGI OBJ(").append(object).append(") SRCSTMF(").append(quote(aSourcePath)); //$NON-NLS-1$ //$NON-NLS-2$
+            command.append("CRTSQLRPGI OBJ(").append(object).append(") SRCSTMF(").append(ClCommands.quote(aSourcePath)); //$NON-NLS-1$ //$NON-NLS-2$
             command.append(") OBJTYPE(*MODULE) OPTION(*EVENTF) OUTPUT(*NONE) CVTCCSID(*JOB) RPGPPOPT(*LVL2) COMPILEOPT("); //$NON-NLS-1$
-            command.append(quote(compileOptions.toString())).append(')');
+            command.append(ClCommands.quote(compileOptions.toString())).append(')');
             return command.toString();
 
         case RPGLE:
@@ -198,7 +181,7 @@ public final class SyntaxCheckCommands {
             } else {
                 command.append("CRTBNDRPG PGM(").append(object).append(')'); //$NON-NLS-1$
             }
-            command.append(" SRCSTMF(").append(quote(aSourcePath)).append(") OPTION(*NOGEN *EVENTF) OUTPUT(*NONE)"); //$NON-NLS-1$ //$NON-NLS-2$
+            command.append(" SRCSTMF(").append(ClCommands.quote(aSourcePath)).append(") OPTION(*NOGEN *EVENTF) OUTPUT(*NONE)"); //$NON-NLS-1$ //$NON-NLS-2$
             if (!aNoMain) {
                 // DFTACTGRP(*YES), the default, does not allow bound calls.
                 // A CTL-OPT DFTACTGRP() of the source overrides it.
@@ -251,52 +234,27 @@ public final class SyntaxCheckCommands {
     public static List<String> getSetupCommands(String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables) {
 
         List<String> commands = new ArrayList<String>();
-        commands.add("CHGCURDIR DIR(" + quote(aProjectDirectory) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+        commands.add("CHGCURDIR DIR(" + ClCommands.quote(aProjectDirectory) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 
-        for (String command : getValues(aConfig, IProjConfig.SET_IBMI_ENV_CMD, aVariables)) {
+        for (String command : IProjValues.getValues(aConfig, IProjConfig.SET_IBMI_ENV_CMD, aVariables)) {
             commands.add(command);
         }
 
-        List<String> currentLibrary = getLibraries(aConfig, IProjConfig.CURLIB, aVariables);
+        List<String> currentLibrary = IProjValues.getLibraries(aConfig, IProjConfig.CURLIB, aVariables);
         if (!currentLibrary.isEmpty()) {
             commands.add("CHGCURLIB CURLIB(" + currentLibrary.get(0) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
-        List<String> preLibraries = getLibraries(aConfig, IProjConfig.PRE_USRLIBL, aVariables);
+        List<String> preLibraries = IProjValues.getLibraries(aConfig, IProjConfig.PRE_USRLIBL, aVariables);
         for (int i = preLibraries.size() - 1; i >= 0; i--) {
             commands.add("ADDLIBLE LIB(" + preLibraries.get(i) + ") POSITION(*FIRST)"); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
-        for (String library : getLibraries(aConfig, IProjConfig.POST_USRLIBL, aVariables)) {
+        for (String library : IProjValues.getLibraries(aConfig, IProjConfig.POST_USRLIBL, aVariables)) {
             commands.add("ADDLIBLE LIB(" + library + ") POSITION(*LAST)"); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         return commands;
-    }
-
-    /**
-     * Returns the absolute include directories of <code>includePath</code>.
-     * Relative directories are relative to the project directory.
-     *
-     * @param aProjectDirectory - absolute project directory
-     * @param aConfig - content of <code>iproj.json</code>
-     * @param aVariables - environment variables of the project
-     * @return directories
-     */
-    public static List<String> getIncludeDirectories(String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables) {
-
-        List<String> directories = new ArrayList<String>();
-        for (String directory : getValues(aConfig, IProjConfig.INCLUDE_PATH, aVariables)) {
-            if (directory.charAt(0) == SEPARATOR) {
-                directories.add(directory);
-            } else if (aProjectDirectory.length() > 0 && aProjectDirectory.charAt(aProjectDirectory.length() - 1) == SEPARATOR) {
-                directories.add(aProjectDirectory + directory);
-            } else {
-                directories.add(aProjectDirectory + SEPARATOR + directory);
-            }
-        }
-
-        return directories;
     }
 
     /**
@@ -332,30 +290,8 @@ public final class SyntaxCheckCommands {
      * @return command
      */
     public static String getCopyEventsMemberCommand(String aLibrary, String aMemberName, String aStreamFile) {
-        String member = "/QSYS.LIB/" + aLibrary + ".LIB/" + EVENTS_FILE + ".FILE/" + aMemberName + ".MBR"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-        return "CPYTOSTMF FROMMBR(" + quote(member) + ") TOSTMF(" + quote(aStreamFile) + ") STMFOPT(*REPLACE) STMFCCSID(1208)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    }
-
-    /**
-     * Returns a CL character literal.
-     *
-     * @param aValue - value
-     * @return value enclosed in apostrophes, apostrophes are doubled
-     */
-    public static String quote(String aValue) {
-
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(QUOTE);
-        for (int i = 0; i < aValue.length(); i++) {
-            char c = aValue.charAt(i);
-            if (c == QUOTE) {
-                buffer.append(QUOTE);
-            }
-            buffer.append(c);
-        }
-        buffer.append(QUOTE);
-
-        return buffer.toString();
+        String member = ClCommands.getMemberPath(aLibrary, EVENTS_FILE, aMemberName);
+        return "CPYTOSTMF FROMMBR(" + ClCommands.quote(member) + ") TOSTMF(" + ClCommands.quote(aStreamFile) + ") STMFOPT(*REPLACE) STMFCCSID(1208)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     private static String getIncludeDirectoriesParameter(List<String> aDirectories) {
@@ -369,48 +305,11 @@ public final class SyntaxCheckCommands {
             if (i > 0) {
                 parameter.append(' ');
             }
-            parameter.append(quote(aDirectories.get(i)));
+            parameter.append(ClCommands.quote(aDirectories.get(i)));
         }
         parameter.append(')');
 
         return parameter.toString();
-    }
-
-    private static List<String> getLibraries(IProjConfig aConfig, String aKey, Map<String, String> aVariables) {
-
-        List<String> libraries = new ArrayList<String>();
-        Set<String> uniqueLibraries = new HashSet<String>();
-        for (String value : getValues(aConfig, aKey, aVariables)) {
-            for (String library : value.split(WHITE_SPACE_PATTERN)) {
-                if (library.length() > 0 && uniqueLibraries.add(library.toUpperCase(Locale.ROOT))) {
-                    libraries.add(library);
-                }
-            }
-        }
-
-        return libraries;
-    }
-
-    private static List<String> getValues(IProjConfig aConfig, String aKey, Map<String, String> aVariables) {
-
-        List<String> rawValues = aConfig.getStringList(aKey);
-        if (rawValues == null) {
-            rawValues = new ArrayList<String>();
-            String value = aConfig.getString(aKey);
-            if (value != null) {
-                rawValues.add(value);
-            }
-        }
-
-        List<String> values = new ArrayList<String>();
-        for (String rawValue : rawValues) {
-            String value = StringUtils.trimToNull(EnvironmentVariables.resolveReferences(rawValue, aVariables));
-            if (value != null) {
-                values.add(value);
-            }
-        }
-
-        return values;
     }
 
     private static String removeLineComment(String aLine) {

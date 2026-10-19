@@ -38,24 +38,6 @@ public class LocalProjectTest {
         assertNull(LocalProject.normalizeDeployDirectory("/home/jsmith/*"));
     }
 
-    @Test
-    public void testIsExcluded() {
-
-        assertTrue(Deployment.isExcluded(".git"));
-        assertTrue(Deployment.isExcluded(".git/config"));
-        assertTrue(Deployment.isExcluded(".project"));
-        assertTrue(Deployment.isExcluded(".settings/org.eclipse.core.resources.prefs"));
-        assertTrue(Deployment.isExcluded(".logs/joblog.json"));
-        assertTrue(Deployment.isExcluded(".evfevent/HELLO.PGM.evfevent"));
-        assertTrue(Deployment.isExcluded(".deps/hello.d"));
-        assertTrue(Deployment.isExcluded(".deployignore"));
-        assertTrue(Deployment.isExcluded(".ifsprojects-deploy"));
-
-        assertFalse(Deployment.isExcluded("iproj.json"));
-        assertFalse(Deployment.isExcluded("src/.logs/x"));
-        assertFalse(Deployment.isExcluded(".gitignore"));
-        assertFalse(Deployment.isExcluded("Rules.mk"));
-    }
 
     @Test
     public void testGetCcsid() {

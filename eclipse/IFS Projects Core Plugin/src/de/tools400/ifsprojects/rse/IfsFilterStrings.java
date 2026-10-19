@@ -8,6 +8,8 @@
 
 package de.tools400.ifsprojects.rse;
 
+import de.tools400.ifsprojects.ibmi.IfsPaths;
+
 /**
  * Converts between IFS directories and IFS filter strings, such as
  * <code>/home/jsmith/src/*</code>.
@@ -34,7 +36,7 @@ public final class IfsFilterStrings {
      */
     public static String toFilterString(String aDirectory) {
 
-        String directory = normalizeDirectory(aDirectory);
+        String directory = IfsPaths.normalizeDirectory(aDirectory);
         if (directory == null) {
             throw new IllegalArgumentException("Not an absolute IFS directory: " + aDirectory); //$NON-NLS-1$
         }
@@ -86,49 +88,6 @@ public final class IfsFilterStrings {
         }
 
         return filterString.substring(0, index);
-    }
-
-    /**
-     * Normalizes an absolute IFS directory: removes trailing slashes, except
-     * for the root directory.
-     *
-     * @param aDirectory - directory
-     * @return normalized directory or <code>null</code>, if the directory is
-     *         empty, not absolute or contains wild cards
-     */
-    public static String normalizeDirectory(String aDirectory) {
-
-        if (aDirectory == null) {
-            return null;
-        }
-
-        String directory = aDirectory.trim();
-        if (directory.length() == 0 || directory.charAt(0) != SEPARATOR || directory.indexOf('*') >= 0 || directory.indexOf('?') >= 0) {
-            return null;
-        }
-
-        while (directory.length() > 1 && directory.charAt(directory.length() - 1) == SEPARATOR) {
-            directory = directory.substring(0, directory.length() - 1);
-        }
-
-        return directory;
-    }
-
-    /**
-     * Returns the last segment of a directory.
-     *
-     * @param aDirectory - directory, e.g. <code>/home/jsmith/src</code>
-     * @return last segment, e.g. <code>src</code>, or <code>/</code> for the
-     *         root directory
-     */
-    public static String getLastSegment(String aDirectory) {
-
-        String directory = normalizeDirectory(aDirectory);
-        if (directory == null || ROOT.equals(directory)) {
-            return directory;
-        }
-
-        return directory.substring(directory.lastIndexOf(SEPARATOR) + 1);
     }
 
     private static String removeSwitches(String aFilterString) {

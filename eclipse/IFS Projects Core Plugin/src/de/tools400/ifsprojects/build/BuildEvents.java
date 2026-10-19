@@ -18,6 +18,7 @@ import com.ibm.as400.access.CommandCall;
 import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
+import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
 
@@ -100,7 +101,7 @@ public final class BuildEvents {
     private static List<String> collectMembers(AS400 aSystem, CommandCall aCommandCall, String aLibrary, long aStartTime, String aTemporaryDirectory) {
 
         List<String> events = new ArrayList<String>();
-        String eventsFile = "/QSYS.LIB/" + aLibrary + ".LIB/" + SyntaxCheckCommands.EVENTS_FILE + ".FILE"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        String eventsFile = ClCommands.getFilePath(aLibrary, SyntaxCheckCommands.EVENTS_FILE);
         try {
             for (IFSFile member : getChangedFiles(new IFSFile(aSystem, eventsFile), aStartTime)) {
                 String name = member.getName();

@@ -20,17 +20,18 @@ import org.eclipse.rse.core.model.IPropertySet;
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 
-import de.tools400.ifsprojects.local.Deployment;
-import de.tools400.ifsprojects.local.IgnoreRules;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.project.IgnoreRules;
+import de.tools400.ifsprojects.project.ProjectFiles;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 
 /**
  * IFS project, that is exported. Its files are read from the project
  * directory. Like the upload of local projects, the export skips the files of
- * git, Eclipse, the plug-in and the output directories of TOBi, see
- * {@link Deployment#isExcluded(String)}, and the files of
- * <code>.deployignore</code> or <code>.gitignore</code>.
+ * git, Eclipse, the plug-in and the output directories of TOBi and the files
+ * of <code>.deployignore</code> or <code>.gitignore</code>, see
+ * {@link ProjectFiles}.
  * <p>
  * The settings are saved as a property set of the filter of the project, like
  * its environment variables.
@@ -137,7 +138,7 @@ public final class IfsProjectExportSource implements ExportSource {
         for (IFSFile child : children) {
             String path = aPrefix + child.getName();
             boolean isDirectory = child.isDirectory();
-            if (Deployment.isExcluded(path) || anIgnoreRules.isIgnored(path, isDirectory)) {
+            if (ProjectFiles.isExcluded(path) || anIgnoreRules.isIgnored(path, isDirectory)) {
                 continue;
             }
             if (isDirectory) {
@@ -149,29 +150,20 @@ public final class IfsProjectExportSource implements ExportSource {
     }
 
     /**
-     * Reads the rules of <code>.deployignore</code> or, if it does not exist,
-     * of <code>.gitignore</code> of the project directory.
+     * Reads the rules of the ignore file of the project directory, see
+     * {@link ProjectFiles#readIgnoreRules(ProjectFiles.ProjectDirectory)}.
      */
-    private IgnoreRules readIgnoreRules(AS400 aSystem) throws Exception {
+    private IgnoreRules readIgnoreRules(final AS400 aSystem) throws Exception {
 
-        IFSFile file = new IFSFile(aSystem, getPath(IgnoreRules.DEPLOY_IGNORE_FILE));
-        if (!file.exists()) {
-            file = new IFSFile(aSystem, getPath(IgnoreRules.GIT_IGNORE_FILE));
-        }
-
-        if (!file.exists()) {
-            return IgnoreRules.empty();
-        }
-
-        return IgnoreRules.parse(RemoteJobs.readText(file));
+        return ProjectFiles.readIgnoreRules(new ProjectFiles.ProjectDirectory() {
+            public String readFile(String aName) throws Exception {
+                IFSFile file = new IFSFile(aSystem, getPath(aName));
+                return file.exists() ? RemoteJobs.readText(file) : null;
+            }
+        });
     }
 
     private String getPath(String aRelativePath) {
-
-        if (directory.length() > 0 && directory.charAt(directory.length() - 1) == SEPARATOR) {
-            return directory + aRelativePath;
-        }
-
-        return directory + SEPARATOR + aRelativePath;
+        return IfsPaths.append(directory, aRelativePath);
     }
 }

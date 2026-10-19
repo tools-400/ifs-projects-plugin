@@ -22,6 +22,7 @@ import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
@@ -287,7 +288,7 @@ public class TerminalBuildJob extends Job {
     private boolean isGone(CommandCall aCommandCall, int aProcessId, IFSFile anExitCodeFile, IFSFile aGoneFile) throws Exception {
 
         String script = TerminalBuildCommands.getCheckScript(aProcessId, aGoneFile.getAbsolutePath());
-        aCommandCall.run(RseBuildCommands.getCallCommand(RseBuildCommands.SH, script));
+        aCommandCall.run(PaseCommands.getCallCommand(PaseCommands.SH, script));
 
         // The subshell writes the exit code file, before it ends.
         return !anExitCodeFile.exists() && aGoneFile.exists();

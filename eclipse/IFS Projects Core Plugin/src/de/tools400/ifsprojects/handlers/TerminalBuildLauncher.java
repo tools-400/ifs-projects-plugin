@@ -20,14 +20,14 @@ import org.eclipse.ui.PlatformUI;
 import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
-import de.tools400.ifsprojects.build.RseBuildCommands;
 import de.tools400.ifsprojects.build.TerminalBuildJob;
 import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjFileStore;
+import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
-import de.tools400.ifsprojects.terminal.ShellCommands;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
 
 /**
@@ -65,7 +65,7 @@ final class TerminalBuildLauncher {
     static void launch(Shell aShell, String aJobName, IHost aHost, String aDirectory, IProjConfig aConfig, Map<String, String> aVariables,
         String aCommand, TerminalRequest.Builder aBuilder, SourceMapping aSourceMapping) {
 
-        TerminalBuildJob job = prepare(aJobName, aHost, aDirectory, RseBuildCommands.getObjectLibrary(aConfig, aVariables), aSourceMapping);
+        TerminalBuildJob job = prepare(aJobName, aHost, aDirectory, IProjValues.getObjectLibrary(aConfig, aVariables), aSourceMapping);
 
         String command = null;
         if (job != null) {
@@ -81,7 +81,7 @@ final class TerminalBuildLauncher {
         }
 
         ITerminalCommandLine commandLine = AbstractTerminalHandler.launch(aShell,
-            aBuilder.command(ShellCommands.addExports(aVariables, command)).build());
+            aBuilder.command(EnvironmentVariables.addExports(aVariables, command)).build());
 
         if (job != null && commandLine != null) {
             job.start(commandLine);

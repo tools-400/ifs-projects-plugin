@@ -20,6 +20,7 @@ import org.eclipse.rse.core.subsystems.ISubSystemConfiguration;
 
 import com.ibm.etools.iseries.subsystems.ifs.files.IFSFileSubSystemConfiguration;
 
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
 
 /**
@@ -99,7 +100,7 @@ public final class IfsProjects {
      */
     public static IfsProject findProject(IHost aHost, String anAbsolutePath) {
 
-        String path = IfsFilterStrings.normalizeDirectory(anAbsolutePath);
+        String path = IfsPaths.normalizeDirectory(anAbsolutePath);
         if (path == null) {
             return null;
         }
@@ -127,7 +128,7 @@ public final class IfsProjects {
 
         List<IfsProject> projects = new ArrayList<IfsProject>();
 
-        String directory = IfsFilterStrings.normalizeDirectory(aDirectory);
+        String directory = IfsPaths.normalizeDirectory(aDirectory);
         if (directory == null) {
             return projects;
         }

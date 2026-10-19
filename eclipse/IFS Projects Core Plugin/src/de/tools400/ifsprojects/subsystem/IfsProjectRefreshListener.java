@@ -27,7 +27,7 @@ import org.eclipse.rse.ui.RSEUIPlugin;
 import com.ibm.etools.iseries.subsystems.ifs.files.IFSFileSubSystemConfiguration;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
-import de.tools400.ifsprojects.rse.IfsFilterStrings;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 
 /**
  * Refreshes IFS projects, when files or directories are created, deleted or
@@ -39,7 +39,6 @@ import de.tools400.ifsprojects.rse.IfsFilterStrings;
  */
 public final class IfsProjectRefreshListener implements ISystemRemoteChangeListener {
 
-    private static final char SEPARATOR = '/';
 
     private static IfsProjectRefreshListener instance;
 
@@ -129,7 +128,7 @@ public final class IfsProjectRefreshListener implements ISystemRemoteChangeListe
             path = (String)aDirectory;
         }
 
-        String directory = IfsFilterStrings.normalizeDirectory(path);
+        String directory = IfsPaths.normalizeDirectory(path);
         if (directory != null) {
             aDirectories.add(directory);
         }
@@ -148,10 +147,9 @@ public final class IfsProjectRefreshListener implements ISystemRemoteChangeListe
         } else if (aResource instanceof IRemoteFile) {
             addDirectory(((IRemoteFile)aResource).getParentPath(), aDirectories);
         } else if (aResource instanceof String) {
-            String path = IfsFilterStrings.normalizeDirectory((String)aResource);
-            if (path != null && path.length() > 1) {
-                int index = path.lastIndexOf(SEPARATOR);
-                addDirectory(index == 0 ? String.valueOf(SEPARATOR) : path.substring(0, index), aDirectories);
+            String parentDirectory = IfsPaths.getParent((String)aResource);
+            if (parentDirectory != null) {
+                addDirectory(parentDirectory, aDirectories);
             }
         }
     }

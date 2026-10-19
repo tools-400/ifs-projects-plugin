@@ -137,4 +137,15 @@ public class IProjConfigTest {
         assertTrue(nothing.isEmpty());
         assertEquals(text, IProjConfig.parse(config.toJson()).getString(IProjConfig.DESCRIPTION));
     }
+
+    @Test
+    public void testGetStrings() throws Exception {
+
+        IProjConfig config = IProjConfig.parse("{\"includePath\": [\"a\", \"b\"], \"curlib\": \"QGPL\", \"objlib\": {}}");
+
+        assertEquals(Arrays.asList("a", "b"), config.getStrings(IProjConfig.INCLUDE_PATH));
+        assertEquals(Arrays.asList("QGPL"), config.getStrings(IProjConfig.CURLIB));
+        assertTrue(config.getStrings(IProjConfig.OBJLIB).isEmpty());
+        assertTrue(config.getStrings(IProjConfig.PRE_USRLIBL).isEmpty());
+    }
 }

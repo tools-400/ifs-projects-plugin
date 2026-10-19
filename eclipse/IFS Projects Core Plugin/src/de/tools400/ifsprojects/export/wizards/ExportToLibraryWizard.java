@@ -25,7 +25,6 @@ import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
-import de.tools400.ifsprojects.build.RseBuildCommands;
 import de.tools400.ifsprojects.export.ExportJob;
 import de.tools400.ifsprojects.export.ExportMapping;
 import de.tools400.ifsprojects.export.ExportPlan;
@@ -33,9 +32,10 @@ import de.tools400.ifsprojects.export.ExportSettings;
 import de.tools400.ifsprojects.export.ExportSource;
 import de.tools400.ifsprojects.export.IncludeResolver;
 import de.tools400.ifsprojects.export.LibraryInfo;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.preferences.Preferences;
+import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
-import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -77,7 +77,7 @@ public class ExportToLibraryWizard extends Wizard {
         this.rseSystem = aRseSystem;
 
         Preferences preferences = Preferences.getInstance();
-        String objectLibrary = RseBuildCommands.getObjectLibrary(aSource.getConfig(), aSource.getVariables());
+        String objectLibrary = IProjValues.getObjectLibrary(aSource.getConfig(), aSource.getVariables());
         this.initialSettings = aSource.loadSettings(new ExportSettings(objectLibrary, preferences.getExportCcsid(),
             preferences.getExportRecordLength()));
 
@@ -137,7 +137,7 @@ public class ExportToLibraryWizard extends Wizard {
                             libraryInfo = LibraryInfo.read(system, settings.getLibrary());
                             libraryName = settings.getLibrary();
                         }
-                        List<String> includeDirectories = SyntaxCheckCommands.getIncludeDirectories(projectDirectory, source.getConfig(),
+                        List<String> includeDirectories = IProjValues.getIncludeDirectories(projectDirectory, source.getConfig(),
                             source.getVariables());
                         IncludeResolver resolver = new IncludeResolver(projectDirectory, includeDirectories, files);
                         plan[0] = new ExportPlan(settings, files, contents, readErrors, resolver, libraryInfo);
@@ -193,7 +193,7 @@ public class ExportToLibraryWizard extends Wizard {
             if (aMonitor.isCanceled()) {
                 throw new InterruptedException();
             }
-            if (ExportMapping.getSourceType(path.substring(path.lastIndexOf('/') + 1)) == null) {
+            if (ExportMapping.getSourceType(IfsPaths.getFileName(path)) == null) {
                 continue;
             }
             aMonitor.subTask(path);

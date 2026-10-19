@@ -6,10 +6,11 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.ifsprojects.project;
+package de.tools400.ifsprojects.project.propertypages;
 
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.preferences.Preferences;
+import de.tools400.ifsprojects.project.IProjConfig;
 
 /**
  * Tool tips of the attributes of <code>iproj.json</code>. They are used by the

@@ -34,6 +34,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.EventsFileMapper;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
@@ -105,7 +106,7 @@ public class SyntaxCheckJob extends Job {
             boolean noMain = SyntaxCheckCommands.isNoMain(source);
 
             String objectName = SyntaxCheckCommands.getObjectName(fileName);
-            List<String> includeDirectories = SyntaxCheckCommands.getIncludeDirectories(projectDirectory, config, variables);
+            List<String> includeDirectories = IProjValues.getIncludeDirectories(projectDirectory, config, variables);
             String compileCommand = SyntaxCheckCommands.getCompileCommand(sourceType, objectName, sourcePath, includeDirectories, noMain);
             List<String> setupCommands = SyntaxCheckCommands.getSetupCommands(projectDirectory, config, variables);
 

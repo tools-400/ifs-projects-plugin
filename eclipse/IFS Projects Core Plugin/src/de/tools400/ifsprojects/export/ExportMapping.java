@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
+import de.tools400.ifsprojects.ibmi.ClCommands;
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 
 /**
  * Maps the stream files of a project to the members, into which they are
@@ -133,7 +134,7 @@ public final class ExportMapping {
         }
 
         name = name.toUpperCase(Locale.ROOT);
-        if (!SyntaxCheckCommands.isObjectName(name)) {
+        if (!ClCommands.isObjectName(name)) {
             return null;
         }
 
@@ -173,7 +174,7 @@ public final class ExportMapping {
 
         for (String path : aPaths) {
 
-            String fileName = getFileName(path);
+            String fileName = IfsPaths.getFileName(path);
             String sourceType = getSourceType(fileName);
             if (sourceType == null) {
                 continue;
@@ -218,7 +219,7 @@ public final class ExportMapping {
             int end = aPath.lastIndexOf(SEPARATOR);
             if (end > 0) {
                 String directory = aPath.substring(aPath.lastIndexOf(SEPARATOR, end - 1) + 1, end).toUpperCase(Locale.ROOT);
-                if (SyntaxCheckCommands.isObjectName(directory)) {
+                if (ClCommands.isObjectName(directory)) {
                     return directory;
                 }
             }
@@ -227,10 +228,6 @@ public final class ExportMapping {
         default:
             return getDefaultSourceFile(aSourceType);
         }
-    }
-
-    private static String getFileName(String aPath) {
-        return aPath.substring(aPath.lastIndexOf(SEPARATOR) + 1);
     }
 
     private static void addSourceTypes(String aSourceFile, String... aSourceTypes) {

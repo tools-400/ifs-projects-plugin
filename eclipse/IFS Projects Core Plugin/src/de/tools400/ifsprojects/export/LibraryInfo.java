@@ -20,6 +20,8 @@ import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.AS400JDBCDriver;
 import com.ibm.as400.access.IFSFile;
 
+import de.tools400.ifsprojects.ibmi.ClCommands;
+
 /**
  * Files and source members of the library, into which a project is exported.
  * The record length and the CCSID of a source file are the length and the
@@ -32,8 +34,6 @@ import com.ibm.as400.access.IFSFile;
 public final class LibraryInfo {
 
     private static final String SOURCE_FILE_TYPE = "S"; //$NON-NLS-1$
-    private static final String QSYS_ROOT = "/QSYS.LIB/"; //$NON-NLS-1$
-    private static final String LIBRARY_SUFFIX = ".LIB"; //$NON-NLS-1$
 
     private static final String FILES_QUERY = "select o.objname, t.file_type, c.length, c.ccsid" //$NON-NLS-1$
         + " from table(qsys2.object_statistics(?, '*FILE', '*ALLSIMPLE')) o" //$NON-NLS-1$
@@ -67,7 +67,7 @@ public final class LibraryInfo {
      */
     public static LibraryInfo read(AS400 aSystem, String aLibrary) throws Exception {
 
-        LibraryInfo info = new LibraryInfo(new IFSFile(aSystem, QSYS_ROOT + aLibrary + LIBRARY_SUFFIX).exists());
+        LibraryInfo info = new LibraryInfo(new IFSFile(aSystem, ClCommands.getLibraryPath(aLibrary)).exists());
         if (!info.exists) {
             return info;
         }

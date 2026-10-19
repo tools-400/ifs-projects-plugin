@@ -8,7 +8,7 @@
 
 package de.tools400.ifsprojects.export;
 
-import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
+import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -22,26 +22,10 @@ import de.tools400.ifsprojects.utils.StringUtils;
  */
 public final class ExportCommands {
 
-    private static final String QSYS_ROOT = "/QSYS.LIB/"; //$NON-NLS-1$
-    private static final String LIBRARY_SUFFIX = ".LIB/"; //$NON-NLS-1$
-    private static final String FILE_SUFFIX = ".FILE/"; //$NON-NLS-1$
-    private static final String MEMBER_SUFFIX = ".MBR"; //$NON-NLS-1$
     private static final char SEPARATOR = '/';
 
     private ExportCommands() {
         // Utility class
-    }
-
-    /**
-     * Returns the path of a member in the IFS.
-     *
-     * @param aLibrary - library
-     * @param aSourceFile - source file
-     * @param aMember - member
-     * @return path, e.g. <code>/QSYS.LIB/JSMITH#CL.LIB/QRPGLESRC.FILE/HELLO.MBR</code>
-     */
-    public static String getMemberPath(String aLibrary, String aSourceFile, String aMember) {
-        return QSYS_ROOT + aLibrary + LIBRARY_SUFFIX + aSourceFile + FILE_SUFFIX + aMember + MEMBER_SUFFIX;
     }
 
     /**
@@ -95,8 +79,8 @@ public final class ExportCommands {
      * @return command
      */
     public static String getCopyCommand(String aStreamFile, String aLibrary, String aSourceFile, String aMember) {
-        return "CPYFRMSTMF FROMSTMF(" + SyntaxCheckCommands.quote(aStreamFile) + ") TOMBR(" //$NON-NLS-1$ //$NON-NLS-2$
-            + SyntaxCheckCommands.quote(getMemberPath(aLibrary, aSourceFile, aMember)) + ") MBROPT(*REPLACE)"; //$NON-NLS-1$
+        return "CPYFRMSTMF FROMSTMF(" + ClCommands.quote(aStreamFile) + ") TOMBR(" //$NON-NLS-1$ //$NON-NLS-2$
+            + ClCommands.quote(ClCommands.getMemberPath(aLibrary, aSourceFile, aMember)) + ") MBROPT(*REPLACE)"; //$NON-NLS-1$
     }
 
     /**
@@ -139,6 +123,6 @@ public final class ExportCommands {
             return "*BLANK"; //$NON-NLS-1$
         }
 
-        return SyntaxCheckCommands.quote(aText);
+        return ClCommands.quote(aText);
     }
 }
