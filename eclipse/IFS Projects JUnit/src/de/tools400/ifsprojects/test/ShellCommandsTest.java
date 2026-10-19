@@ -16,7 +16,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import de.tools400.ifsprojects.project.EnvironmentVariables;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.terminal.ShellCommands;
 
 public class ShellCommandsTest {
@@ -81,7 +81,7 @@ public class ShellCommandsTest {
         variables.put("ENVCMD", "");
 
         assertEquals("cd '/home/jsmith/git/dspsrc' && ENVCMD='' && export ENVCMD && makei build\r",
-            ShellCommands.toCommandLine("/home/jsmith/git/dspsrc", EnvironmentVariables.addExports(variables, "makei build")));
+            ShellCommands.toCommandLine("/home/jsmith/git/dspsrc", PaseCommands.addExports(variables, "makei build")));
     }
 
 

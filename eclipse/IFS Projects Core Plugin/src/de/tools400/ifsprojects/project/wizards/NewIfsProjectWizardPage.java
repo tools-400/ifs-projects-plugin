@@ -69,7 +69,10 @@ public class NewIfsProjectWizardPage extends WizardPage {
     private boolean isNameModifiedByUser;
     private boolean isUpdatingName;
 
-    /** Directory, whose iproj.json is checked or has been checked. */
+    /**
+     * Directory, whose iproj.json is checked or has been checked, or
+     * <code>null</code>, if the directory has been changed since.
+     */
     private String checkedDirectory;
 
     public NewIfsProjectWizardPage(IHost aHost, String anInitialDirectory) {
@@ -100,6 +103,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
         directoryText.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent anEvent) {
                 updateDefaultName();
+                forgetIProjCheck();
                 validate();
             }
         });
@@ -225,8 +229,27 @@ public class NewIfsProjectWizardPage extends WizardPage {
     }
 
     /**
+     * Forgets the check of the previous directory, when the directory is
+     * changed: the attributes of a new iproj.json file are shown again, and
+     * the result of a check, that is still running, is ignored. Otherwise
+     * Finish, e.g. with the Enter key or before the result of the new
+     * directory is shown, would use the existing iproj.json file of the
+     * previous directory and create the project without iproj.json. Finish
+     * creates a new file only, if the directory does not contain one.
+     */
+    private void forgetIProjCheck() {
+
+        if (checkedDirectory == null) {
+            return;
+        }
+
+        checkedDirectory = null;
+        showNewIProj(null);
+    }
+
+    /**
      * Shows the result of {@link #checkIProjFile()}, unless the page has been
-     * closed or another directory is checked meanwhile.
+     * closed or the directory has been changed meanwhile.
      */
     private void showCheckResult(String aDirectory, IProjFileContent aFileContent, IProjFileException anError) {
 

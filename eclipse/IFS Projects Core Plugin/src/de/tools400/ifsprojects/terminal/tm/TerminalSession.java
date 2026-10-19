@@ -596,8 +596,17 @@ class TerminalSession {
 
     private void hookContextMenu() {
 
+        // Clear Terminal keeps the prompt like the Clear action of the view.
+        // Label and enablement are the ones of the TM terminal.
+        TerminalActionClearAll clearAction = new TerminalActionClearAll(control) {
+            @Override
+            public void run() {
+                clear();
+            }
+        };
+
         contextMenuActions = new AbstractTerminalAction[] { new TerminalActionCopy(control), new TerminalActionPaste(control),
-            new TerminalActionSelectAll(control), new TerminalActionClearAll(control) };
+            new TerminalActionSelectAll(control), clearAction };
 
         MenuManager menuManager = new MenuManager("#PopupMenu"); //$NON-NLS-1$
         menuManager.setRemoveAllWhenShown(true);

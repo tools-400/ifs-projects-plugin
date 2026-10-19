@@ -66,4 +66,15 @@ public final class StringUtils {
 
         return aValue;
     }
+
+    /**
+     * Returns <code>true</code>, if the string contains a carriage return or
+     * a line feed.
+     *
+     * @param aValue - string
+     * @return <code>true</code>, if the string contains a line break
+     */
+    public static boolean containsLineBreak(String aValue) {
+        return aValue.indexOf('\r') >= 0 || aValue.indexOf('\n') >= 0;
+    }
 }

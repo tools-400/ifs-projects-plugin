@@ -33,22 +33,22 @@ Packages below `de.tools400.ifsprojects`:
 |---|---|
 | `subsystem` | Subsystem *IFS Projects*. Delegates its filter strings (`/directory/*`) to the IFS subsystem of IBM instead of extending it. Connector service from `ToolboxConnectorServiceManager`. |
 | `terminal` | `ITerminalLauncher`, the only interface the handlers know. `launch()` returns an `ITerminalCommandLine`, which tells whether the session has been closed since. Backends come from the extension point `terminalLaunchers`; the available one with the highest priority is used. |
-| `terminal.tm` | Backend for the TM Terminal of RDi 9.6 - 9.9: a view around `TerminalViewControlFactory.makeControl()`. `TmTerminalView` with `TerminalActionGroup` (actions) and `TerminalRequestMemento` (restore), `TerminalSession` with `TerminalKeyHandler` (keys); calls, that differ between the TM versions, in `TmCompatibility`. The SSH connector is created from the extension registry, because extension points and connector IDs differ between the TM versions. A backend for `org.eclipse.terminal.*` can be added as a separate bundle. |
+| `terminal.tm` | Backend for the TM Terminal of RDi 9.6 - 9.9: a view around `TerminalViewControlFactory.makeControl()`. `TmTerminalView` with `TerminalActionGroup` (actions), `TerminalRequestMemento` (restore) and `SessionNames` (names and order of the sessions), `TerminalSession` with `TerminalKeyHandler` (keys); calls, that differ between the TM versions, in `TmCompatibility`. The SSH connector is created from the extension registry, because extension points and connector IDs differ between the TM versions. A backend for `org.eclipse.terminal.*` can be added as a separate bundle. |
 | `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuildJob`, `CommandsLog`, `LogLines`. Both: `BuildEvents`, the errors are shown by `errorlist.ErrorList`. Started by `handlers.BuildLauncher` (build mode of the preferences, placeholders of the compile command) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
 | `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). |
 | `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. `RemoteSession`: copy of the system object of RSE for a job, with its command call and temporary files, closed with try-with-resources. |
 | `errorlist` | `ErrorList`: shows the events of builds and syntax checks in the *Error List* view of RDi (parser and view of RDi); the local events file is written in a workspace job, the view is updated in a UI job. `EventsFiles`: content of events files. |
-| `ibmi` | Syntax of the IBM i, without dependencies on the other packages: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, placeholders, `QP2SHELL2`), `IfsPaths`. |
+| `ibmi` | Syntax of the IBM i, without dependencies on the other packages except `utils`: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, names and export of variables, placeholders, `QP2SHELL2`), `IfsPaths`. |
 | `rse` | RSE helpers: `RseSelections` (host and directory of the selection), `RseConnections` (lookup of a connection), `RseTerminalRequests` (terminal request of a connection, may prompt for the user ID), `IfsFilterStrings`, `RemoteEditors`. |
 | `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `errorlist.ErrorList`. |
-| `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables` (also their export before a command), `BuildTool`. `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. |
+| `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables`, `BuildTool`. `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
 | `export` | Export to a library: `ExportMapping` (stream file to member), `MemberText`, `IncludeResolver` and `IncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
 | `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. |
 | `swt` | `ToolTips` and `CcsidCombo` (CCSID of new source files, used by the preferences and the export). |
-| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`. |
+| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`, `containsLineBreak`. |
 
 The `*Commands` classes have no RDi dependency. Neither have `ExportMapping`, `MemberText`,
 `IncludeResolver`, `IncludeConverter`, `SourceCheck` and `ExportPlan`, which only use IBM Toolbox
@@ -79,7 +79,10 @@ for Java.
   `TmCompatibility.restartDisplayUpdates()` does.
 * Shutdown: unless *Restore terminals after a restart* is set, `TmTerminalLauncher` closes the
   sessions. The view stays open, so that the workbench restores it like other views. Password and
-  command are never saved.
+  command are never saved. Name and instance number of a session are saved, so that a restored
+  session keeps its name, e.g. `X (2)`, also if a renamed session precedes it in the list.
+* Clear (toolbar and context menu) keeps the line of the cursor, usually the prompt, see
+  `TmCompatibility.clearTerminal()`.
 
 ## Build in the terminal
 

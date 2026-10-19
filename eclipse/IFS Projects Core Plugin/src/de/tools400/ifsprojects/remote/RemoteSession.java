@@ -155,6 +155,9 @@ public final class RemoteSession implements AutoCloseable {
             return RemoteJobs.readText(streamFile, RemoteJobs.CCSID_UTF8);
         } finally {
             RemoteJobs.delete(streamFile);
+            // Deleted already, so that close() does not access it again, e.g.
+            // once for each events file of a build.
+            temporaryFiles.remove(streamFile);
         }
     }
 
@@ -170,14 +173,17 @@ public final class RemoteSession implements AutoCloseable {
 
     /**
      * Deletes the temporary files of the session and disconnects the copy of
-     * the system object. Errors are logged.
+     * the system object, also if a file could not be deleted. Errors are
+     * logged.
      */
     public void close() {
 
-        for (IFSFile file : temporaryFiles) {
-            RemoteJobs.delete(file);
+        try {
+            for (IFSFile file : temporaryFiles) {
+                RemoteJobs.delete(file);
+            }
+        } finally {
+            system.disconnectAllServices();
         }
-
-        system.disconnectAllServices();
     }
 }

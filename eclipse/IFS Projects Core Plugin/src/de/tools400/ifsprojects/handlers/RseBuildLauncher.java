@@ -15,8 +15,8 @@ import org.eclipse.rse.core.model.IHost;
 import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.build.RseBuildJob;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
-import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjValues;
 
@@ -47,7 +47,7 @@ final class RseBuildLauncher {
         String aCommand, SourceMapping aSourceMapping) {
 
         String objectLibrary = IProjValues.getObjectLibrary(aConfig, aVariables);
-        String command = EnvironmentVariables.addExports(aVariables, aCommand);
+        String command = PaseCommands.addExports(aVariables, aCommand);
 
         new RseBuildJob(aJobName, aHost, aSystem, aDirectory, objectLibrary, aCommand.trim(), command, aSourceMapping).schedule();
     }

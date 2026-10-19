@@ -21,8 +21,8 @@ import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.build.TerminalBuildJob;
+import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
-import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjFileStore;
@@ -81,7 +81,7 @@ final class TerminalBuildLauncher {
         }
 
         ITerminalCommandLine commandLine = AbstractTerminalHandler.launch(aShell,
-            aBuilder.command(EnvironmentVariables.addExports(aVariables, command)).build());
+            aBuilder.command(PaseCommands.addExports(aVariables, command)).build());
 
         if (job != null && commandLine != null) {
             job.start(commandLine);
