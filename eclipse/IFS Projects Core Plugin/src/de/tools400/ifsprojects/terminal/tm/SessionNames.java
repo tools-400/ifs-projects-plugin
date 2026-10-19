@@ -41,6 +41,30 @@ public final class SessionNames {
     }
 
     /**
+     * Returns the instance number of a new session: the preferred number,
+     * e.g. the saved number of a restored session, if it is not used,
+     * otherwise the smallest free number, see
+     * {@link #getFreeInstanceNumber(Collection)}. The sessions are saved in
+     * the order of the session list, in which a renamed session may precede
+     * the sessions with the same title. Without the saved numbers, they would
+     * be numbered again in this order after a restart.
+     *
+     * @param anInstanceNumbers - instance numbers of the open sessions with
+     *        the same title
+     * @param aPreferredNumber - preferred instance number or
+     *        <code>null</code>
+     * @return instance number, starting at 1
+     */
+    public static int getInstanceNumber(Collection<Integer> anInstanceNumbers, Integer aPreferredNumber) {
+
+        if (aPreferredNumber != null && aPreferredNumber.intValue() > 0 && !anInstanceNumbers.contains(aPreferredNumber)) {
+            return aPreferredNumber.intValue();
+        }
+
+        return getFreeInstanceNumber(anInstanceNumbers);
+    }
+
+    /**
      * Compares two sessions for the session list: alphabetically by name,
      * ignoring case, sessions with the same name by their instance numbers,
      * so that <code>X (10)</code> follows <code>X (2)</code>.

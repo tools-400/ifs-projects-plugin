@@ -11,8 +11,10 @@ package de.tools400.ifsprojects.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -32,6 +34,42 @@ public class SessionNamesTest {
         // is "X (2)" again, not a second "X (3)".
         assertEquals(2, SessionNames.getFreeInstanceNumber(Arrays.asList(1, 3)));
         assertEquals(1, SessionNames.getFreeInstanceNumber(Arrays.asList(2, 3)));
+    }
+
+    @Test
+    public void testGetInstanceNumber() {
+        assertEquals(3, SessionNames.getInstanceNumber(Arrays.asList(1, 2), Integer.valueOf(3)));
+        assertEquals(5, SessionNames.getInstanceNumber(Arrays.asList(1), Integer.valueOf(5)));
+        assertEquals(2, SessionNames.getInstanceNumber(Arrays.asList(1, 3), Integer.valueOf(1)));
+        assertEquals(2, SessionNames.getInstanceNumber(Arrays.asList(1, 3), null));
+        assertEquals(1, SessionNames.getInstanceNumber(Collections.<Integer> emptySet(), Integer.valueOf(0)));
+    }
+
+    @Test
+    public void testGetInstanceNumber_restore() {
+
+        // "X (3)" has been renamed to "aaa" and precedes "X" and "X (2)" in
+        // the session list and in the memento. Restored in this order, the
+        // sessions keep their numbers.
+        List<Integer> restored = new ArrayList<Integer>();
+        for (int savedNumber : new int[] { 3, 1, 2 }) {
+            restored.add(Integer.valueOf(SessionNames.getInstanceNumber(restored, Integer.valueOf(savedNumber))));
+        }
+
+        assertEquals(Arrays.asList(3, 1, 2), restored);
+    }
+
+    @Test
+    public void testGetInstanceNumber_restoreOldMemento() {
+
+        // Memento without instance numbers: the sessions are numbered in the
+        // order of the memento.
+        List<Integer> restored = new ArrayList<Integer>();
+        for (int i = 0; i < 3; i++) {
+            restored.add(Integer.valueOf(SessionNames.getInstanceNumber(restored, null)));
+        }
+
+        assertEquals(Arrays.asList(1, 2, 3), restored);
     }
 
     @Test

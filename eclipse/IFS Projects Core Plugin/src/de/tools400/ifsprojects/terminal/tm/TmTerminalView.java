@@ -67,6 +67,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     private static final String MEMENTO_SESSION = "session"; //$NON-NLS-1$
     private static final String MEMENTO_ACTIVE_SESSION = "activeSession"; //$NON-NLS-1$
     private static final String MEMENTO_NAME = "name"; //$NON-NLS-1$
+    private static final String MEMENTO_INSTANCE_NUMBER = "instanceNumber"; //$NON-NLS-1$
 
     /**
      * Order of the session list: alphabetically by the custom name or the
@@ -153,7 +154,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      */
     public ITerminalCommandLine openSession(TerminalRequest aRequest) {
 
-        TerminalSession session = addSession(aRequest, null);
+        TerminalSession session = addSession(aRequest, null, null);
         setActiveSession(session);
 
         ITerminalCommandLine commandLine = session.connect(aRequest.getCommandLine());
@@ -337,6 +338,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
             if (session.getCustomName() != null) {
                 child.putString(MEMENTO_NAME, session.getCustomName());
             }
+            child.putInteger(MEMENTO_INSTANCE_NUMBER, session.getInstanceNumber());
         }
 
         if (activeSession != null) {
@@ -373,11 +375,13 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      * @param aRequest - terminal request
      * @param aCustomName - name of the session or <code>null</code> for the
      *        default name
+     * @param anInstanceNumber - saved instance number of a restored session
+     *        or <code>null</code>
      * @return new session
      */
-    private TerminalSession addSession(TerminalRequest aRequest, String aCustomName) {
+    private TerminalSession addSession(TerminalRequest aRequest, String aCustomName, Integer anInstanceNumber) {
 
-        TerminalSession session = new TerminalSession(aRequest, getFreeInstanceNumber(aRequest.getTitle()), this);
+        TerminalSession session = new TerminalSession(aRequest, getInstanceNumber(aRequest.getTitle(), anInstanceNumber), this);
         session.setCustomName(aCustomName);
         session.create(terminalArea);
         sessions.add(session);
@@ -389,11 +393,12 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     }
 
     /**
-     * Returns the smallest instance number, that no session with the
-     * specified title has, see
-     * {@link SessionNames#getFreeInstanceNumber(java.util.Collection)}.
+     * Returns the instance number of a new session with the specified title:
+     * the preferred number, if no session with the title has it, otherwise
+     * the smallest free number, see
+     * {@link SessionNames#getInstanceNumber(java.util.Collection, Integer)}.
      */
-    private int getFreeInstanceNumber(String aTitle) {
+    private int getInstanceNumber(String aTitle, Integer aPreferredNumber) {
 
         Set<Integer> instanceNumbers = new HashSet<Integer>();
         for (TerminalSession session : sessions) {
@@ -402,7 +407,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
             }
         }
 
-        return SessionNames.getFreeInstanceNumber(instanceNumbers);
+        return SessionNames.getInstanceNumber(instanceNumbers, aPreferredNumber);
     }
 
     private void restoreSessions() {
@@ -414,7 +419,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         for (IMemento child : restoredState.getChildren(MEMENTO_SESSION)) {
             TerminalRequest request = TerminalRequestMemento.restore(child);
             if (request != null) {
-                addSession(request, child.getString(MEMENTO_NAME));
+                addSession(request, child.getString(MEMENTO_NAME), child.getInteger(MEMENTO_INSTANCE_NUMBER));
             }
         }
 

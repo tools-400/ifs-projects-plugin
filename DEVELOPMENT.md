@@ -79,7 +79,8 @@ for Java.
   `TmCompatibility.restartDisplayUpdates()` does.
 * Shutdown: unless *Restore terminals after a restart* is set, `TmTerminalLauncher` closes the
   sessions. The view stays open, so that the workbench restores it like other views. Password and
-  command are never saved.
+  command are never saved. Name and instance number of a session are saved, so that a restored
+  session keeps its name, e.g. `X (2)`, also if a renamed session precedes it in the list.
 * Clear (toolbar and context menu) keeps the line of the cursor, usually the prompt, see
   `TmCompatibility.clearTerminal()`.
 
