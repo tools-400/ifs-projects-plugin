@@ -12,14 +12,17 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.eclipse.tm.internal.terminal.control.ITerminalViewControl;
+import org.eclipse.tm.internal.terminal.emulator.IVT100EmulatorBackend;
 import org.eclipse.tm.internal.terminal.textcanvas.ITextCanvasModel;
 import org.eclipse.tm.internal.terminal.textcanvas.TextCanvas;
+import org.eclipse.tm.terminal.model.ITerminalTextData;
+import org.eclipse.tm.terminal.model.TerminalTextDataFactory;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 
 /**
  * Calls of the TM terminal, that differ between the supported versions (RDi
- * 9.6, 9.8, 9.9) and are therefore made by reflection:
+ * 9.6, 9.8, 9.9) or need its internals, and are therefore made by reflection:
  * <ul>
  * <li><code>ITerminalViewControl.connectTerminal()</code> returns
  * <code>boolean</code> in the old TM terminal, but <code>void</code> in the new
@@ -29,6 +32,8 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
  * <li>The TM terminal of RDi 9.9 stops updating the display, when it is
  * disconnected, but does not start again, when it is connected again, see
  * {@link #restartDisplayUpdates(ITerminalViewControl)}.</li>
+ * <li><code>ITerminalViewControl.clearTerminal()</code> also clears the line
+ * with the prompt, see {@link #clearTerminal(ITerminalViewControl)}.</li>
  * </ul>
  */
 @SuppressWarnings("restriction")
@@ -41,6 +46,12 @@ final class TmCompatibility {
     private static final String FIELD_POLLING_TEXT_CANVAS_MODEL = "fPollingTextCanvasModel"; //$NON-NLS-1$
 
     private static final String METHOD_START_POLLING = "startPolling"; //$NON-NLS-1$
+
+    private static final String FIELD_TERMINAL_MODEL = "fTerminalModel"; //$NON-NLS-1$
+
+    private static final String METHOD_GET_TERMINAL_TEXT = "getTerminalText"; //$NON-NLS-1$
+
+    private static final String FIELD_EMULATOR_BACKEND = "text"; //$NON-NLS-1$
 
     private TmCompatibility() {
         // Utility class
@@ -80,6 +91,52 @@ final class TmCompatibility {
             // RDi 9.6: the display updates are never stopped
         } catch (Exception e) {
             IfsProjectsPlugin.logWarning("Could not restart the display updates of the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Clears the terminal, but keeps the line of the cursor, usually the
+     * prompt, as first line, like the terminal of VS Code does.
+     * <code>ITerminalViewControl.clearTerminal()</code> clears all lines, so
+     * that the terminal is empty until the shell writes again. Lines before
+     * the cursor line, into which a long command line wraps, are not kept. If
+     * the text model or the emulator of the terminal cannot be accessed, the
+     * error is logged and the terminal is cleared completely.
+     *
+     * @param aControl - terminal control
+     */
+    static void clearTerminal(ITerminalViewControl aControl) {
+
+        ITerminalTextData model;
+        IVT100EmulatorBackend emulator;
+        try {
+            Field modelField = aControl.getClass().getDeclaredField(FIELD_TERMINAL_MODEL);
+            modelField.setAccessible(true);
+            model = (ITerminalTextData)modelField.get(aControl);
+            Object terminalText = aControl.getClass().getMethod(METHOD_GET_TERMINAL_TEXT).invoke(aControl);
+            Field emulatorField = terminalText.getClass().getDeclaredField(FIELD_EMULATOR_BACKEND);
+            emulatorField.setAccessible(true);
+            emulator = (IVT100EmulatorBackend)emulatorField.get(terminalText);
+        } catch (Exception e) {
+            IfsProjectsPlugin.logWarning("Could not keep the prompt, when clearing the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
+            aControl.clearTerminal();
+            return;
+        }
+
+        // The emulator writes the output of the shell in another thread and
+        // synchronizes on the model. Its cursor line is relative to the
+        // visible lines.
+        synchronized (model) {
+            int cursorLine = model.getHeight() - emulator.getLines() + emulator.getCursorLine();
+            int cursorColumn = emulator.getCursorColumn();
+            ITerminalTextData savedLine = TerminalTextDataFactory.makeTerminalTextData();
+            savedLine.setDimensions(1, model.getWidth());
+            savedLine.copyLine(model, cursorLine, 0);
+
+            aControl.clearTerminal();
+
+            model.copyLine(savedLine, 0, 0);
+            emulator.setCursor(0, cursorColumn);
         }
     }
 

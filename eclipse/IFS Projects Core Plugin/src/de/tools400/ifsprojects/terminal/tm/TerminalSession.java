@@ -403,9 +403,13 @@ class TerminalSession {
         }
     }
 
+    /**
+     * Clears the terminal except the line of the cursor, usually the prompt,
+     * see {@link TmCompatibility#clearTerminal(ITerminalViewControl)}.
+     */
     void clear() {
         if (isAlive()) {
-            control.clearTerminal();
+            TmCompatibility.clearTerminal(control);
         }
     }
 
