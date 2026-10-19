@@ -23,7 +23,7 @@ How the plug-in works and how it is built. For its use, see [README.md](README.m
 * Update site: *Build All* in `eclipse/IFS Projects Update Site/site.xml`.
 * Release: `build/IFS Projects Build/build/build.xml` (same script as iSphere, iRPGUnit and
   JCRCMDS, settings in `build.properties`). Update site and home page go to `docs/` of the
-  repository `ifs-terminal` (GitHub Pages).
+  repository `ifs-projects` (GitHub Pages).
 
 ## Architecture
 

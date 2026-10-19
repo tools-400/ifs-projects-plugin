@@ -18,7 +18,7 @@ The plug-in adds to RDi:
 Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`).
 The compile errors are shown in the *Error List* view of RDi.
 
-Further information about IFS Projects is available on the [IFS Projects Web Site](https://tools-400.github.io/ifs-terminal/).
+Further information about IFS Projects is available on the [IFS Projects Web Site](https://tools-400.github.io/ifs-projects/).
 
 ## Requirements
 
@@ -31,8 +31,8 @@ Further information about IFS Projects is available on the [IFS Projects Web Sit
 ## Installation
 
 In RDi, choose *Help > Install New Software...*, add the update site
-https://tools-400.github.io/ifs-terminal/update-site/eclipse/rdi8.0/ and install *IFS Projects*.
-Restart RDi afterwards. Home page: https://tools-400.github.io/ifs-terminal/.
+https://tools-400.github.io/ifs-projects/update-site/eclipse/rdi8.0/ and install *IFS Projects*.
+Restart RDi afterwards. Home page: https://tools-400.github.io/ifs-projects/.
 
 ## Quick start
 
