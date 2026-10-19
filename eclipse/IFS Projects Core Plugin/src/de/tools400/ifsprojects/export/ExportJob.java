@@ -42,7 +42,9 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
  * <li>Writes the content of each file into a temporary stream file with CCSID
  * 1208, from which <code>CPYFRMSTMF</code> copies it into the member. Its
  * content may differ from the file of the project, because the include
- * directives have been converted.</li>
+ * directives have been converted. If the stream file cannot be written, the
+ * export is aborted, before the member is added or changed, because the error
+ * would recur for each file.</li>
  * <li>A new member is added before with source type and text, because
  * <code>CPYFRMSTMF</code> creates it without them, and is removed again, if the
  * copy fails. Before an existing member is replaced, the user is asked, see
@@ -229,12 +231,12 @@ public class ExportJob extends Job {
         String sourceFile = anItem.getSourceFile();
         String member = anItem.getMember();
 
+        RemoteJobs.writeText(aTemporaryFile, anItem.getContent(), RemoteJobs.CCSID_UTF8);
         if (!run(aCommandCall, ExportCommands.getAddMemberCommand(library, sourceFile, member, anItem.getSourceType(), anItem.getText()),
             anItem.getPath())) {
             return;
         }
 
-        RemoteJobs.writeText(aTemporaryFile, anItem.getContent(), RemoteJobs.CCSID_UTF8);
         if (!run(aCommandCall, ExportCommands.getCopyCommand(aTemporaryFile.getAbsolutePath(), library, sourceFile, member), anItem.getPath())) {
             run(aCommandCall, ExportCommands.getRemoveMemberCommand(library, sourceFile, member), null);
             return;
