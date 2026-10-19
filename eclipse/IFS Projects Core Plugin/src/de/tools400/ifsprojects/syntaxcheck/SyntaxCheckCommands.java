@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjValues;
@@ -46,8 +47,6 @@ public final class SyntaxCheckCommands {
     /** Library of the compiled objects and of the events file. */
     public static final String LIBRARY = "QTEMP"; //$NON-NLS-1$
 
-    /** Name of the events file created by the compilers. */
-    public static final String EVENTS_FILE = "EVFEVENT"; //$NON-NLS-1$
 
     /**
      * Message of CRTRPGMOD: "Keywords DFTACTGRP, ACTGRP, or USRPRF are not
@@ -265,33 +264,7 @@ public final class SyntaxCheckCommands {
      * @return command
      */
     public static String getRemoveEventsMemberCommand(String anObjectName) {
-        return "RMVM FILE(" + LIBRARY + SEPARATOR + EVENTS_FILE + ") MBR(" + anObjectName + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    }
-
-    /**
-     * Returns the command that copies the member of the events file to a stream
-     * file with CCSID 1208 (UTF-8).
-     *
-     * @param anObjectName - object name
-     * @param aStreamFile - absolute path of the stream file
-     * @return command
-     */
-    public static String getCopyEventsMemberCommand(String anObjectName, String aStreamFile) {
-        return getCopyEventsMemberCommand(LIBRARY, anObjectName, aStreamFile);
-    }
-
-    /**
-     * Returns the command that copies a member of the events file of a library
-     * to a stream file with CCSID 1208 (UTF-8).
-     *
-     * @param aLibrary - library of the events file
-     * @param aMemberName - member name, i.e. the object name
-     * @param aStreamFile - absolute path of the stream file
-     * @return command
-     */
-    public static String getCopyEventsMemberCommand(String aLibrary, String aMemberName, String aStreamFile) {
-        String member = ClCommands.getMemberPath(aLibrary, EVENTS_FILE, aMemberName);
-        return "CPYTOSTMF FROMMBR(" + ClCommands.quote(member) + ") TOSTMF(" + ClCommands.quote(aStreamFile) + ") STMFOPT(*REPLACE) STMFCCSID(1208)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        return "RMVM FILE(" + LIBRARY + SEPARATOR + EventsFiles.EVENTS_FILE + ") MBR(" + anObjectName + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     private static String getIncludeDirectoriesParameter(List<String> aDirectories) {

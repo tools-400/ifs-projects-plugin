@@ -17,16 +17,18 @@ import com.ibm.as400.access.CommandCall;
 import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.errorlist.EventsFiles;
+import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.remote.RemoteSession;
 
 /**
  * Executes the commands of a syntax check with IBM Toolbox for Java.
  * <p>
  * The commands run in a remote command server job of their own, because they
  * change the current directory and the library list and use
- * <code>QTEMP</code>. Therefore a copy of the system object of RSE is used,
- * which is disconnected afterwards. The events file is copied to a temporary
- * stream file in the same job and read with the file server.
+ * <code>QTEMP</code>, see {@link RemoteSession}. The events file is copied to
+ * a temporary stream file in the same job and read with the file server.
  * <p>
  * The methods of this class access the remote system and must not be called
  * on the UI thread.
@@ -35,8 +37,6 @@ public final class SyntaxCheckRunner {
 
     /** Library already exists in library list. */
     private static final String CPF2103 = "CPF2103"; //$NON-NLS-1$
-
-    private static final String TEMPORARY_FILE_SUFFIX = ".evfevent"; //$NON-NLS-1$
 
     private SyntaxCheckRunner() {
         // Utility class
@@ -69,21 +69,17 @@ public final class SyntaxCheckRunner {
      *        file
      * @param aCompileCommand - compile command, see
      *        {@link SyntaxCheckCommands#getCompileCommand}
-     * @param aTemporaryDirectory - directory of temporary files, see
-     *        {@link RemoteJobs#getTemporaryDirectory}
      * @param aMonitor - progress monitor
      * @return result of the syntax check
      * @throws SyntaxCheckException if the syntax check could not be performed
      * @throws InterruptedException if the user canceled the syntax check
      */
     public static SyntaxCheckResult run(AS400 aRseSystem, List<String> aSetupCommands, String anObjectName, String aCompileCommand,
-        String aTemporaryDirectory, IProgressMonitor aMonitor) throws SyntaxCheckException, InterruptedException {
+        IProgressMonitor aMonitor) throws SyntaxCheckException, InterruptedException {
 
-        AS400 system = RemoteJobs.copySystem(aRseSystem);
-        try {
+        try (RemoteSession session = new RemoteSession(aRseSystem)) {
 
-            CommandCall commandCall = RemoteJobs.createCommandCall(system);
-            RemoteJobs.deleteObsoleteTemporaryFiles(system, aTemporaryDirectory);
+            CommandCall commandCall = session.getCommandCall();
 
             for (String command : aSetupCommands) {
                 checkCanceled(aMonitor);
@@ -101,27 +97,29 @@ public final class SyntaxCheckRunner {
             String compileMessages = RemoteJobs.getMessages(commandCall);
 
             checkCanceled(aMonitor);
-            String streamFile = RemoteJobs.getTemporaryFile(aTemporaryDirectory, TEMPORARY_FILE_SUFFIX);
-            if (!run(commandCall, SyntaxCheckCommands.getCopyEventsMemberCommand(anObjectName, streamFile))) {
+            String events = readEventsMember(session, anObjectName);
+            if (events == null) {
                 // The compiler did not create an events file, e.g. because the
                 // command is invalid.
                 return new SyntaxCheckResult(null, RemoteJobs.CCSID_NOT_SET, compileMessages);
             }
 
-            IFSFile file = new IFSFile(system, streamFile);
-            String events;
-            try {
-                events = RemoteJobs.readText(file, RemoteJobs.CCSID_UTF8);
-            } catch (Exception e) {
-                throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, streamFile, e.getLocalizedMessage()), e);
-            } finally {
-                RemoteJobs.delete(file);
-            }
+            return new SyntaxCheckResult(events, session.getJobCcsid(), compileMessages);
+        }
+    }
 
-            return new SyntaxCheckResult(events, RemoteJobs.getJobCcsid(commandCall, system), compileMessages);
+    /**
+     * Reads the member of the events file of the syntax check.
+     *
+     * @return events or <code>null</code>, if the member does not exist
+     */
+    private static String readEventsMember(RemoteSession aSession, String anObjectName) throws SyntaxCheckException {
 
-        } finally {
-            system.disconnectAllServices();
+        try {
+            return aSession.readMember(SyntaxCheckCommands.LIBRARY, EventsFiles.EVENTS_FILE, anObjectName);
+        } catch (Exception e) {
+            String member = ClCommands.getMemberPath(SyntaxCheckCommands.LIBRARY, EventsFiles.EVENTS_FILE, anObjectName);
+            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, member, e.getLocalizedMessage()), e);
         }
     }
 

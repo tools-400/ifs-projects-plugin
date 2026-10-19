@@ -17,7 +17,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import de.tools400.ifsprojects.syntaxcheck.EventsFiles;
+import de.tools400.ifsprojects.errorlist.EventsFiles;
 
 public class EventsFilesTest {
 

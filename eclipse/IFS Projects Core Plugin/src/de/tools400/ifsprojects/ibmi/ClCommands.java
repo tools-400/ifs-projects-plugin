@@ -95,4 +95,16 @@ public final class ClCommands {
     public static String getMemberPath(String aLibrary, String aFile, String aMember) {
         return getFilePath(aLibrary, aFile) + SEPARATOR + aMember + MEMBER_SUFFIX;
     }
+
+    /**
+     * Returns the command that copies a member to a stream file with CCSID
+     * 1208 (UTF-8). An existing stream file is replaced.
+     *
+     * @param aMemberPath - path of the member, see {@link #getMemberPath}
+     * @param aStreamFile - absolute path of the stream file
+     * @return command
+     */
+    public static String getCopyToStreamFileCommand(String aMemberPath, String aStreamFile) {
+        return "CPYTOSTMF FROMMBR(" + quote(aMemberPath) + ") TOSTMF(" + quote(aStreamFile) + ") STMFOPT(*REPLACE) STMFCCSID(1208)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    }
 }

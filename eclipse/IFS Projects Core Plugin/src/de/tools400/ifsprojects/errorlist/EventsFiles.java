@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.ifsprojects.syntaxcheck;
+package de.tools400.ifsprojects.errorlist;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +22,9 @@ import java.util.Set;
  * not start with a record type.
  */
 public final class EventsFiles {
+
+    /** Name of the events file created by the compilers. */
+    public static final String EVENTS_FILE = "EVFEVENT"; //$NON-NLS-1$
 
     private static final String ERROR = "ERROR"; //$NON-NLS-1$
     private static final Set<String> RECORD_TYPES = new HashSet<String>(Arrays.asList("TIMESTAMP", "PROCESSOR", "FILEID", "FILEIDCONT", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$

@@ -145,11 +145,6 @@ public class SyntaxCheckCommandsTest {
     @Test
     public void testEventsMemberCommands() {
         assertEquals("RMVM FILE(QTEMP/EVFEVENT) MBR(HELLO)", SyntaxCheckCommands.getRemoveEventsMemberCommand("HELLO"));
-        assertEquals("CPYTOSTMF FROMMBR('/QSYS.LIB/QTEMP.LIB/EVFEVENT.FILE/HELLO.MBR') TOSTMF('/tmp/x.evfevent') STMFOPT(*REPLACE) STMFCCSID(1208)",
-            SyntaxCheckCommands.getCopyEventsMemberCommand("HELLO", "/tmp/x.evfevent"));
-        assertEquals(
-            "CPYTOSTMF FROMMBR('/QSYS.LIB/JSMITH#CL.LIB/EVFEVENT.FILE/HELLO.MBR') TOSTMF('/home/jsmith/.ifsprojects/tmp/x.evfevent') STMFOPT(*REPLACE) STMFCCSID(1208)",
-            SyntaxCheckCommands.getCopyEventsMemberCommand("JSMITH#CL", "HELLO", "/home/jsmith/.ifsprojects/tmp/x.evfevent"));
     }
 
 }

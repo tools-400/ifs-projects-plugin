@@ -35,7 +35,7 @@ import de.tools400.ifsprojects.export.LibraryInfo;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjValues;
-import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -129,8 +129,8 @@ public class ExportToLibraryWizard extends Wizard {
         try {
             getContainer().run(true, true, new IRunnableWithProgress() {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException, InterruptedException {
-                    AS400 system = RemoteJobs.copySystem(rseSystem);
-                    try {
+                    try (RemoteSession session = new RemoteSession(rseSystem)) {
+                        AS400 system = session.getSystem();
                         readProject(system, aMonitor);
                         if (!settings.getLibrary().equals(libraryName)) {
                             aMonitor.subTask(Messages.bind(Messages.Task_Reading_library_A, settings.getLibrary()));
@@ -146,7 +146,6 @@ public class ExportToLibraryWizard extends Wizard {
                     } catch (Exception e) {
                         throw new InvocationTargetException(e);
                     } finally {
-                        system.disconnectAllServices();
                         aMonitor.done();
                     }
                 }

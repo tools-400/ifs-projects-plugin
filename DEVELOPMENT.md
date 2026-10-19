@@ -25,12 +25,13 @@ Packages below `de.tools400.ifsprojects`:
 | `subsystem` | Subsystem *IFS Projects*. Delegates its filter strings (`/directory/*`) to the IFS subsystem of IBM instead of extending it. Connector service from `ToolboxConnectorServiceManager`. |
 | `terminal` | `ITerminalLauncher`, the only interface the handlers know. `launch()` returns an `ITerminalCommandLine`, which tells whether the session has been closed since. Backends come from the extension point `terminalLaunchers`; the available one with the highest priority is used. |
 | `terminal.tm` | Backend for the TM Terminal of RDi 9.6 - 9.9: a view around `TerminalViewControlFactory.makeControl()`. The SSH connector is created from the extension registry, because extension points and connector IDs differ between the TM versions. A backend for `org.eclipse.terminal.*` can be added as a separate bundle. |
-| `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuildJob`, `CommandsLog`, `LogLines`. Both: `BuildEvents`, `BuildErrors`. Started by `handlers.BuildLauncher` (build mode of the preferences, placeholders of the compile command) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
-| `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `ErrorList` (parser and view of RDi), `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). |
-| `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. |
+| `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuildJob`, `CommandsLog`, `LogLines`. Both: `BuildEvents`, the errors are shown by `errorlist.ErrorList`. Started by `handlers.BuildLauncher` (build mode of the preferences, placeholders of the compile command) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
+| `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). |
+| `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. `RemoteSession`: copy of the system object of RSE for a job, with its command call and temporary files, closed with try-with-resources. |
+| `errorlist` | `ErrorList`: shows the events of builds and syntax checks in the *Error List* view of RDi (parser and view of RDi); the local events file is written in a workspace job, the view is updated in a UI job. `EventsFiles`: content of events files. |
 | `ibmi` | Syntax of the IBM i, without dependencies on the other packages: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, placeholders, `QP2SHELL2`), `IfsPaths`. |
 | `rse` | RSE helpers: `RseSelections` (host and directory of the selection), `RseConnections` (lookup of a connection), `RseTerminalRequests` (terminal request of a connection, may prompt for the user ID), `IfsFilterStrings`, `RemoteEditors`. |
-| `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `BuildErrors`. |
+| `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `errorlist.ErrorList`. |
 | `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables` (also their export before a command), `BuildTool`. `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
@@ -141,7 +142,7 @@ events file in the *Error List*.
 * UTF-8 sources need `TGTCCSID(*JOB)` and `CVTCCSID(*JOB)` (RNS9339, SQL8032).
 * Unsaved changes are saved first, if the user agrees. The check waits until RSE has uploaded the
   file.
-* The events file is copied to `<home>/.ifsprojects/tmp`, read and deleted. As in RDi, its local
+* The events file is copied to `<home>/.ifsprojects/tmp`, read and deleted (`RemoteSession.readMember()`). As in RDi, its local
   copy is stored in the project `RemoteSystemsTempFiles` (folder `IFSProjects`), one file per
   stream file, so that a new check replaces its table in the *Error List*. RSE does not upload it,
   because it has no remote file properties.

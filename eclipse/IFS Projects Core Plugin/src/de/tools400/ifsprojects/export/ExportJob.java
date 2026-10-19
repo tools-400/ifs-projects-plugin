@@ -30,6 +30,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.build.CommandsLog;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -108,14 +109,10 @@ public class ExportJob extends Job {
         CommandsLog.log(host, getName());
 
         boolean isCanceled = false;
-        AS400 system = RemoteJobs.copySystem(rseSystem);
-        IFSFile temporaryFile = null;
-        try {
+        try (RemoteSession session = new RemoteSession(rseSystem)) {
 
-            CommandCall commandCall = RemoteJobs.createCommandCall(system);
-            String temporaryDirectory = RemoteJobs.getTemporaryDirectory(system);
-            RemoteJobs.deleteObsoleteTemporaryFiles(system, temporaryDirectory);
-            temporaryFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, TEMPORARY_FILE_SUFFIX));
+            CommandCall commandCall = session.getCommandCall();
+            IFSFile temporaryFile = session.newTemporaryFile(TEMPORARY_FILE_SUFFIX);
 
             if (isCreateLibrary && !run(commandCall, ExportCommands.getCreateLibraryCommand(library), library)) {
                 return Status.OK_STATUS;
@@ -170,10 +167,6 @@ public class ExportJob extends Job {
             CommandsLog.log(host, message);
             errors.add(message);
         } finally {
-            if (temporaryFile != null) {
-                RemoteJobs.delete(temporaryFile);
-            }
-            system.disconnectAllServices();
             aMonitor.done();
             showSummary(isCanceled);
         }

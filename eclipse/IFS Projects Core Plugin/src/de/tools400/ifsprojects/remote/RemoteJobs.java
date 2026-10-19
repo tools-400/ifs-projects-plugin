@@ -33,7 +33,7 @@ import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Helper methods for commands and files of the jobs, that perform syntax checks
- * and builds with IBM Toolbox for Java.
+ * and builds with IBM Toolbox for Java. The jobs use a {@link RemoteSession}.
  * <p>
  * All files of the plug-in are stored below the root directory
  * <code>&lt;home&gt;/.ifsprojects</code> of the user profile: temporary files
@@ -75,7 +75,7 @@ public final class RemoteJobs {
      * @param aRseSystem - system object of RSE
      * @return copy
      */
-    public static AS400 copySystem(AS400 aRseSystem) {
+    static AS400 copySystem(AS400 aRseSystem) {
         return new AS400(aRseSystem);
     }
 
@@ -87,7 +87,7 @@ public final class RemoteJobs {
      * @param aSystem - system object
      * @return command call
      */
-    public static CommandCall createCommandCall(AS400 aSystem) {
+    static CommandCall createCommandCall(AS400 aSystem) {
 
         CommandCall commandCall = new CommandCall(aSystem);
         commandCall.setThreadSafe(false);
@@ -217,7 +217,7 @@ public final class RemoteJobs {
      * @param aDirectory - directory of temporary files, see
      *        {@link #getTemporaryDirectory(AS400)}
      */
-    public static void deleteObsoleteTemporaryFiles(AS400 aSystem, String aDirectory) {
+    static void deleteObsoleteTemporaryFiles(AS400 aSystem, String aDirectory) {
 
         try {
             IFSFile[] files = new IFSFile(aSystem, aDirectory).listFiles(TEMPORARY_FILE_PREFIX + "*"); //$NON-NLS-1$
@@ -322,7 +322,7 @@ public final class RemoteJobs {
      * Returns the CCSID of the remote command server job, e.g. the CCSID, in
      * which a compiler wrote an events file.
      */
-    public static int getJobCcsid(CommandCall aCommandCall, AS400 aSystem) {
+    static int getJobCcsid(CommandCall aCommandCall, AS400 aSystem) {
 
         try {
             Job job = aCommandCall.getServerJob();
@@ -383,7 +383,9 @@ public final class RemoteJobs {
         // IFSFileWriter requires an existing file, because it reads the CCSID
         // of the file.
         if (!aFile.exists()) {
-            aFile.createNewFile();
+            if (!aFile.createNewFile() && !aFile.exists()) {
+                throw new IOException(Messages.bind(Messages.Error_Could_not_create_file_A, aFile.getAbsolutePath()));
+            }
             aFile.setCCSID(aCcsid);
         }
 
@@ -443,7 +445,14 @@ public final class RemoteJobs {
         }
     }
 
-    private static int getValidCcsid(int aCcsid) {
+    /**
+     * Returns the CCSID, with which a text stream file is read: the CCSID of
+     * the file or 1208 (UTF-8) for files without CCSID.
+     *
+     * @param aCcsid - CCSID of the file
+     * @return CCSID
+     */
+    public static int getValidCcsid(int aCcsid) {
 
         if (aCcsid <= 0 || aCcsid == CCSID_NOT_SET) {
             return CCSID_UTF8;

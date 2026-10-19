@@ -14,13 +14,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.ibm.as400.access.AS400;
-import com.ibm.as400.access.CommandCall;
 import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
+import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
-import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckCommands;
+import de.tools400.ifsprojects.remote.RemoteSession;
 
 /**
  * Collects the events files of the objects, that have been compiled by a
@@ -42,7 +42,6 @@ public final class BuildEvents {
 
     private static final String EVENTS_DIRECTORY = "/.evfevent"; //$NON-NLS-1$
     private static final String MEMBER_SUFFIX = ".MBR"; //$NON-NLS-1$
-    private static final String TEMPORARY_FILE_SUFFIX = ".evfevent"; //$NON-NLS-1$
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
 
     private BuildEvents() {
@@ -52,21 +51,18 @@ public final class BuildEvents {
     /**
      * Returns the events of the objects compiled by a build.
      *
-     * @param aSystem - system object of the build job
-     * @param aCommandCall - command call of the build job
+     * @param aSession - session of the build job
      * @param aProjectDirectory - project directory
      * @param anObjectLibrary - object library or <code>null</code>
      * @param aStartTime - start time of the build (time of the server)
-     * @param aTemporaryDirectory - directory of temporary files
      * @return events, one events file after the other, or <code>null</code>,
      *         if no events files have been found
      */
-    public static String collect(AS400 aSystem, CommandCall aCommandCall, String aProjectDirectory, String anObjectLibrary, long aStartTime,
-        String aTemporaryDirectory) {
+    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime) {
 
-        List<String> events = collectStreamFiles(aSystem, aProjectDirectory + EVENTS_DIRECTORY, aStartTime);
+        List<String> events = collectStreamFiles(aSession.getSystem(), aProjectDirectory + EVENTS_DIRECTORY, aStartTime);
         if (events.isEmpty() && anObjectLibrary != null) {
-            events = collectMembers(aSystem, aCommandCall, anObjectLibrary, aStartTime, aTemporaryDirectory);
+            events = collectMembers(aSession, anObjectLibrary, aStartTime);
         }
 
         if (events.isEmpty()) {
@@ -98,28 +94,23 @@ public final class BuildEvents {
         return events;
     }
 
-    private static List<String> collectMembers(AS400 aSystem, CommandCall aCommandCall, String aLibrary, long aStartTime, String aTemporaryDirectory) {
+    private static List<String> collectMembers(RemoteSession aSession, String aLibrary, long aStartTime) {
 
         List<String> events = new ArrayList<String>();
-        String eventsFile = ClCommands.getFilePath(aLibrary, SyntaxCheckCommands.EVENTS_FILE);
+        String eventsFile = ClCommands.getFilePath(aLibrary, EventsFiles.EVENTS_FILE);
         try {
-            for (IFSFile member : getChangedFiles(new IFSFile(aSystem, eventsFile), aStartTime)) {
+            for (IFSFile member : getChangedFiles(new IFSFile(aSession.getSystem(), eventsFile), aStartTime)) {
                 String name = member.getName();
                 if (!name.toUpperCase().endsWith(MEMBER_SUFFIX)) {
                     continue;
                 }
                 String memberName = name.substring(0, name.length() - MEMBER_SUFFIX.length());
-                String streamFile = RemoteJobs.getTemporaryFile(aTemporaryDirectory, TEMPORARY_FILE_SUFFIX);
-                if (!aCommandCall.run(SyntaxCheckCommands.getCopyEventsMemberCommand(aLibrary, memberName, streamFile))) {
+                String content = aSession.readMember(aLibrary, EventsFiles.EVENTS_FILE, memberName);
+                if (content == null) {
                     IfsProjectsPlugin.logWarning("Could not copy events file member: " + aLibrary + "/" + memberName); //$NON-NLS-1$ //$NON-NLS-2$
                     continue;
                 }
-                IFSFile file = new IFSFile(aSystem, streamFile);
-                try {
-                    events.add(RemoteJobs.readText(file, RemoteJobs.CCSID_UTF8));
-                } finally {
-                    RemoteJobs.delete(file);
-                }
+                events.add(content);
             }
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not read the events file of library: " + aLibrary, e); //$NON-NLS-1$

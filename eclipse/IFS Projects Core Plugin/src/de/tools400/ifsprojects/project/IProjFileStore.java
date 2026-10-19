@@ -8,9 +8,6 @@
 
 package de.tools400.ifsprojects.project;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -20,13 +17,12 @@ import org.eclipse.rse.core.model.IHost;
 
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
-import com.ibm.as400.access.IFSFileReader;
-import com.ibm.as400.access.IFSFileWriter;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
+import de.tools400.ifsprojects.remote.RemoteJobs;
 
 /**
  * Reads and writes <code>iproj.json</code> files with IBM Toolbox for Java.
@@ -39,8 +35,6 @@ import de.tools400.ifsprojects.ibmi.IfsPaths;
  */
 public final class IProjFileStore {
 
-    private static final int CCSID_UTF8 = 1208;
-    private static final int CCSID_NOT_SET = 65535;
 
     private IProjFileStore() {
         // Utility class
@@ -148,7 +142,6 @@ public final class IProjFileStore {
 
         String path = getPath(aDirectory);
 
-        Reader reader = null;
         try {
 
             IFSFile file = new IFSFile(getSystem(aHost), path);
@@ -156,25 +149,15 @@ public final class IProjFileStore {
                 return IProjFileContent.notExisting(path);
             }
 
-            int ccsid = getValidCcsid(file.getCCSID());
+            int ccsid = RemoteJobs.getValidCcsid(file.getCCSID());
             long lastModified = file.lastModified();
 
-            reader = new IFSFileReader(file, ccsid);
-            StringBuilder buffer = new StringBuilder();
-            char[] chars = new char[4096];
-            int count;
-            while ((count = reader.read(chars)) >= 0) {
-                buffer.append(chars, 0, count);
-            }
-
-            return IProjFileContent.existing(path, buffer.toString(), ccsid, lastModified);
+            return IProjFileContent.existing(path, RemoteJobs.readText(file, ccsid), ccsid, lastModified);
 
         } catch (IProjFileException e) {
             throw e;
         } catch (Exception e) {
             throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, path, e.getLocalizedMessage()), e);
-        } finally {
-            close(reader);
         }
     }
 
@@ -194,41 +177,19 @@ public final class IProjFileStore {
 
         String path = getPath(aDirectory);
 
-        Writer writer = null;
         try {
 
             IFSFile file = new IFSFile(getSystem(aHost), path);
-
-            int ccsid = CCSID_UTF8;
-            if (file.exists()) {
-                if (aPrevious != null) {
-                    if (!aPrevious.exists() || file.lastModified() != aPrevious.getLastModified()) {
-                        throw IProjFileException.conflict(Messages.bind(Messages.Error_File_A_has_been_changed, path));
-                    }
-                }
-                ccsid = getValidCcsid(file.getCCSID());
-            } else {
-                // IFSFileWriter requires an existing file, because it reads the
-                // CCSID of the file. Therefore the file is created and tagged
-                // with CCSID 1208 (UTF-8) before it is written.
-                if (!file.createNewFile() && !file.exists()) {
-                    throw new IProjFileException(Messages.bind(Messages.Error_Could_not_create_file_A, path), null);
-                }
-                file.setCCSID(CCSID_UTF8);
+            if (aPrevious != null && file.exists() && (!aPrevious.exists() || file.lastModified() != aPrevious.getLastModified())) {
+                throw IProjFileException.conflict(Messages.bind(Messages.Error_File_A_has_been_changed, path));
             }
 
-            // Parameters: file, append, share option, CCSID
-            writer = new IFSFileWriter(file, false, IFSFileWriter.SHARE_NONE, ccsid);
-            writer.write(aContent);
-            writer.close();
-            writer = null;
+            RemoteJobs.writeText(file, aContent, RemoteJobs.CCSID_UTF8);
 
         } catch (IProjFileException e) {
             throw e;
         } catch (Exception e) {
             throw new IProjFileException(Messages.bind(Messages.Error_Could_not_write_A_B, path, e.getLocalizedMessage()), e);
-        } finally {
-            close(writer);
         }
     }
 
@@ -310,15 +271,6 @@ public final class IProjFileStore {
         return IfsPaths.append(aDirectory, IProjConfig.FILE_NAME);
     }
 
-    private static int getValidCcsid(int aCcsid) {
-
-        if (aCcsid <= 0 || aCcsid == CCSID_NOT_SET) {
-            return CCSID_UTF8;
-        }
-
-        return aCcsid;
-    }
-
     private static IBMiConnection getConnection(IHost aHost) throws IProjFileException {
 
         IBMiConnection connection = IBMiConnection.getConnection(aHost);
@@ -341,19 +293,6 @@ public final class IProjFileStore {
             return connection.getAS400ToolboxObject();
         } catch (Exception e) {
             throw new IProjFileException(Messages.bind(Messages.Error_Could_not_connect_to_A, aHost.getAliasName()), e);
-        }
-    }
-
-    private static void close(java.io.Closeable aCloseable) {
-
-        if (aCloseable == null) {
-            return;
-        }
-
-        try {
-            aCloseable.close();
-        } catch (IOException e) {
-            // Ignore errors on close
         }
     }
 

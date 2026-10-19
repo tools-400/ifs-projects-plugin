@@ -22,9 +22,12 @@ import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.errorlist.ErrorList;
 import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
 
 /**
@@ -101,9 +104,9 @@ public class TerminalBuildJob extends Job {
      * @param aRseSystem - connected system object of RSE, which is copied
      * @param aDirectory - project directory
      * @param anObjectLibrary - library of the compiled objects or
-     *        <code>null</code>, see {@link RseBuildCommands#getObjectLibrary}
+     *        <code>null</code>, see {@link IProjValues#getObjectLibrary}
      * @param aSourceMapping - mapping of the project directory to a local
-     *        project or <code>null</code>, see {@link BuildErrors#show}
+     *        project or <code>null</code>, see {@link ErrorList#showEvents}
      * @return job, that is started with {@link #start(ITerminalCommandLine)}
      * @throws Exception if the script could not be installed
      */
@@ -184,18 +187,13 @@ public class TerminalBuildJob extends Job {
         aMonitor.beginTask("", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
         aMonitor.subTask(Messages.Task_Waiting_for_command_to_start);
 
-        AS400 system = RemoteJobs.copySystem(rseSystem);
-        IFSFile startFile = null;
-        IFSFile exitCodeFile = null;
-        IFSFile goneFile = null;
-        try {
+        try (RemoteSession session = new RemoteSession(rseSystem)) {
 
-            CommandCall commandCall = RemoteJobs.createCommandCall(system);
-            RemoteJobs.deleteObsoleteTemporaryFiles(system, temporaryDirectory);
+            CommandCall commandCall = session.getCommandCall();
 
-            startFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, id, TerminalBuildCommands.START_FILE_SUFFIX));
-            exitCodeFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, id, TerminalBuildCommands.EXIT_CODE_FILE_SUFFIX));
-            goneFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, id, TerminalBuildCommands.GONE_FILE_SUFFIX));
+            IFSFile startFile = session.newTemporaryFile(id, TerminalBuildCommands.START_FILE_SUFFIX);
+            IFSFile exitCodeFile = session.newTemporaryFile(id, TerminalBuildCommands.EXIT_CODE_FILE_SUFFIX);
+            IFSFile goneFile = session.newTemporaryFile(id, TerminalBuildCommands.GONE_FILE_SUFFIX);
 
             long sentTime = 0;
             long startTime = 0;
@@ -255,9 +253,9 @@ public class TerminalBuildJob extends Job {
                 IfsProjectsPlugin.logWarning("The command in the terminal has ended without exit code, e.g. because it has been killed: " + directory); //$NON-NLS-1$
             }
 
-            String events = BuildEvents.collect(system, commandCall, directory, objectLibrary, startTime, temporaryDirectory);
+            String events = BuildEvents.collect(session, directory, objectLibrary, startTime);
             if (events != null) {
-                BuildErrors.show(getName(), host, directory, events, RemoteJobs.getJobCcsid(commandCall, system), sourceMapping);
+                ErrorList.showEvents(getName(), host, directory, events, session.getJobCcsid(), sourceMapping);
             }
 
         } catch (InterruptedException e) {
@@ -265,16 +263,6 @@ public class TerminalBuildJob extends Job {
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not wait for the end of the command in the terminal: " + directory, e); //$NON-NLS-1$
         } finally {
-            if (startFile != null) {
-                RemoteJobs.delete(startFile);
-            }
-            if (exitCodeFile != null) {
-                RemoteJobs.delete(exitCodeFile);
-            }
-            if (goneFile != null) {
-                RemoteJobs.delete(goneFile);
-            }
-            system.disconnectAllServices();
             aMonitor.done();
         }
 

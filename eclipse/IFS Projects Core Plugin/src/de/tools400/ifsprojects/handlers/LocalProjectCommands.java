@@ -38,6 +38,7 @@ import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.rse.RseSelections;
 
 /**
@@ -355,8 +356,8 @@ final class LocalProjectCommands {
         try {
             new ProgressMonitorDialog(aShell).run(true, true, new IRunnableWithProgress() {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException, InterruptedException {
-                    AS400 system = RemoteJobs.copySystem(aRseSystem);
-                    try {
+                    try (RemoteSession session = new RemoteSession(aRseSystem)) {
+                        AS400 system = session.getSystem();
                         String directory = aLocalProject.getDeployDirectory(RemoteJobs.getHomeDirectory(system));
                         result[0] = Deployment.deploy(system, aLocalProject.getProject(), aLocalProject.getConnectionName(), directory, anIsAll,
                             conflictHandler, aMonitor);
@@ -364,8 +365,6 @@ final class LocalProjectCommands {
                         throw e;
                     } catch (Exception e) {
                         throw new InvocationTargetException(e);
-                    } finally {
-                        system.disconnectAllServices();
                     }
                 }
             });

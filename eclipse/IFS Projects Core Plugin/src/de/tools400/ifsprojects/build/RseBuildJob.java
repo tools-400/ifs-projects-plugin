@@ -13,9 +13,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
-import org.eclipse.swt.widgets.Display;
 
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.CommandCall;
@@ -23,9 +21,12 @@ import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.errorlist.ErrorList;
 import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
@@ -66,13 +67,13 @@ public class RseBuildJob extends Job {
      * @param aRseSystem - connected system object of RSE, which is copied
      * @param aDirectory - project directory
      * @param anObjectLibrary - library of the compiled objects or
-     *        <code>null</code>, see {@link RseBuildCommands#getObjectLibrary}
+     *        <code>null</code>, see {@link IProjValues#getObjectLibrary}
      * @param aDisplayCommand - command shown in the 'Commands Log' view, e.g.
      *        <code>makei build</code>
      * @param aCommand - command including the exports of the environment
      *        variables
      * @param aSourceMapping - mapping of the project directory to a local
-     *        project or <code>null</code>, see {@link BuildErrors#show}
+     *        project or <code>null</code>, see {@link ErrorList#showEvents}
      */
     public RseBuildJob(String aName, IHost aHost, AS400 aRseSystem, String aDirectory, String anObjectLibrary, String aDisplayCommand,
         String aCommand, SourceMapping aSourceMapping) {
@@ -97,25 +98,20 @@ public class RseBuildJob extends Job {
         CommandsLog.show(host);
         CommandsLog.log(host, Messages.bind(Messages.Log_Running_A_in_B, displayCommand, directory));
 
-        AS400 system = RemoteJobs.copySystem(rseSystem);
-        IFSFile logFile = null;
-        IFSFile exitCodeFile = null;
-        IFSFile processIdFile = null;
-        try {
+        try (RemoteSession session = new RemoteSession(rseSystem)) {
 
-            CommandCall commandCall = RemoteJobs.createCommandCall(system);
-            String temporaryDirectory = RemoteJobs.getTemporaryDirectory(system);
-            RemoteJobs.deleteObsoleteTemporaryFiles(system, temporaryDirectory);
+            AS400 system = session.getSystem();
+            CommandCall commandCall = session.getCommandCall();
             String home = RemoteJobs.getHomeDirectory(system);
             String shell = new IFSFile(system, PaseCommands.BASH).exists() ? PaseCommands.BASH : PaseCommands.SH;
 
-            logFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, LOG_FILE_SUFFIX));
+            IFSFile logFile = session.newTemporaryFile(LOG_FILE_SUFFIX);
             logFile.createNewFile();
             logFile.setCCSID(RemoteJobs.CCSID_UTF8);
             long startTime = logFile.lastModified();
 
-            exitCodeFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, EXIT_CODE_FILE_SUFFIX));
-            processIdFile = new IFSFile(system, RemoteJobs.getTemporaryFile(temporaryDirectory, PROCESS_ID_FILE_SUFFIX));
+            IFSFile exitCodeFile = session.newTemporaryFile(EXIT_CODE_FILE_SUFFIX);
+            IFSFile processIdFile = session.newTemporaryFile(PROCESS_ID_FILE_SUFFIX);
 
             String script = RseBuildCommands.getScript(shell, home, logFile.getAbsolutePath(), exitCodeFile.getAbsolutePath(),
                 processIdFile.getAbsolutePath(), directory, command);
@@ -162,11 +158,11 @@ public class RseBuildJob extends Job {
                 CommandsLog.log(host, Messages.bind(Messages.Log_Finished_with_exit_code_A, exitCode));
             }
 
-            String events = BuildEvents.collect(system, commandCall, directory, objectLibrary, startTime, temporaryDirectory);
+            String events = BuildEvents.collect(session, directory, objectLibrary, startTime);
             if (events == null) {
                 CommandsLog.log(host, Messages.Log_No_events_files_found);
             } else {
-                BuildErrors.show(getName(), host, directory, events, RemoteJobs.getJobCcsid(commandCall, system), sourceMapping);
+                ErrorList.showEvents(getName(), host, directory, events, session.getJobCcsid(), sourceMapping);
             }
 
         } catch (InterruptedException e) {
@@ -175,18 +171,8 @@ public class RseBuildJob extends Job {
             IfsProjectsPlugin.logError("Could not run command: " + displayCommand, e); //$NON-NLS-1$
             String message = Messages.bind(Messages.Error_Could_not_run_A_B, displayCommand, e.getLocalizedMessage());
             CommandsLog.log(host, message);
-            showError(message);
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, message);
         } finally {
-            if (logFile != null) {
-                RemoteJobs.delete(logFile);
-            }
-            if (exitCodeFile != null) {
-                RemoteJobs.delete(exitCodeFile);
-            }
-            if (processIdFile != null) {
-                RemoteJobs.delete(processIdFile);
-            }
-            system.disconnectAllServices();
             aMonitor.done();
         }
 
@@ -201,14 +187,10 @@ public class RseBuildJob extends Job {
      */
     private boolean stop(String aProcessIdFile, Thread aCommandThread) throws InterruptedException {
 
-        AS400 stopSystem = RemoteJobs.copySystem(rseSystem);
-        try {
-            CommandCall commandCall = RemoteJobs.createCommandCall(stopSystem);
-            commandCall.run(PaseCommands.getCallCommand(PaseCommands.SH, RseBuildCommands.getStopScript(aProcessIdFile)));
+        try (RemoteSession stopSession = new RemoteSession(rseSystem)) {
+            stopSession.getCommandCall().run(PaseCommands.getCallCommand(PaseCommands.SH, RseBuildCommands.getStopScript(aProcessIdFile)));
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not stop command: " + displayCommand, e); //$NON-NLS-1$
-        } finally {
-            stopSystem.disconnectAllServices();
         }
 
         aCommandThread.join(STOP_TIMEOUT_MILLIS);
@@ -232,15 +214,6 @@ public class RseBuildJob extends Job {
         }
 
         return anOffset + bytes.length;
-    }
-
-    private void showError(final String aMessage) {
-
-        Display.getDefault().asyncExec(new Runnable() {
-            public void run() {
-                MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, aMessage);
-            }
-        });
     }
 
     /**

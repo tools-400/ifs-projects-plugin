@@ -8,34 +8,27 @@
 
 package de.tools400.ifsprojects.syntaxcheck;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
 import org.eclipse.rse.subsystems.files.core.SystemIFileProperties;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.progress.UIJob;
 
 import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
-import de.tools400.ifsprojects.local.EventsFileMapper;
+import de.tools400.ifsprojects.errorlist.ErrorList;
+import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjValues;
-import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -110,29 +103,13 @@ public class SyntaxCheckJob extends Job {
             String compileCommand = SyntaxCheckCommands.getCompileCommand(sourceType, objectName, sourcePath, includeDirectories, noMain);
             List<String> setupCommands = SyntaxCheckCommands.getSetupCommands(projectDirectory, config, variables);
 
-            String temporaryDirectory;
-            try {
-                temporaryDirectory = RemoteJobs.getTemporaryDirectory(system);
-            } catch (IOException e) {
-                throw new SyntaxCheckException(e.getLocalizedMessage(), e);
-            }
-
-            SyntaxCheckResult result = SyntaxCheckRunner.run(system, setupCommands, objectName, compileCommand, temporaryDirectory, aMonitor);
+            SyntaxCheckResult result = SyntaxCheckRunner.run(system, setupCommands, objectName, compileCommand, aMonitor);
             if (result.getEvents() == null) {
                 throw new SyntaxCheckException(Messages.bind(Messages.Error_No_events_file_A_B, compileCommand, result.getCompileMessages()), null);
             }
 
             String events = EventsFiles.removeMessages(result.getEvents(), SyntaxCheckCommands.getIgnoredMessageIds(sourceType, noMain));
-            Set<String> projectLocations = Collections.emptySet();
-            if (sourceMapping != null) {
-                EventsFileMapper.Result mappedEvents = EventsFileMapper.map(events, sourceMapping);
-                events = mappedEvents.getEvents();
-                projectLocations = mappedEvents.getLocations();
-            }
-
-            IFile eventsFile = ErrorList.writeEventsFile(host, sourcePath, events, result.getCcsid(), aMonitor);
-
-            showErrors(eventsFile, projectLocations);
+            ErrorList.showEvents(getName(), host, sourcePath, events, result.getCcsid(), sourceMapping);
 
         } catch (InterruptedException e) {
             return Status.CANCEL_STATUS;
@@ -140,13 +117,10 @@ public class SyntaxCheckJob extends Job {
             if (e.getCause() != null) {
                 IfsProjectsPlugin.logError("Syntax check failed: " + sourcePath, e.getCause()); //$NON-NLS-1$
             }
-            showError(e.getMessage());
-        } catch (CoreException e) {
-            IfsProjectsPlugin.logError("Could not write the events file of: " + sourcePath, e); //$NON-NLS-1$
-            showError(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, e.getMessage());
         } catch (RuntimeException e) {
             IfsProjectsPlugin.logError("Unexpected error checking the syntax of: " + sourcePath, e); //$NON-NLS-1$
-            showError(Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
         } finally {
             aMonitor.done();
         }
@@ -171,35 +145,5 @@ public class SyntaxCheckJob extends Job {
                 Thread.sleep(UPLOAD_POLL_INTERVAL_MILLIS);
             }
         }
-    }
-
-    private void showErrors(final IFile anEventsFile, final Set<String> aProjectLocations) {
-
-        final String projectName = sourceMapping == null ? null : sourceMapping.getProjectName();
-
-        UIJob job = new UIJob(getName()) {
-            @Override
-            public IStatus runInUIThread(IProgressMonitor aMonitor) {
-                try {
-                    ErrorList.show(anEventsFile, host, ErrorList.getTitle(host, sourcePath), projectName, aProjectLocations);
-                } catch (SyntaxCheckException e) {
-                    if (e.getCause() != null) {
-                        IfsProjectsPlugin.logError("Could not show the errors of: " + sourcePath, e.getCause()); //$NON-NLS-1$
-                    }
-                    MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, e.getMessage());
-                }
-                return Status.OK_STATUS;
-            }
-        };
-        job.schedule();
-    }
-
-    private void showError(final String aMessage) {
-
-        Display.getDefault().asyncExec(new Runnable() {
-            public void run() {
-                MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, aMessage);
-            }
-        });
     }
 }

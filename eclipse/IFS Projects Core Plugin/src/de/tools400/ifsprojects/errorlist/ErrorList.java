@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.ifsprojects.syntaxcheck;
+package de.tools400.ifsprojects.errorlist;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -25,11 +25,15 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
 import org.eclipse.rse.services.clientserver.messages.SystemMessage;
 import org.eclipse.rse.subsystems.files.core.SystemIFileProperties;
@@ -37,15 +41,21 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.UIJob;
 
 import com.ibm.etools.iseries.rse.ui.resources.IQSYSMarker;
 import com.ibm.etools.iseries.rse.ui.view.errorlist.QSYSErrorListViewPart;
 import com.ibm.etools.iseries.rse.util.evfparser.EventsFileParser;
 
+import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.local.EventsFileMapper;
+import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
- * Shows the errors of an events file in the 'Error List' view of RDi.
+ * Shows the errors of an events file in the 'Error List' view of RDi, see
+ * {@link #showEvents}.
  * <p>
  * Like RDi, the events file is stored as local file in project
  * <code>RemoteSystemsTempFiles</code>, folder <code>IFSProjects</code>. RSE
@@ -87,21 +97,94 @@ public final class ErrorList {
     }
 
     /**
+     * Shows events in the 'Error List' view. The local events file is written
+     * in a workspace job, because the scheduling rules of the jobs of the
+     * plug-in do not contain the workspace resources, and its errors are shown
+     * in a UI job. Errors are logged and reported to the user. May be called
+     * from any thread.
+     * <p>
+     * The project directory of a local project is a copy of the project. Its
+     * errors are shown for the local files, see {@link SourceMapping}.
+     *
+     * @param aJobName - name of the jobs
+     * @param aHost - RSE connection
+     * @param aSourcePath - absolute path of the checked stream file or of the
+     *        built project directory, which names the local events file and
+     *        the table of the view
+     * @param anEvents - content of the events files
+     * @param aCcsid - CCSID of the job, in which the events files were written
+     * @param aSourceMapping - mapping of the project directory to a local
+     *        project or <code>null</code>
+     */
+    public static void showEvents(String aJobName, final IHost aHost, final String aSourcePath, String anEvents, final int aCcsid,
+        SourceMapping aSourceMapping) {
+
+        final String events;
+        final Set<String> projectLocations;
+        if (aSourceMapping == null) {
+            events = anEvents;
+            projectLocations = Collections.emptySet();
+        } else {
+            EventsFileMapper.Result result = EventsFileMapper.map(anEvents, aSourceMapping);
+            events = result.getEvents();
+            projectLocations = result.getLocations();
+        }
+        final String projectName = aSourceMapping == null ? null : aSourceMapping.getProjectName();
+
+        WorkspaceJob job = new WorkspaceJob(aJobName) {
+            @Override
+            public IStatus runInWorkspace(IProgressMonitor aMonitor) {
+                IFile eventsFile;
+                try {
+                    eventsFile = writeEventsFile(aHost, aSourcePath, events, aCcsid, aMonitor);
+                } catch (CoreException e) {
+                    IfsProjectsPlugin.logError("Could not write the events file of: " + aSourcePath, e); //$NON-NLS-1$
+                    PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
+                    return Status.OK_STATUS;
+                }
+                showLater(getName(), eventsFile, aHost, aSourcePath, projectName, projectLocations);
+                return Status.OK_STATUS;
+            }
+        };
+        job.setRule(ResourcesPlugin.getWorkspace().getRoot());
+        job.setSystem(true);
+        job.schedule();
+    }
+
+    /**
+     * Shows the errors of a local events file in a UI job.
+     */
+    private static void showLater(String aJobName, final IFile anEventsFile, final IHost aHost, final String aSourcePath, final String aProjectName,
+        final Set<String> aProjectLocations) {
+
+        UIJob job = new UIJob(aJobName) {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor aMonitor) {
+                try {
+                    show(anEventsFile, aHost, getTitle(aHost, aSourcePath), aProjectName, aProjectLocations);
+                } catch (CoreException e) {
+                    if (e.getStatus().getException() != null) {
+                        IfsProjectsPlugin.logError("Could not show the errors of: " + aSourcePath, e.getStatus().getException()); //$NON-NLS-1$
+                    }
+                    MessageDialog.openError(PlatformUtils.getWorkbenchShell(), Messages.Title_IFS_Projects, e.getStatus().getMessage());
+                }
+                return Status.OK_STATUS;
+            }
+        };
+        job.schedule();
+    }
+
+    /**
      * Returns the title of the table of a stream file in the 'Error List'
      * view, e.g. <code>myibmi:/home/jsmith/src/hello.rpgle</code>.
-     *
-     * @param aHost - RSE connection
-     * @param aSourcePath - absolute path of the checked stream file
-     * @return title
      */
-    public static String getTitle(IHost aHost, String aSourcePath) {
+    private static String getTitle(IHost aHost, String aSourcePath) {
         return aHost.getAliasName() + TITLE_SEPARATOR + aSourcePath;
     }
 
     /**
-     * Writes the events to the local events file of a stream file.
-     * <p>
-     * Must not be called on the UI thread.
+     * Writes the events to the local events file of a stream file. Runs in
+     * the workspace job of {@link #showEvents}.
      *
      * @param aHost - RSE connection
      * @param aSourcePath - absolute path of the checked stream file
@@ -111,7 +194,7 @@ public final class ErrorList {
      * @return local events file
      * @throws CoreException if the file could not be written
      */
-    public static synchronized IFile writeEventsFile(IHost aHost, String aSourcePath, String anEvents, int aCcsid, IProgressMonitor aMonitor)
+    private static IFile writeEventsFile(IHost aHost, String aSourcePath, String anEvents, int aCcsid, IProgressMonitor aMonitor)
         throws CoreException {
 
         IProject project = getProject(aMonitor);
@@ -149,21 +232,6 @@ public final class ErrorList {
 
     /**
      * Parses a local events file and shows its errors in the 'Error List'
-     * view.
-     * <p>
-     * Must be called on the UI thread.
-     *
-     * @param anEventsFile - local events file, see {@link #writeEventsFile}
-     * @param aHost - RSE connection
-     * @param aTitle - title of the table, see {@link #getTitle}
-     * @throws SyntaxCheckException if the errors could not be shown
-     */
-    public static void show(IFile anEventsFile, IHost aHost, String aTitle) throws SyntaxCheckException {
-        show(anEventsFile, aHost, aTitle, null, Collections.<String> emptySet());
-    }
-
-    /**
-     * Parses a local events file and shows its errors in the 'Error List'
      * view. The errors of the specified locations are shown for the files of
      * a local project.
      * <p>
@@ -175,15 +243,15 @@ public final class ErrorList {
      * @param aProjectName - name of the local project or <code>null</code>
      * @param aProjectLocations - locations of the files of the local project,
      *        e.g. <code>/demo/src/hello.rpgle</code>
-     * @throws SyntaxCheckException if the errors could not be shown
+     * @throws CoreException if the errors could not be shown
      */
-    public static void show(final IFile anEventsFile, IHost aHost, String aTitle, final String aProjectName,
-        final Set<String> aProjectLocations) throws SyntaxCheckException {
+    private static void show(final IFile anEventsFile, IHost aHost, String aTitle, final String aProjectName,
+        final Set<String> aProjectLocations) throws CoreException {
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         IWorkbenchPage page = window == null ? null : window.getActivePage();
         if (page == null) {
-            throw new SyntaxCheckException(Messages.Error_No_active_workbench_page, null);
+            throw error(Messages.Error_No_active_workbench_page, null);
         }
 
         // Like RDi, the view is opened before the parser creates the markers.
@@ -193,7 +261,7 @@ public final class ErrorList {
             QSYSErrorListViewPart view = (QSYSErrorListViewPart)page.showView(QSYSErrorListViewPart.ID);
             view.configure(anEventsFile, aTitle);
         } catch (PartInitException e) {
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()), e);
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()), e);
         }
 
         // The project name is set in the same workspace operation, so that the
@@ -221,7 +289,7 @@ public final class ErrorList {
         try {
             workspace.run(runnable, workspace.getRoot(), IWorkspace.AVOID_UPDATE, new NullProgressMonitor());
         } catch (CoreException e) {
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()), e);
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()), e);
         }
 
         if (failure[0] instanceof InterruptedException) {
@@ -229,12 +297,12 @@ public final class ErrorList {
         }
         if (failure[0] != null) {
             Throwable cause = failure[0].getCause() != null ? failure[0].getCause() : failure[0];
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_show_errors_A, cause.getLocalizedMessage()), cause);
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, cause.getLocalizedMessage()), cause);
         }
 
-        SystemMessage error = parser.getException();
-        if (error != null) {
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_show_errors_A, error.getLevelOneText()), null);
+        SystemMessage parserError = parser.getException();
+        if (parserError != null) {
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, parserError.getLevelOneText()), null);
         }
     }
 
@@ -276,6 +344,10 @@ public final class ErrorList {
 
         createFolders(aContainer.getParent(), aMonitor);
         ((IFolder)aContainer).create(IResource.FORCE, true, aMonitor);
+    }
+
+    private static CoreException error(String aMessage, Throwable aCause) {
+        return new CoreException(new Status(IStatus.ERROR, IfsProjectsPlugin.PLUGIN_ID, aMessage, aCause));
     }
 
     private static String toResourceName(String aName) {

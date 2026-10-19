@@ -8,12 +8,14 @@
 
 package de.tools400.ifsprojects.utils;
 
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Returns the parent shells of dialogs.
+ * Returns the parent shells of dialogs and shows the dialogs of jobs.
  */
 public final class PlatformUtils {
 
@@ -36,5 +38,22 @@ public final class PlatformUtils {
         }
 
         return window.getShell();
+    }
+
+    /**
+     * Shows an error message in a dialog of the active workbench window. May
+     * be called from any thread, e.g. by a job: the dialog is opened
+     * asynchronously on the UI thread.
+     *
+     * @param aTitle - title of the dialog
+     * @param aMessage - message
+     */
+    public static void openErrorAsync(final String aTitle, final String aMessage) {
+
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                MessageDialog.openError(getWorkbenchShell(), aTitle, aMessage);
+            }
+        });
     }
 }
