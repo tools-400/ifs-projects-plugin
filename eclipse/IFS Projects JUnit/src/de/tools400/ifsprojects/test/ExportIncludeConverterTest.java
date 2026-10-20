@@ -21,19 +21,19 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import de.tools400.ifsprojects.export.ExportIncludeConverter;
 import de.tools400.ifsprojects.export.ExportMapping;
-import de.tools400.ifsprojects.export.IncludeConverter;
-import de.tools400.ifsprojects.export.IncludeConverter.Include;
-import de.tools400.ifsprojects.export.IncludeConverter.Problem;
-import de.tools400.ifsprojects.export.IncludeConverter.Result;
 import de.tools400.ifsprojects.export.IncludeResolver;
 import de.tools400.ifsprojects.export.SourceFileRule;
+import de.tools400.ifsprojects.sources.IncludeConverter.Include;
+import de.tools400.ifsprojects.sources.IncludeConverter.Problem;
+import de.tools400.ifsprojects.sources.IncludeConverter.Result;
 
 /**
  * The search orders of the resolver have been verified on the IBM i with
  * CRTBNDRPG and CRTBNDCL.
  */
-public class IncludeConverterTest {
+public class ExportIncludeConverterTest {
 
     private static final String PROJECT = "/home/jsmith/proj";
 
@@ -97,7 +97,7 @@ public class IncludeConverterTest {
         assertTrue(result.hasProblems());
         assertInclude(result.getIncludes().get(0), 2, "/QIBM/include/qusec.rpgleinc", null, Problem.NOT_FOUND);
         assertInclude(result.getIncludes().get(1), 3, "missing.rpgleinc", null, Problem.NOT_FOUND);
-        assertInclude(result.getIncludes().get(2), 4, "toolongname1", null, Problem.NOT_EXPORTED);
+        assertInclude(result.getIncludes().get(2), 4, "toolongname1", null, Problem.NOT_TRANSFERRED);
         assertInclude(result.getIncludes().get(3), 5, "inc/sqlvars.rpgleinc", null, Problem.NOT_SUPPORTED);
         assertEquals(4, result.getIncludes().size());
     }
@@ -225,7 +225,7 @@ public class IncludeConverterTest {
     private void assertInclude(Include anInclude, int aLineNumber, String aName, String aTarget, Problem aProblem) {
         assertEquals(aLineNumber, anInclude.getLineNumber());
         assertEquals(aName, anInclude.getName());
-        assertEquals(aTarget, anInclude.getMember() == null ? null : anInclude.getMember().getTarget());
+        assertEquals(aTarget, anInclude.getTarget());
         assertEquals(aProblem, anInclude.getProblem());
     }
 
@@ -233,7 +233,7 @@ public class IncludeConverterTest {
         return create(aSourceType).convert(aPath, aContent);
     }
 
-    private IncludeConverter create(String aSourceType) {
+    private ExportIncludeConverter create(String aSourceType) {
 
         Map<String, ExportMapping.Entry> members = new HashMap<String, ExportMapping.Entry>();
         for (ExportMapping.Entry entry : new ExportMapping(SourceFileRule.DIRECTORY, null).map(FILES)) {
@@ -244,7 +244,7 @@ public class IncludeConverterTest {
 
         IncludeResolver resolver = new IncludeResolver(PROJECT, Arrays.asList(PROJECT + "/inc", "/QIBM/include"), FILES);
 
-        return IncludeConverter.create(aSourceType, resolver, members);
+        return ExportIncludeConverter.create(aSourceType, resolver, members);
     }
 
     private static String pad(String aText, int aLength) {

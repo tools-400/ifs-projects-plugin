@@ -77,4 +77,44 @@ public final class StringUtils {
     public static boolean containsLineBreak(String aValue) {
         return aValue.indexOf('\r') >= 0 || aValue.indexOf('\n') >= 0;
     }
+
+    /**
+     * Returns the index of the first character, that is not a whitespace.
+     *
+     * @param aValue - string
+     * @param aStart - index, at which the search starts
+     * @return index or -1, if there is no such character at or after the start
+     */
+    public static int indexOfNonBlank(String aValue, int aStart) {
+
+        for (int i = Math.max(aStart, 0); i < aValue.length(); i++) {
+            if (!Character.isWhitespace(aValue.charAt(i))) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Appends blanks to a string up to a length.
+     *
+     * @param aValue - string
+     * @param aLength - length of the result
+     * @return string with blanks appended or the string itself, if it is not
+     *         shorter than the length
+     */
+    public static String padRight(String aValue, int aLength) {
+
+        if (aValue.length() >= aLength) {
+            return aValue;
+        }
+
+        StringBuilder buffer = new StringBuilder(aLength).append(aValue);
+        while (buffer.length() < aLength) {
+            buffer.append(' ');
+        }
+
+        return buffer.toString();
+    }
 }

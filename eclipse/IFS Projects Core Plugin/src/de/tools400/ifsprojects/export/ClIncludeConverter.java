@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.tools400.ifsprojects.sources.ClLineConverter;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -27,17 +28,13 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * <li>A label and comments are kept.</li>
  * </ul>
  */
-final class ClIncludeConverter extends IncludeConverter {
+final class ClIncludeConverter extends ExportIncludeConverter {
 
-    private static final String LABEL = "(?:[A-Z$#@][A-Z0-9$#@_.]*\\s*:\\s*)?"; //$NON-NLS-1$
-    private static final Pattern INCLUDE_SRCSTMF = Pattern.compile("^(\\s*" + LABEL + "(INCLUDE)\\s+)SRCSTMF\\(\\s*'((?:[^']|'')*)'\\s*\\)(.*)$", //$NON-NLS-1$ //$NON-NLS-2$
-        Pattern.CASE_INSENSITIVE);
-    private static final Pattern INCLUDE = Pattern.compile("^\\s*" + LABEL + "INCLUDE(?=\\s|$)", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$ //$NON-NLS-2$
+    private static final Pattern INCLUDE_SRCSTMF = Pattern.compile("^(\\s*" + ClLineConverter.LABEL //$NON-NLS-1$
+        + "(INCLUDE)\\s+)SRCSTMF\\(\\s*'((?:[^']|'')*)'\\s*\\)(.*)$", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
     private static final Pattern SRCSTMF = Pattern.compile("SRCSTMF\\(\\s*'((?:[^']|'')*)'", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
-    private static final Pattern COMMENT = Pattern.compile("/\\*.*?(\\*/|$)"); //$NON-NLS-1$
 
     private static final String SRCSTMF_KEYWORD = "SRCSTMF"; //$NON-NLS-1$
-    private static final String EMPTY = ""; //$NON-NLS-1$
     private static final String QUOTE = "'"; //$NON-NLS-1$
     private static final String DOUBLED_QUOTE = "''"; //$NON-NLS-1$
 
@@ -48,44 +45,23 @@ final class ClIncludeConverter extends IncludeConverter {
     @Override
     protected LineConverter createLineConverter(final String aPath, final Result aResult) {
 
-        return new LineConverter() {
+        return new ClLineConverter() {
 
-            /** First line of an INCLUDE command with continuation lines. */
-            private int continuedLineNumber;
-
-            /** Text of an INCLUDE command with continuation lines. */
-            private StringBuilder continuedCommand;
-
-            public String convert(int aLineNumber, String aLine) {
-
-                String code = removeComments(aLine);
-
-                if (continuedCommand != null) {
-                    continuedCommand.append(' ').append(code);
-                    if (!isContinued(code)) {
-                        checkUnsupported(continuedLineNumber, continuedCommand.toString(), aResult);
-                        continuedCommand = null;
-                    }
-                    return aLine;
-                }
-
-                if (!INCLUDE.matcher(code).find()) {
-                    return aLine;
-                }
-
-                if (isContinued(code)) {
-                    continuedLineNumber = aLineNumber;
-                    continuedCommand = new StringBuilder(code);
-                    return aLine;
-                }
+            @Override
+            protected String convertInclude(int aLineNumber, String aLine, String aCode) {
 
                 Matcher matcher = INCLUDE_SRCSTMF.matcher(aLine);
                 if (!matcher.matches() || !StringUtils.isBlank(removeComments(matcher.group(4)))) {
-                    checkUnsupported(aLineNumber, code, aResult);
+                    checkUnsupported(aLineNumber, aCode, aResult);
                     return aLine;
                 }
 
-                return convertInclude(aPath, aLineNumber, aLine, matcher, aResult);
+                return ClIncludeConverter.this.convertInclude(aPath, aLineNumber, aLine, matcher, aResult);
+            }
+
+            @Override
+            protected void checkContinuedInclude(int aLineNumber, String aCommand) {
+                checkUnsupported(aLineNumber, aCommand, aResult);
             }
         };
     }
@@ -96,17 +72,17 @@ final class ClIncludeConverter extends IncludeConverter {
 
         String file = getResolver().resolveClInclude(aPath, name);
         if (file == null) {
-            aResult.addProblem(aLineNumber, name, Problem.NOT_FOUND);
+            addProblem(aResult, aLineNumber, name, Problem.NOT_FOUND);
             return aLine;
         }
 
         ExportMapping.Entry member = getMember(file);
         if (member == null) {
-            aResult.addProblem(aLineNumber, name, Problem.NOT_EXPORTED);
+            addProblem(aResult, aLineNumber, name, Problem.NOT_TRANSFERRED);
             return aLine;
         }
 
-        aResult.addConverted(aLineNumber, name, member);
+        addConverted(aResult, aLineNumber, name, member.getTarget());
 
         String parameters = "SRCMBR(" + member.getMember() + ") SRCFILE(" + member.getSourceFile() + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
@@ -125,22 +101,6 @@ final class ClIncludeConverter extends IncludeConverter {
 
         Matcher matcher = SRCSTMF.matcher(aCommand);
         String name = matcher.find() ? matcher.group(1).replace(DOUBLED_QUOTE, QUOTE) : aCommand.trim();
-
-        aResult.addProblem(aLineNumber, name, Problem.NOT_SUPPORTED);
-    }
-
-    private static boolean isContinued(String aCode) {
-
-        String code = aCode.trim();
-        if (code.length() == 0) {
-            return false;
-        }
-
-        char last = code.charAt(code.length() - 1);
-        return last == '+' || last == '-';
-    }
-
-    private static String removeComments(String aLine) {
-        return COMMENT.matcher(aLine).replaceAll(EMPTY);
+        addProblem(aResult, aLineNumber, name, Problem.NOT_SUPPORTED);
     }
 }

@@ -54,7 +54,7 @@ final class ExportProblems {
             switch (aProblem.getIncludeProblem()) {
             case NOT_FOUND:
                 return Messages.bind(Messages.Problem_Line_A_include_B_not_found, lineNumber, aProblem.getText());
-            case NOT_EXPORTED:
+            case NOT_TRANSFERRED:
                 return Messages.bind(Messages.Problem_Line_A_include_B_not_exported, lineNumber, aProblem.getText());
             case TOO_LONG:
                 return Messages.bind(Messages.Problem_Line_A_include_B_too_long, lineNumber, aProblem.getText());

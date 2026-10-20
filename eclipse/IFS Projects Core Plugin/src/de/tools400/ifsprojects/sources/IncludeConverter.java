@@ -6,73 +6,32 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.ifsprojects.export;
+package de.tools400.ifsprojects.sources;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
- * Converts the include directives of a source, that refer to stream files, so
- * that they refer to the members of the export, e.g.
- * <code>/copy 'inc/consts.rpgleinc'</code> to <code>/copy inc,consts</code>.
- * Directives, that refer to members, are not changed. The rest of the source
- * is kept unchanged, including the line separators.
+ * Converts the include directives of a source line by line, e.g. from stream
+ * files to members (<code>/copy 'inc/consts.rpgleinc'</code> to
+ * <code>/copy inc,consts</code>). The subclasses decide, to what a directive
+ * refers after the conversion, see {@link RpgLineConverter} and
+ * {@link ClLineConverter}. The rest of the source is kept unchanged, including
+ * the line separators.
  */
 public abstract class IncludeConverter {
-
-    private static final String RPGLE = "RPGLE"; //$NON-NLS-1$
-    private static final String SQLRPGLE = "SQLRPGLE"; //$NON-NLS-1$
-    private static final String CLLE = "CLLE"; //$NON-NLS-1$
-
-    private final IncludeResolver resolver;
-    private final Map<String, ExportMapping.Entry> members;
-
-    /**
-     * Creates a converter.
-     *
-     * @param aResolver - resolver, that finds the files of the directives
-     * @param aMembers - exported files by their path relative to the project
-     *        directory
-     */
-    protected IncludeConverter(IncludeResolver aResolver, Map<String, ExportMapping.Entry> aMembers) {
-        this.resolver = aResolver;
-        this.members = aMembers;
-    }
-
-    /**
-     * Returns the converter of a source type.
-     *
-     * @param aSourceType - source type, see {@link ExportMapping#getSourceType}
-     * @param aResolver - resolver, that finds the files of the directives
-     * @param aMembers - exported files by their path relative to the project
-     *        directory
-     * @return converter or <code>null</code>, if the includes of the source
-     *         type are not converted
-     */
-    public static IncludeConverter create(String aSourceType, IncludeResolver aResolver, Map<String, ExportMapping.Entry> aMembers) {
-
-        if (RPGLE.equals(aSourceType) || SQLRPGLE.equals(aSourceType)) {
-            return new RpgIncludeConverter(aResolver, aMembers);
-        }
-
-        if (CLLE.equals(aSourceType)) {
-            return new ClIncludeConverter(aResolver, aMembers);
-        }
-
-        return null;
-    }
 
     /**
      * Converts the include directives of a source.
      *
-     * @param aPath - path of the source relative to the project directory
+     * @param aPath - path of the source, that identifies it for the subclass,
+     *        e.g. relative to the project directory
      * @param aContent - content of the source
      * @return result
      */
-    public Result convert(String aPath, String aContent) {
+    public final Result convert(String aPath, String aContent) {
 
         Result result = new Result();
         StringBuilder content = new StringBuilder(aContent.length());
@@ -91,27 +50,34 @@ public abstract class IncludeConverter {
     /**
      * Returns the converter of the lines of a source.
      *
-     * @param aPath - path of the source relative to the project directory
+     * @param aPath - path of the source, see {@link #convert(String, String)}
      * @param aResult - result, to which the includes are added
      * @return converter
      */
     protected abstract LineConverter createLineConverter(String aPath, Result aResult);
 
     /**
-     * Returns the resolver of the include directives.
+     * Adds a converted directive to a result.
+     *
+     * @param aResult - result
+     * @param aLineNumber - line number, starting at 1
+     * @param aName - name of the directive before the conversion
+     * @param aTarget - name of the directive after the conversion
      */
-    protected IncludeResolver getResolver() {
-        return resolver;
+    protected static void addConverted(Result aResult, int aLineNumber, String aName, String aTarget) {
+        aResult.includes.add(new Include(aLineNumber, aName, aTarget, null));
     }
 
     /**
-     * Returns the member, into which a file is exported.
+     * Adds a directive, that has not been converted, to a result.
      *
-     * @param aPath - path relative to the project directory
-     * @return member or <code>null</code>, if the file is not exported
+     * @param aResult - result
+     * @param aLineNumber - line number, starting at 1
+     * @param aName - name of the directive
+     * @param aProblem - reason, why it has not been converted
      */
-    protected ExportMapping.Entry getMember(String aPath) {
-        return members.get(aPath);
+    protected static void addProblem(Result aResult, int aLineNumber, String aName, Problem aProblem) {
+        aResult.includes.add(new Include(aLineNumber, aName, null, aProblem));
     }
 
     /**
@@ -164,9 +130,10 @@ public abstract class IncludeConverter {
     }
 
     /**
-     * Converts the lines of one source.
+     * Converter of the lines of a source. It may keep a state, e.g. for
+     * continuation lines.
      */
-    protected interface LineConverter {
+    public interface LineConverter {
 
         /**
          * Converts a line.
@@ -183,11 +150,14 @@ public abstract class IncludeConverter {
      */
     public enum Problem {
 
-        /** The file is not a file of the project. */
+        /** The file or member of the directive is not found. */
         NOT_FOUND,
 
-        /** The file is a file of the project, but it is not exported. */
-        NOT_EXPORTED,
+        /**
+         * The file or member of the directive is found, but it is not
+         * transferred itself, e.g. not exported.
+         */
+        NOT_TRANSFERRED,
 
         /** The directive cannot be converted, e.g. <code>EXEC SQL INCLUDE</code>. */
         NOT_SUPPORTED,
@@ -203,13 +173,13 @@ public abstract class IncludeConverter {
 
         private final int lineNumber;
         private final String name;
-        private final ExportMapping.Entry member;
+        private final String target;
         private final Problem problem;
 
-        Include(int aLineNumber, String aName, ExportMapping.Entry aMember, Problem aProblem) {
+        Include(int aLineNumber, String aName, String aTarget, Problem aProblem) {
             this.lineNumber = aLineNumber;
             this.name = aName;
-            this.member = aMember;
+            this.target = aTarget;
             this.problem = aProblem;
         }
 
@@ -221,18 +191,20 @@ public abstract class IncludeConverter {
         }
 
         /**
-         * Returns the name of the directive, e.g. the path of the stream file.
+         * Returns the name of the directive before the conversion, e.g. the
+         * path of the stream file.
          */
         public String getName() {
             return name;
         }
 
         /**
-         * Returns the member, to which the directive refers after the
-         * conversion, or <code>null</code>, if it has not been converted.
+         * Returns the name of the directive after the conversion, e.g.
+         * <code>INC,CONSTS</code>, or <code>null</code>, if it has not been
+         * converted.
          */
-        public ExportMapping.Entry getMember() {
-            return member;
+        public String getTarget() {
+            return target;
         }
 
         /**
@@ -245,7 +217,7 @@ public abstract class IncludeConverter {
 
         @Override
         public String toString() {
-            return lineNumber + ": " + name + " -> " + (problem == null ? member.getTarget() : problem.toString()); //$NON-NLS-1$ //$NON-NLS-2$
+            return lineNumber + ": " + name + " -> " + (problem == null ? target : problem.toString()); //$NON-NLS-1$ //$NON-NLS-2$
         }
     }
 
@@ -265,8 +237,8 @@ public abstract class IncludeConverter {
         }
 
         /**
-         * Returns the include directives, that refer to stream files, in the
-         * order of the source.
+         * Returns the include directives, that have been converted or could
+         * not be converted, in the order of the source.
          */
         public List<Include> getIncludes() {
             return Collections.unmodifiableList(includes);
@@ -283,14 +255,6 @@ public abstract class IncludeConverter {
                 }
             }
             return false;
-        }
-
-        void addConverted(int aLineNumber, String aName, ExportMapping.Entry aMember) {
-            includes.add(new Include(aLineNumber, aName, aMember, null));
-        }
-
-        void addProblem(int aLineNumber, String aName, Problem aProblem) {
-            includes.add(new Include(aLineNumber, aName, null, aProblem));
         }
     }
 }

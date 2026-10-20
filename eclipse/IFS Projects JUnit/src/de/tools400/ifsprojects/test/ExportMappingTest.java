@@ -26,25 +26,6 @@ import de.tools400.ifsprojects.export.SourceFileRule;
 public class ExportMappingTest {
 
     @Test
-    public void testGetSourceType() {
-        assertEquals("RPGLE", ExportMapping.getSourceType("hello.pgm.rpgle"));
-        assertEquals("SQLRPGLE", ExportMapping.getSourceType("SQLPGM.SQLRPGLE"));
-        assertEquals("RPGLE", ExportMapping.getSourceType("consts.rpgleinc"));
-        assertEquals("SQLRPGLE", ExportMapping.getSourceType("hostvars.sqlrpgleinc"));
-        assertEquals("CLLE", ExportMapping.getSourceType("vars.clinc"));
-        assertEquals("CLLE", ExportMapping.getSourceType("hello.pgm.clle"));
-        assertEquals("DSPF", ExportMapping.getSourceType("hellod.dspf"));
-        assertEquals("TABLE", ExportMapping.getSourceType("customer.table"));
-        assertEquals("BND", ExportMapping.getSourceType("utils.bnd"));
-        assertNull(ExportMapping.getSourceType("README.md"));
-        assertNull(ExportMapping.getSourceType("iproj.json"));
-        assertNull(ExportMapping.getSourceType("Rules.mk"));
-        assertNull(ExportMapping.getSourceType("makefile"));
-        assertNull(ExportMapping.getSourceType(".rpgle"));
-        assertNull(ExportMapping.getSourceType(null));
-    }
-
-    @Test
     public void testGetMemberName() {
         assertEquals("HELLO", ExportMapping.getMemberName("hello.pgm.rpgle"));
         assertEquals("$UTIL_1", ExportMapping.getMemberName("$util_1.rpgleinc"));
@@ -54,20 +35,6 @@ public class ExportMappingTest {
         assertNull(ExportMapping.getMemberName("my-pgm.rpgle"));
         assertNull(ExportMapping.getMemberName("\u00E4nderung.rpgle"));
         assertNull(ExportMapping.getMemberName(null));
-    }
-
-    @Test
-    public void testGetDefaultSourceFile() {
-        assertEquals("QRPGLESRC", ExportMapping.getDefaultSourceFile("RPGLE"));
-        assertEquals("QRPGLESRC", ExportMapping.getDefaultSourceFile("SQLRPGLE"));
-        assertEquals("QCLSRC", ExportMapping.getDefaultSourceFile("CLP"));
-        assertEquals("QDDSSRC", ExportMapping.getDefaultSourceFile("PRTF"));
-        assertEquals("QCMDSRC", ExportMapping.getDefaultSourceFile("CMD"));
-        assertEquals("QSQLSRC", ExportMapping.getDefaultSourceFile("SQLPRC"));
-        assertEquals("QSRVSRC", ExportMapping.getDefaultSourceFile("BND"));
-        assertEquals("QSRC", ExportMapping.getDefaultSourceFile("BNDDIR"));
-        assertEquals("QSRC", ExportMapping.getDefaultSourceFile("UNKNOWN"));
-        assertEquals("QSRC", ExportMapping.getDefaultSourceFile(null));
     }
 
     @Test

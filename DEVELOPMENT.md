@@ -44,15 +44,16 @@ Packages below `de.tools400.ifsprojects`:
 | `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables`, `BuildTool`. `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
-| `export` | Export to a library: `ExportMapping` (stream file to member), `MemberText`, `IncludeResolver` and `IncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
+| `sources` | Members and stream files, independent of the direction of a conversion: `SourceTypes` (extensions of TOBi, copy books `<type>inc`, default source files), `MemberText` (comment block `%METADATA`/`%TEXT` of `makei cvtsrcpf --text`: read and insert), `IncludeConverter` (converts a source line by line) with `RpgLineConverter`/`RpgIncludeDirective` (columns, `**FREE`, compile-time data) and `ClLineConverter` (labels, comments, continuation lines). |
+| `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
 | `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. |
 | `swt` | `ToolTips` and `CcsidCombo` (CCSID of new source files, used by the preferences and the export). |
-| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`, `containsLineBreak`. |
+| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`, `containsLineBreak`, `indexOfNonBlank`, `padRight`. |
 
-The `*Commands` classes have no RDi dependency. Neither have `ExportMapping`, `MemberText`,
-`IncludeResolver`, `IncludeConverter`, `SourceCheck` and `ExportPlan`, which only use IBM Toolbox
-for Java.
+The `*Commands` classes have no RDi dependency. Neither have the package `sources`, `ExportMapping`,
+`IncludeResolver`, the include converters, `SourceCheck` and `ExportPlan`, which only use IBM
+Toolbox for Java.
 
 ## IBM i
 
@@ -248,10 +249,14 @@ source members, e.g. for a change management system. The facts below were verifi
     is the member `QRPGLESRC,NAME` of the library list. Each copy book needs its own `**FREE`.
   * CL searches the directory of the including file and the `INCDIR` directories, not the current
     directory.
-* `RpgIncludeConverter`: fixed format from column 7, the columns 81 and later keep their
-  position, compile-time data after the first `**` line are not changed. `ClIncludeConverter`:
-  only `INCLUDE SRCSTMF()` on one line. The target is written in the case of the keyword, e.g.
-  `/copy inc,consts`.
+* `RpgLineConverter` (used by `RpgIncludeConverter`): fixed format from column 7, the columns 81
+  and later keep their position, compile-time data after the first `**` line are not changed.
+  `ClIncludeConverter`: only `INCLUDE SRCSTMF()` on one line. The target is written in the case
+  of the keyword, e.g. `/copy inc,consts`.
+* `MemberText.insert` writes the block like `import_member_text()` of TOBi 3.4 (verified): lines of
+  72 characters from column 7, no blank after the comment start (`      *%METADATA ... *`), after
+  line 1 of a `**FREE` source with `//`. Unlike TOBi, panel groups (`PNLGRP`) get it, too.
+  `makei cvtsrcpf` itself fails for libraries with `#` in the name (unquoted shell command).
 * A file, whose lines are too long for an existing source file, is not exported. The plan
   converts the includes again, until no further file fails, so that no include refers to a missing
   member.

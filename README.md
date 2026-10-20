@@ -197,8 +197,9 @@ from the workspace; unsaved changes are saved first, if you agree.
 
 **Members.** The stream file `name.type` becomes the member `NAME` of the source type `TYPE`, the
 reverse of `makei cvtsrcpf` of TOBi, e.g. `qrpglesrc/hello.pgm.rpgle` becomes `HELLO` of type
-`RPGLE`. Copy books `*.rpgleinc`, `*.sqlrpgleinc` and `*.clinc` get the type of their source
-(`RPGLE`, `SQLRPGLE`, `CLLE`). Only the file types that TOBi knows are exported; other files, e.g.
+`RPGLE`. Copy books have the extension of their source type followed by `inc` and get that type,
+e.g. `*.rpgleinc` (`RPGLE`), `*.sqlrpgleinc` (`SQLRPGLE`) and `*.clleinc` (`CLLE`); `*.clinc` of
+Code for IBM i becomes `CLLE`, too. Only the file types that TOBi knows are exported; other files, e.g.
 `iproj.json` or `Rules.mk`, are skipped. The same files as by the upload of local IFS projects are
 excluded, e.g. the files of `.deployignore` or `.gitignore`.
 

@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.export.ExportPlan;
-import de.tools400.ifsprojects.export.IncludeConverter;
+import de.tools400.ifsprojects.sources.IncludeConverter;
 
 /**
  * Second page of the export: the files of the project, the members, into
@@ -253,7 +253,7 @@ public class ExportPreviewWizardPage extends WizardPage {
             for (IncludeConverter.Include include : anItem.getIncludes().getIncludes()) {
                 if (include.getProblem() == null) {
                     details.append(Messages.bind(Messages.Label_Line_A_B_converted_to_C, new Object[] { Integer.toString(include.getLineNumber()),
-                        include.getName(), include.getMember().getTarget() })).append(LINE_SEPARATOR);
+                        include.getName(), include.getTarget() })).append(LINE_SEPARATOR);
                 }
             }
         }

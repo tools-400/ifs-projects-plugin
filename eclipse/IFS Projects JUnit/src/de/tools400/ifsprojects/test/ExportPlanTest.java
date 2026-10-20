@@ -26,9 +26,9 @@ import de.tools400.ifsprojects.export.ExportPlan;
 import de.tools400.ifsprojects.export.ExportPlan.Item;
 import de.tools400.ifsprojects.export.ExportPlan.ProblemType;
 import de.tools400.ifsprojects.export.ExportSettings;
-import de.tools400.ifsprojects.export.IncludeConverter;
 import de.tools400.ifsprojects.export.IncludeResolver;
 import de.tools400.ifsprojects.export.LibraryInfo;
+import de.tools400.ifsprojects.sources.IncludeConverter;
 
 public class ExportPlanTest {
 
@@ -108,7 +108,7 @@ public class ExportPlanTest {
         assertFalse(consts.isExported());
         assertTrue(consts.getProblems().isEmpty());
         assertEquals("**FREE\n/copy 'inc/consts.rpgleinc'\n", hello.getContent());
-        assertEquals(IncludeConverter.Problem.NOT_EXPORTED, hello.getProblems().get(0).getIncludeProblem());
+        assertEquals(IncludeConverter.Problem.NOT_TRANSFERRED, hello.getProblems().get(0).getIncludeProblem());
         assertEquals(Arrays.asList("QRPGLESRC"), new ArrayList<String>(plan.getNewSourceFiles().keySet()));
 
         plan.setSelected(consts, true);
@@ -133,7 +133,7 @@ public class ExportPlanTest {
         assertTrue(main.isExported());
         assertEquals("**FREE\n/copy big\n", main.getContent());
         assertProblem(main.getProblems().get(0), ProblemType.INCLUDE, 2);
-        assertEquals(IncludeConverter.Problem.NOT_EXPORTED, main.getProblems().get(0).getIncludeProblem());
+        assertEquals(IncludeConverter.Problem.NOT_TRANSFERRED, main.getProblems().get(0).getIncludeProblem());
         assertFalse(plan.getItems().get(1).isExported());
     }
 

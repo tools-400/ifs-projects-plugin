@@ -20,6 +20,9 @@ import java.util.Set;
 
 import com.ibm.as400.access.CharConverter;
 
+import de.tools400.ifsprojects.sources.IncludeConverter;
+import de.tools400.ifsprojects.sources.MemberText;
+
 /**
  * Plan of an export: the files of a project, the members, into which they are
  * exported, their converted content and the problems, that have been found
@@ -215,7 +218,7 @@ public final class ExportPlan {
 
         anItem.includes = null;
         if (settings.isConvertIncludes()) {
-            IncludeConverter converter = IncludeConverter.create(anItem.getSourceType(), resolver, aMembers);
+            ExportIncludeConverter converter = ExportIncludeConverter.create(anItem.getSourceType(), resolver, aMembers);
             if (converter != null) {
                 anItem.includes = converter.convert(anItem.getPath(), content);
                 content = anItem.includes.getContent();

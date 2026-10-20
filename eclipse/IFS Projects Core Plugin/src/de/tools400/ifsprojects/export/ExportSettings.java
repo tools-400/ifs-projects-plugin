@@ -190,7 +190,7 @@ public final class ExportSettings {
 
     /**
      * Returns <code>true</code>, if the include directives are converted, see
-     * {@link IncludeConverter}. There is no option for it yet.
+     * {@link ExportIncludeConverter}. There is no option for it yet.
      */
     public boolean isConvertIncludes() {
         return isConvertIncludes;
