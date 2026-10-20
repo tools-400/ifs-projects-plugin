@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.MemberText;
@@ -179,6 +180,9 @@ public final class MigrationPlan {
         if (converter != null) {
             anItem.includes = converter.convert(anItem.member.getKey(), content);
             content = anItem.includes.getContent();
+            for (String key : new TreeSet<String>(converter.getIncludedMembers())) {
+                anItem.includedPaths.add(aPaths.get(key));
+            }
             for (IncludeConverter.Include include : anItem.includes.getIncludes()) {
                 if (include.getProblem() != null) {
                     anItem.problems.add(new Problem(ProblemType.INCLUDE, include.getLineNumber(), include.getName(), include.getProblem()));
@@ -289,6 +293,7 @@ public final class MigrationPlan {
         private final String content;
         private final String readError;
         private final List<Problem> problems;
+        private final List<String> includedPaths;
 
         private String path;
         private String migratedContent;
@@ -299,6 +304,7 @@ public final class MigrationPlan {
             this.content = aContent;
             this.readError = aReadError;
             this.problems = new ArrayList<Problem>();
+            this.includedPaths = new ArrayList<String>();
         }
 
         public SourceMember getMember() {
@@ -327,6 +333,15 @@ public final class MigrationPlan {
          */
         public IncludeConverter.Result getIncludes() {
             return includes;
+        }
+
+        /**
+         * Returns the paths of the stream files, to which the converted include
+         * directives refer, relative to the project directory, e.g.
+         * <code>qcpysrc/consts.rpgleinc</code>.
+         */
+        public List<String> getIncludedPaths() {
+            return Collections.unmodifiableList(includedPaths);
         }
 
         public List<Problem> getProblems() {
