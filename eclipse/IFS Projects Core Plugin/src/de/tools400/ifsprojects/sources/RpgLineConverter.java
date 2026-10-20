@@ -37,6 +37,12 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
 
     private static final char COMMENT = '*';
 
+    /**
+     * Separator of the lines, that {@link #convertDirective} may return instead
+     * of one line.
+     */
+    public static final char LINE_SEPARATOR = '\n';
+
     private boolean isFree;
     private boolean isData;
 
@@ -109,16 +115,30 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
         if (Character.isWhitespace(code.charAt(FORM_TYPE_INDEX))) {
             String converted = convertDirectiveAt(aLineNumber, code, StringUtils.indexOfNonBlank(code, FORM_TYPE_INDEX), FIXED_LENGTH);
             if (converted != null) {
-                if (comment.length() == 0) {
-                    return converted;
-                }
-                return StringUtils.padRight(converted, FIXED_LENGTH) + comment;
+                return appendComment(converted, comment);
             }
         }
 
         checkCode(aLineNumber, code);
 
         return aLine;
+    }
+
+    /**
+     * Appends the comment columns of a fixed format line to the converted
+     * line. If the conversion produced several lines, the comment is appended
+     * to the last one.
+     */
+    private static String appendComment(String aConverted, String aComment) {
+
+        if (aComment.length() == 0) {
+            return aConverted;
+        }
+
+        int lastLineStart = aConverted.lastIndexOf(LINE_SEPARATOR) + 1;
+        String lastLine = aConverted.substring(lastLineStart);
+
+        return aConverted.substring(0, lastLineStart) + StringUtils.padRight(lastLine, FIXED_LENGTH) + aComment;
     }
 
     /**

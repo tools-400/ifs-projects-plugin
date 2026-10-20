@@ -9,7 +9,9 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -43,6 +45,17 @@ public class SourceTypesTest {
         assertEquals("CBLLE", SourceTypes.getSourceType("record.cblleinc"));
         assertNull(SourceTypes.getSourceType("consts.inc"));
         assertNull(SourceTypes.getSourceType("consts.mdinc"));
+    }
+
+    @Test
+    public void testIsKnown() {
+        assertTrue(SourceTypes.isKnown("RPGLE"));
+        assertTrue(SourceTypes.isKnown("sqlrpgle"));
+        assertTrue(SourceTypes.isKnown("PNLGRP"));
+        assertFalse(SourceTypes.isKnown("RPGLEINC"));
+        assertFalse(SourceTypes.isKnown("CLINC"));
+        assertFalse(SourceTypes.isKnown("RPG38"));
+        assertFalse(SourceTypes.isKnown(null));
     }
 
     @Test

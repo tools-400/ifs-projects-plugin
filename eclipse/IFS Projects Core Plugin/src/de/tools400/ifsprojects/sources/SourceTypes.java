@@ -104,6 +104,18 @@ public final class SourceTypes {
     }
 
     /**
+     * Returns <code>true</code>, if TOBi knows a source type. A copy book of
+     * a known source type has the extension of the source type followed by
+     * <code>inc</code>.
+     *
+     * @param aSourceType - source type, e.g. <code>RPGLE</code>
+     * @return <code>true</code>, if the source type is known
+     */
+    public static boolean isKnown(String aSourceType) {
+        return aSourceType != null && aSourceType.equalsIgnoreCase(SOURCE_TYPES.get(aSourceType.toLowerCase(Locale.ROOT)));
+    }
+
+    /**
      * Returns the default source file of a source type, which is the default
      * of the IBM commands that compile the source, e.g. <code>QRPGLESRC</code>
      * for <code>RPGLE</code>.

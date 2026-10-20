@@ -163,7 +163,10 @@ public abstract class IncludeConverter {
         NOT_SUPPORTED,
 
         /** The converted directive does not fit into the columns of the source. */
-        TOO_LONG;
+        TOO_LONG,
+
+        /** The directive refers to a member of another library. */
+        OTHER_LIBRARY;
     }
 
     /**

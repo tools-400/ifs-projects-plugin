@@ -15,6 +15,7 @@ public final class IfsPaths {
 
     private static final char SEPARATOR = '/';
     private static final String ROOT = "/"; //$NON-NLS-1$
+    private static final String PARENT = ".."; //$NON-NLS-1$
 
     private IfsPaths() {
         // Utility class
@@ -111,5 +112,40 @@ public final class IfsPaths {
         }
 
         return aDirectory + SEPARATOR + aRelativePath;
+    }
+
+    /**
+     * Returns the path of a file relative to the directory of another file.
+     * Both paths are relative to the same directory, e.g. a project
+     * directory.
+     *
+     * @param aFromFile - file, from whose directory the path starts, e.g.
+     *        <code>qclsrc/start.clle</code>
+     * @param aToFile - file, to which the path leads, e.g.
+     *        <code>qcpysrc/vars.clleinc</code>
+     * @return relative path, e.g. <code>../qcpysrc/vars.clleinc</code>
+     */
+    public static String getRelativePath(String aFromFile, String aToFile) {
+
+        String[] from = aFromFile.split(String.valueOf(SEPARATOR));
+        String[] to = aToFile.split(String.valueOf(SEPARATOR));
+
+        int common = 0;
+        while (common < from.length - 1 && common < to.length - 1 && from[common].equals(to[common])) {
+            common++;
+        }
+
+        StringBuilder path = new StringBuilder();
+        for (int i = common; i < from.length - 1; i++) {
+            path.append(PARENT).append(SEPARATOR);
+        }
+        for (int i = common; i < to.length; i++) {
+            if (i > common) {
+                path.append(SEPARATOR);
+            }
+            path.append(to[i]);
+        }
+
+        return path.toString();
     }
 }

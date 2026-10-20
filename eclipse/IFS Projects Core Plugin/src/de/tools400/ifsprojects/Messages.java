@@ -303,6 +303,9 @@ public class Messages extends NLS {
     public static String Label_CCSID_Cyrillic;
     public static String Label_CCSID_Turkey;
 
+    // Migration of source files
+    public static String Task_Reading_source_files_of_A;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

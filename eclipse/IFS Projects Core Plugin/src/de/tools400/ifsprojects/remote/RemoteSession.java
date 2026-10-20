@@ -144,9 +144,29 @@ public final class RemoteSession implements AutoCloseable {
      *         could not be read
      */
     public String readMember(String aLibrary, String aFile, String aMember) throws Exception {
+        return readMember(aLibrary, aFile, aMember, ClCommands.CCSID_OF_FILE);
+    }
+
+    /**
+     * Reads a member as text like {@link #readMember(String, String, String)},
+     * but with the specified CCSID of the data of the member, e.g. for a file
+     * with CCSID 65535, which <code>CPYTOSTMF</code> does not convert.
+     *
+     * @param aLibrary - library
+     * @param aFile - file
+     * @param aMember - member
+     * @param aDataCcsid - CCSID of the data or
+     *        {@link ClCommands#CCSID_OF_FILE}
+     * @return content or <code>null</code>, if the member could not be copied,
+     *         see the messages of {@link #getCommandCall()}
+     * @throws Exception if the command could not be run or the stream file
+     *         could not be read
+     */
+    public String readMember(String aLibrary, String aFile, String aMember, int aDataCcsid) throws Exception {
 
         IFSFile streamFile = newTemporaryFile(MEMBER_FILE_SUFFIX);
-        String command = ClCommands.getCopyToStreamFileCommand(ClCommands.getMemberPath(aLibrary, aFile, aMember), streamFile.getAbsolutePath());
+        String command = ClCommands.getCopyToStreamFileCommand(ClCommands.getMemberPath(aLibrary, aFile, aMember), streamFile.getAbsolutePath(),
+            aDataCcsid);
         if (!getCommandCall().run(command)) {
             return null;
         }

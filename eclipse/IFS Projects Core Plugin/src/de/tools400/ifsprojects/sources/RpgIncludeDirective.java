@@ -24,6 +24,7 @@ public final class RpgIncludeDirective {
     private static final Pattern DIRECTIVE = Pattern.compile("(/COPY|/INCLUDE)(?=\\s|$)", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
     private final String line;
+    private final int keywordStart;
     private final String keyword;
     private final String name;
     private final boolean isQuoted;
@@ -31,8 +32,10 @@ public final class RpgIncludeDirective {
     private final int nameEnd;
     private final int maxLength;
 
-    private RpgIncludeDirective(String aLine, String aKeyword, String aName, boolean anIsQuoted, int aNameStart, int aNameEnd, int aMaxLength) {
+    private RpgIncludeDirective(String aLine, int aKeywordStart, String aKeyword, String aName, boolean anIsQuoted, int aNameStart, int aNameEnd,
+        int aMaxLength) {
         this.line = aLine;
+        this.keywordStart = aKeywordStart;
         this.keyword = aKeyword;
         this.name = aName;
         this.isQuoted = anIsQuoted;
@@ -76,7 +79,7 @@ public final class RpgIncludeDirective {
             if (end < 0) {
                 return null;
             }
-            return new RpgIncludeDirective(aLine, keyword, aLine.substring(nameStart + 1, end), true, nameStart, end + 1, aMaxLength);
+            return new RpgIncludeDirective(aLine, aStart, keyword, aLine.substring(nameStart + 1, end), true, nameStart, end + 1, aMaxLength);
         }
 
         int nameEnd = nameStart;
@@ -84,7 +87,22 @@ public final class RpgIncludeDirective {
             nameEnd++;
         }
 
-        return new RpgIncludeDirective(aLine, keyword, aLine.substring(nameStart, nameEnd), false, nameStart, nameEnd, aMaxLength);
+        return new RpgIncludeDirective(aLine, aStart, keyword, aLine.substring(nameStart, nameEnd), false, nameStart, nameEnd, aMaxLength);
+    }
+
+    /**
+     * Returns the line, without the comment columns of fixed format sources.
+     */
+    public String getLine() {
+        return line;
+    }
+
+    /**
+     * Returns the characters in front of the keyword, e.g. the first 6
+     * columns of a fixed format source.
+     */
+    public String getIndentation() {
+        return line.substring(0, keywordStart);
     }
 
     /**
@@ -110,7 +128,8 @@ public final class RpgIncludeDirective {
     }
 
     /**
-     * Returns the line with another name. The rest of the line is kept.
+     * Returns the line with another name. The rest of the line is kept; only
+     * if the line becomes too long, its trailing blanks are removed.
      *
      * @param aName - new name including the quotes, if it shall be quoted
      * @return line or <code>null</code>, if it is longer than the columns of
@@ -120,7 +139,10 @@ public final class RpgIncludeDirective {
 
         String converted = line.substring(0, nameStart) + aName + line.substring(nameEnd);
         if (converted.length() > maxLength) {
-            return null;
+            converted = StringUtils.trimRight(converted);
+            if (converted.length() > maxLength) {
+                return null;
+            }
         }
 
         return converted;

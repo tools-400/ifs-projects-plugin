@@ -23,6 +23,9 @@ public final class ClCommands {
     private static final String MEMBER_SUFFIX = ".MBR"; //$NON-NLS-1$
     private static final char SEPARATOR = '/';
 
+    /** CCSID of the data of a member, that is the CCSID of its file. */
+    public static final int CCSID_OF_FILE = 0;
+
     private ClCommands() {
         // Utility class
     }
@@ -105,6 +108,27 @@ public final class ClCommands {
      * @return command
      */
     public static String getCopyToStreamFileCommand(String aMemberPath, String aStreamFile) {
-        return "CPYTOSTMF FROMMBR(" + quote(aMemberPath) + ") TOSTMF(" + quote(aStreamFile) + ") STMFOPT(*REPLACE) STMFCCSID(1208)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        return getCopyToStreamFileCommand(aMemberPath, aStreamFile, CCSID_OF_FILE);
+    }
+
+    /**
+     * Returns the command that copies a member to a stream file with CCSID
+     * 1208 (UTF-8), with the specified CCSID of the data of the member. It is
+     * needed for files with CCSID 65535, which <code>CPYTOSTMF</code> does not
+     * convert otherwise (CPDA08C, verified on the IBM i).
+     *
+     * @param aMemberPath - path of the member, see {@link #getMemberPath}
+     * @param aStreamFile - absolute path of the stream file
+     * @param aDataCcsid - CCSID of the data or {@link #CCSID_OF_FILE}
+     * @return command
+     */
+    public static String getCopyToStreamFileCommand(String aMemberPath, String aStreamFile, int aDataCcsid) {
+
+        String command = "CPYTOSTMF FROMMBR(" + quote(aMemberPath) + ") TOSTMF(" + quote(aStreamFile) + ") STMFOPT(*REPLACE) STMFCCSID(1208)"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if (aDataCcsid == CCSID_OF_FILE) {
+            return command;
+        }
+
+        return command + " DBFCCSID(" + aDataCcsid + ")"; //$NON-NLS-1$ //$NON-NLS-2$
     }
 }

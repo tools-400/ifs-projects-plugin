@@ -97,6 +97,22 @@ public final class StringUtils {
     }
 
     /**
+     * Removes the trailing whitespace of a string.
+     *
+     * @param aValue - string
+     * @return string without trailing whitespace
+     */
+    public static String trimRight(String aValue) {
+
+        int end = aValue.length();
+        while (end > 0 && Character.isWhitespace(aValue.charAt(end - 1))) {
+            end--;
+        }
+
+        return aValue.substring(0, end);
+    }
+
+    /**
      * Appends blanks to a string up to a length.
      *
      * @param aValue - string

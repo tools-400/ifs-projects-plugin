@@ -83,7 +83,7 @@ public abstract class ClLineConverter implements IncludeConverter.LineConverter 
      * @param aLine - line
      * @return line without comments
      */
-    protected static String removeComments(String aLine) {
+    public static String removeComments(String aLine) {
         return COMMENT.matcher(aLine).replaceAll(EMPTY);
     }
 

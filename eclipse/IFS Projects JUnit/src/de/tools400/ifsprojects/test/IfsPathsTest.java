@@ -61,4 +61,13 @@ public class IfsPathsTest {
         assertEquals("/home/jsmith/src/iproj.json", IfsPaths.append("/home/jsmith/src/", "iproj.json"));
         assertEquals("/iproj.json", IfsPaths.append("/", "iproj.json"));
     }
+
+    @Test
+    public void testGetRelativePath() {
+        assertEquals("vars.clleinc", IfsPaths.getRelativePath("qclsrc/start.clle", "qclsrc/vars.clleinc"));
+        assertEquals("../qcpysrc/vars.clleinc", IfsPaths.getRelativePath("qclsrc/start.clle", "qcpysrc/vars.clleinc"));
+        assertEquals("inc/vars.clleinc", IfsPaths.getRelativePath("start.clle", "inc/vars.clleinc"));
+        assertEquals("../../vars.clleinc", IfsPaths.getRelativePath("src/cl/start.clle", "vars.clleinc"));
+        assertEquals("../inc/vars.clleinc", IfsPaths.getRelativePath("src/cl/start.clle", "src/inc/vars.clleinc"));
+    }
 }
