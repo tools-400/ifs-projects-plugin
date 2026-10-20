@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.build.BuildMode;
 import de.tools400.ifsprojects.preferences.Preferences;
@@ -66,10 +67,16 @@ public class IfsProjectsPreferencePage extends FieldEditorPreferencePage impleme
     }
 
     @Override
+    public void setTitle(String title) {
+        super.setTitle(title + " - " + IfsProjectsPlugin.getDefault().getVersion());
+    }
+
+    @Override
     protected void createFieldEditors() {
 
-        buildMode = new RadioGroupFieldEditor(Preferences.BUILD_MODE, Messages.Label_Run_build_and_compile_commands, 1, new String[][] {
-            { Messages.Label_Build_mode_terminal, BuildMode.TERMINAL.getValue() }, { Messages.Label_Build_mode_rse, BuildMode.RSE.getValue() } },
+        buildMode = new RadioGroupFieldEditor(
+            Preferences.BUILD_MODE, Messages.Label_Run_build_and_compile_commands, 1, new String[][] {
+                { Messages.Label_Build_mode_terminal, BuildMode.TERMINAL.getValue() }, { Messages.Label_Build_mode_rse, BuildMode.RSE.getValue() } },
             getFieldEditorParent(), true);
         ToolTips.set(buildMode, getFieldEditorParent(), Messages.Tooltip_Build_mode, Messages.Tooltip_Build_mode_terminal,
             Messages.Tooltip_Build_mode_rse);
