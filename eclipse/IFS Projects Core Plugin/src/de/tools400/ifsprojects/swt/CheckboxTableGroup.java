@@ -95,6 +95,14 @@ public class CheckboxTableGroup<T> {
     }
 
     /**
+     * Returns the viewer, e.g. to set the checked or grayed state of single
+     * elements or to listen to the selection.
+     */
+    public CheckboxTableViewer getViewer() {
+        return viewer;
+    }
+
+    /**
      * Returns the table, e.g. to set its size hints.
      */
     public Table getTable() {

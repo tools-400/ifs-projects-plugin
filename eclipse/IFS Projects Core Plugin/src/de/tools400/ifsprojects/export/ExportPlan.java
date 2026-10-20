@@ -10,6 +10,7 @@ package de.tools400.ifsprojects.export;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -142,6 +143,19 @@ public final class ExportPlan {
      */
     public void setSelected(Item anItem, boolean anIsSelected) {
         anItem.isSelected = anIsSelected;
+        compute();
+    }
+
+    /**
+     * Selects the specified files, deselects the others and computes the plan
+     * again, once for all files.
+     *
+     * @param aSelectedItems - files to export
+     */
+    public void setSelectedItems(Collection<Item> aSelectedItems) {
+        for (Item item : items) {
+            item.isSelected = aSelectedItems.contains(item);
+        }
         compute();
     }
 

@@ -252,12 +252,7 @@ public class Messages extends NLS {
     public static String Label_Status_error;
     public static String Label_Status_not_selected;
     public static String Label_A_and_B_more;
-    public static String Label_A_of_B_files_exported_C_replaced;
-    public static String Label_A_includes_converted;
-    public static String Label_Library_A_is_created;
-    public static String Label_New_source_files_A_B;
     public static String Label_Source_file_A_record_length_B;
-    public static String Label_A_other_files_not_exported;
     public static String Label_Line_A_B_converted_to_C;
     public static String Label_Member_text_A;
     public static String Error_No_file_exported;
@@ -337,6 +332,20 @@ public class Messages extends NLS {
     public static String Info_Library_A_has_no_source_files;
     public static String Error_Directory_contains_make_characters;
     public static String Description_Migration_project_page;
+
+    // Summary of the export preview
+    public static String Label_Group_Summary;
+    public static String Label_Summary_Files;
+    public static String Label_Summary_A_of_B_exported_C_replace;
+    public static String Label_Summary_Not_exported;
+    public static String Label_Summary_A_without_source_type;
+    public static String Label_Summary_Includes;
+    public static String Label_Summary_A_converted;
+    public static String Label_Summary_Library;
+    public static String Label_Summary_A_is_created;
+    public static String Label_Summary_Source_files;
+    public static String Label_Summary_A_created_ccsid_B_record_length_C;
+    public static String Label_Summary_A_created_ccsid_B;
 
     static {
         // initialize resource bundle

@@ -8,13 +8,12 @@
 
 package de.tools400.ifsprojects.export.wizards;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
-import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -26,14 +25,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.export.ExportPlan;
 import de.tools400.ifsprojects.sources.IncludeConverter;
+import de.tools400.ifsprojects.swt.CheckboxTableGroup;
+import de.tools400.ifsprojects.swt.SummaryGroup;
 import de.tools400.ifsprojects.swt.TableToolTips;
 
 /**
@@ -58,12 +57,14 @@ public class ExportPreviewWizardPage extends WizardPage {
     private static final int TABLE_WIDTH = 700;
     private static final int TABLE_HEIGHT = 250;
     private static final int DETAILS_HEIGHT = 60;
-    private static final int SUMMARY_WIDTH = 600;
 
     private ExportPlan plan;
 
-    private Label summaryLabel;
+    private SummaryGroup summaryGroup;
+    private CheckboxTableGroup<ExportPlan.Item> filesGroup;
     private CheckboxTableViewer viewer;
+    /** True, while the check states are set from the plan. */
+    private boolean isRefreshing;
     private Text detailsText;
 
     public ExportPreviewWizardPage() {
@@ -78,38 +79,25 @@ public class ExportPreviewWizardPage extends WizardPage {
         Composite main = new Composite(aParent, SWT.NONE);
         main.setLayout(new GridLayout(1, false));
 
-        summaryLabel = new Label(main, SWT.WRAP);
-        GridData summaryData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        summaryData.widthHint = SUMMARY_WIDTH;
-        summaryLabel.setLayoutData(summaryData);
-
-        Table table = new Table(main, SWT.CHECK | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
-        GridData tableData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        tableData.widthHint = TABLE_WIDTH;
-        tableData.heightHint = TABLE_HEIGHT;
-        table.setLayoutData(tableData);
+        summaryGroup = new SummaryGroup(main, Messages.Label_Group_Summary);
 
         String[] titles = { Messages.Label_Column_File, Messages.Label_Column_Member, Messages.Label_Column_Type, Messages.Label_Column_Status,
             Messages.Label_Column_Problem };
-        for (int i = 0; i < titles.length; i++) {
-            TableColumn column = new TableColumn(table, SWT.LEFT);
-            column.setText(titles[i]);
-            column.setWidth(COLUMN_WIDTHS[i]);
-        }
+        filesGroup = new CheckboxTableGroup<ExportPlan.Item>(main, titles, COLUMN_WIDTHS, new ItemLabelProvider());
+        GridData tableData = (GridData)filesGroup.getTable().getLayoutData();
+        tableData.widthHint = TABLE_WIDTH;
+        tableData.heightHint = TABLE_HEIGHT;
+        Table table = filesGroup.getTable();
+        viewer = filesGroup.getViewer();
 
-        viewer = new CheckboxTableViewer(table);
-        viewer.setContentProvider(ArrayContentProvider.getInstance());
-        viewer.setLabelProvider(new ItemLabelProvider());
-
-        viewer.addCheckStateListener(new ICheckStateListener() {
-            public void checkStateChanged(CheckStateChangedEvent anEvent) {
-                plan.setSelected((ExportPlan.Item)anEvent.getElement(), anEvent.getChecked());
-                refresh();
+        filesGroup.addCheckListener(new Runnable() {
+            public void run() {
+                if (!isRefreshing) {
+                    plan.setSelectedItems(filesGroup.getCheckedElements());
+                    refresh();
+                }
             }
         });
-
         // The tool tip shows the full texts of the problems, that the column
         // shows only partly.
         TableToolTips.install(table, new TableToolTips.Provider() {
@@ -132,8 +120,7 @@ public class ExportPreviewWizardPage extends WizardPage {
         setControl(main);
 
         if (plan != null) {
-            viewer.setInput(plan.getItems());
-            refresh();
+            showPlan();
         }
     }
 
@@ -147,8 +134,7 @@ public class ExportPreviewWizardPage extends WizardPage {
         this.plan = aPlan;
 
         if (viewer != null) {
-            viewer.setInput(aPlan.getItems());
-            refresh();
+            showPlan();
             showDetails(null);
         }
     }
@@ -160,6 +146,16 @@ public class ExportPreviewWizardPage extends WizardPage {
         return plan;
     }
 
+    private void showPlan() {
+        isRefreshing = true;
+        try {
+            filesGroup.setInput(plan.getItems());
+        } finally {
+            isRefreshing = false;
+        }
+        refresh();
+    }
+
     private void refresh() {
 
         viewer.refresh();
@@ -168,8 +164,7 @@ public class ExportPreviewWizardPage extends WizardPage {
             viewer.setGrayed(item, item.hasErrors());
         }
 
-        summaryLabel.setText(getSummary());
-        summaryLabel.getParent().layout();
+        showSummary();
 
         boolean isEmpty = plan.getExportedItems().isEmpty();
         setErrorMessage(isEmpty ? Messages.Error_No_file_exported : null);
@@ -179,7 +174,12 @@ public class ExportPreviewWizardPage extends WizardPage {
         showDetails((ExportPlan.Item)selection.getFirstElement());
     }
 
-    private String getSummary() {
+    /**
+     * Shows the summary: files, include directives and, if any, the library
+     * and the source files, that are created, and the files, that have no
+     * known source type.
+     */
+    private void showSummary() {
 
         List<ExportPlan.Item> exportedItems = plan.getExportedItems();
         int replaced = 0;
@@ -197,35 +197,52 @@ public class ExportPreviewWizardPage extends WizardPage {
             }
         }
 
-        StringBuilder summary = new StringBuilder();
-        summary.append(Messages.bind(Messages.Label_A_of_B_files_exported_C_replaced, new Object[] { Integer.toString(exportedItems.size()),
-            Integer.toString(plan.getItems().size()), Integer.toString(replaced) }));
-        summary.append(' ').append(Messages.bind(Messages.Label_A_includes_converted, Integer.toString(includes)));
-
-        if (plan.isCreateLibrary()) {
-            summary.append(LINE_SEPARATOR).append(Messages.bind(Messages.Label_Library_A_is_created, plan.getSettings().getLibrary()));
-        }
-
-        Map<String, Integer> newSourceFiles = plan.getNewSourceFiles();
-        if (!newSourceFiles.isEmpty()) {
-            StringBuilder files = new StringBuilder();
-            for (Map.Entry<String, Integer> entry : newSourceFiles.entrySet()) {
-                if (files.length() > 0) {
-                    files.append(LIST_SEPARATOR);
-                }
-                files.append(Messages.bind(Messages.Label_Source_file_A_record_length_B, entry.getKey(), entry.getValue().toString()));
-            }
-            summary.append(LINE_SEPARATOR).append(Messages.bind(Messages.Label_New_source_files_A_B,
-                Integer.toString(plan.getSettings().getCcsid()), files.toString()));
-        }
-
+        summaryGroup.clear();
+        summaryGroup.addRow(Messages.Label_Summary_Files, Messages.bind(Messages.Label_Summary_A_of_B_exported_C_replace, new Object[] { Integer
+            .toString(exportedItems.size()), Integer.toString(plan.getItems().size()), Integer.toString(replaced) }));
         if (plan.getOtherFileCount() > 0) {
-            summary.append(LINE_SEPARATOR).append(Messages.bind(Messages.Label_A_other_files_not_exported, Integer.toString(plan.getOtherFileCount())));
+            summaryGroup.addRow(Messages.Label_Summary_Not_exported, Messages.bind(Messages.Label_Summary_A_without_source_type, Integer
+                .toString(plan.getOtherFileCount())));
         }
-
-        return summary.toString();
+        summaryGroup.addRow(Messages.Label_Summary_Includes, Messages.bind(Messages.Label_Summary_A_converted, Integer.toString(includes)));
+        if (plan.isCreateLibrary()) {
+            summaryGroup.addRow(Messages.Label_Summary_Library, Messages.bind(Messages.Label_Summary_A_is_created, plan.getSettings().getLibrary()));
+        }
+        if (!plan.getNewSourceFiles().isEmpty()) {
+            summaryGroup.addRow(Messages.Label_Summary_Source_files, getNewSourceFilesText(plan.getNewSourceFiles()));
+        }
+        summaryGroup.update();
     }
 
+    /**
+     * Returns the text of the new source files, e.g.
+     * <code>QRPGLESRC, INC are created (CCSID 1141, record length 112)</code>.
+     * If the record lengths differ, each source file shows its own.
+     */
+    private String getNewSourceFilesText(Map<String, Integer> aNewSourceFiles) {
+
+        Set<Integer> recordLengths = new HashSet<Integer>(aNewSourceFiles.values());
+        String ccsid = Integer.toString(plan.getSettings().getCcsid());
+
+        StringBuilder files = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : aNewSourceFiles.entrySet()) {
+            if (files.length() > 0) {
+                files.append(LIST_SEPARATOR);
+            }
+            if (recordLengths.size() == 1) {
+                files.append(entry.getKey());
+            } else {
+                files.append(Messages.bind(Messages.Label_Source_file_A_record_length_B, entry.getKey(), entry.getValue().toString()));
+            }
+        }
+
+        if (recordLengths.size() == 1) {
+            return Messages.bind(Messages.Label_Summary_A_created_ccsid_B_record_length_C, new Object[] { files.toString(), ccsid, recordLengths
+                .iterator().next().toString() });
+        }
+
+        return Messages.bind(Messages.Label_Summary_A_created_ccsid_B, files.toString(), ccsid);
+    }
     /**
      * Shows the problems and the converted include directives of a file.
      */

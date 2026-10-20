@@ -118,6 +118,34 @@ public class ExportPlanTest {
     }
 
     @Test
+    public void testPlan_setSelectedItems() {
+
+        Map<String, String> files = new LinkedHashMap<String, String>();
+        files.put("qrpglesrc/hello.rpgle", "**FREE\n/copy 'inc/consts.rpgleinc'\n");
+        files.put("inc/consts.rpgleinc", "**FREE\n");
+
+        ExportPlan plan = createPlan(files, new LibraryInfo(true), new ExportSettings("JSMITH#CL", 1141, 112));
+        Item hello = plan.getItems().get(0);
+        Item consts = plan.getItems().get(1);
+
+        plan.setSelectedItems(Arrays.asList(hello));
+
+        assertTrue(hello.isSelected());
+        assertFalse(consts.isSelected());
+        assertEquals(1, plan.getExportedItems().size());
+        assertEquals(IncludeConverter.Problem.NOT_TRANSFERRED, hello.getProblems().get(0).getIncludeProblem());
+
+        plan.setSelectedItems(plan.getItems());
+
+        assertEquals(2, plan.getExportedItems().size());
+        assertEquals("**FREE\n/copy inc,consts\n", hello.getContent());
+
+        plan.setSelectedItems(new ArrayList<Item>());
+
+        assertTrue(plan.getExportedItems().isEmpty());
+    }
+
+    @Test
     public void testPlan_includeOfFailedFile() {
 
         Map<String, String> files = new LinkedHashMap<String, String>();
