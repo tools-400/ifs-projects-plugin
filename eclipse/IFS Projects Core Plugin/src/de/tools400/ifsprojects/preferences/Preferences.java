@@ -51,8 +51,8 @@ public final class Preferences {
     private static final String DEFAULT_ENCODING = TerminalRequest.DEFAULT_ENCODING;
     private static final boolean DEFAULT_LOWERCASE_USER_ID = true;
     private static final boolean DEFAULT_USE_SAVED_PASSWORD = false;
-    private static final String DEFAULT_DEFAULT_BUILD_COMMAND = BuildTool.GMAKE.getBuildCommand();
-    private static final String DEFAULT_DEFAULT_COMPILE_COMMAND = BuildTool.GMAKE.getCompileCommand();
+    private static final String DEFAULT_DEFAULT_BUILD_COMMAND = BuildTool.TOBI.getBuildCommand();
+    private static final String DEFAULT_DEFAULT_COMPILE_COMMAND = BuildTool.TOBI.getCompileCommand();
     private static final boolean DEFAULT_REUSE_BUILD_TERMINAL = true;
     private static final String DEFAULT_BUILD_MODE = BuildMode.TERMINAL.getValue();
     private static final String DEFAULT_DEFAULT_ENVIRONMENT_VARIABLES = ""; //$NON-NLS-1$
@@ -138,8 +138,8 @@ public final class Preferences {
     }
 
     /**
-     * Returns, where the build and compile commands of the IFS projects run:
-     * in the SSH terminal or in a job of the RSE connection.
+     * Returns, where the build and compile commands of the IFS projects run: in
+     * the SSH terminal or in a job of the RSE connection.
      */
     public BuildMode getBuildMode() {
         return BuildMode.fromValue(preferenceStore.getString(BUILD_MODE));
@@ -150,8 +150,7 @@ public final class Preferences {
      * value of <code>&amp;ENVCMD</code> in <code>setIBMiEnvCmd</code> of
      * <code>iproj.json</code>. The variables of an IFS project override them.
      *
-     * @return variables in the order of the definition, never
-     *         <code>null</code>
+     * @return variables in the order of the definition, never <code>null</code>
      */
     public Map<String, String> getDefaultEnvironmentVariables() {
 
@@ -182,8 +181,8 @@ public final class Preferences {
     }
 
     /**
-     * Returns the minimum record length of the source files, that the export
-     * to a library creates, unless the project has been exported before.
+     * Returns the minimum record length of the source files, that the export to
+     * a library creates, unless the project has been exported before.
      */
     public int getExportRecordLength() {
         return getInt(EXPORT_RECORD_LENGTH, ExportSettings.MIN_RECORD_LENGTH, ExportSettings.MAX_RECORD_LENGTH, DEFAULT_EXPORT_RECORD_LENGTH);
@@ -198,8 +197,8 @@ public final class Preferences {
     }
 
     /**
-     * Returns the trimmed value of a string preference or the default value,
-     * if the preference is empty.
+     * Returns the trimmed value of a string preference or the default value, if
+     * the preference is empty.
      */
     private String getString(String aKey, String aDefault) {
         String value = StringUtils.trimToNull(preferenceStore.getString(aKey));
