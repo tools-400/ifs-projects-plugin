@@ -41,20 +41,22 @@ Packages below `de.tools400.ifsprojects`:
 | `ibmi` | Syntax of the IBM i, without dependencies on the other packages except `utils`: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, names and export of variables, placeholders, `QP2SHELL2`), `IfsPaths`. |
 | `rse` | RSE helpers: `RseSelections` (host and directory of the selection), `RseConnections` (lookup of a connection), `RseTerminalRequests` (terminal request of a connection, may prompt for the user ID), `IfsFilterStrings`, `RemoteEditors`. |
 | `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `errorlist.ErrorList`. |
-| `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables`, `BuildTool`. `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. `IfsProjectCreator`: directory, `iproj.json` and filter of a new IFS project. |
+| `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables`, `BuildTool` (also `hasMakeCharacters`: `$` and `#`). `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. `IfsProjectCreator`: directory, `iproj.json` and filter of a new IFS project. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
 | `sources` | Members and stream files, independent of the direction of a conversion: `SourceTypes` (extensions of TOBi, copy books `<type>inc`, default source files), `MemberText` (comment block `%METADATA`/`%TEXT` of `makei cvtsrcpf --text`: read and insert), `IncludeConverter` (converts a source line by line) with `RpgLineConverter`/`RpgIncludeDirective` (columns, `**FREE`, compile-time data) and `ClLineConverter` (labels, comments, continuation lines). |
 | `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
+| `migration` | Migration of source members into a new IFS project: `SourceFileCatalog` (SQL catalog) with `SourceFile` and `SourceMember`, `MigrationMapping` (member to stream file), `MemberIncludeConverter` (`RpgMemberIncludeConverter`, `ClMemberIncludeConverter`), `IncludeStyle`, `MigrationSettings`, `MigrationPlan` (preview) computed by `MigrationAnalyzer`, `TobiBuildFiles` (`.ibmi.json`, `Rules.mk`), `MigrationFiles` (all files to write) and `MigrationJob`. |
+| `migration.wizards` | `MigrateToIfsProjectWizard` with `SourceFilesWizardPage`, `MigrationPreviewWizardPage` and `project.wizards.NewIfsProjectWizardPage`. Started by `handlers.MigrateSourceFilesHandler` on a library or on source files. |
 | `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. |
-| `dialogs` | `SelectIfsDirectoryDialog`, `ToolTipInputDialog`. `OverwriteQuery` (Yes, Yes To All, No, No To All, Cancel) with `OverwriteQueryDialog` and `RememberingOverwriteQuery`, which remembers the answers '... To All' for a job. |
-| `swt` | `ToolTips` and `CcsidCombo` (CCSID of new source files, used by the preferences and the export). |
-| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`, `containsLineBreak`, `indexOfNonBlank`, `padRight`. |
+| `dialogs` | `SelectIfsDirectoryDialog`, `ToolTipInputDialog`. `OverwriteQuery` (Yes, Yes To All, No, No To All, Cancel) with `OverwriteQueryDialog` and `RememberingOverwriteQuery`, which remembers the answers '... To All' for a job. `JobSummary`: message and errors at the end of the export and of the migration. |
+| `swt` | `ToolTips` and `CcsidCombo` (CCSID of new source files, used by the preferences, the export and the migration). `CheckboxTableGroup`: table with checkboxes and the buttons *Select All* and *Deselect All*. `TableToolTips`: tool tip per row as JFace tool tip, because the tool tip text of a table does not show on Windows. |
+| `utils` | `PlatformUtils`: shell of the active workbench window, the parent of the dialogs of jobs. `StringUtils`: `trimToNull`, `isBlank`, `nullToEmpty`, `containsLineBreak`, `indexOfNonBlank`, `trimRight`, `padRight`. |
 
 The `*Commands` classes have no RDi dependency. Neither have the package `sources`, `ExportMapping`,
-`IncludeResolver`, the include converters, `SourceCheck` and `ExportPlan`, which only use IBM
-Toolbox for Java.
+`IncludeResolver`, the include converters, `SourceCheck`, `ExportPlan`, `MigrationPlan`,
+`TobiBuildFiles` and `MigrationFiles`, which only use IBM Toolbox for Java.
 
 ## IBM i
 
@@ -270,3 +272,43 @@ source members, e.g. for a change management system. The facts below were verifi
   (`before=group.team` in the Remote Systems view, `before=group.properties` in the other views)
   behind a separator. JFace merges the separator with the one of the next group, if none of the
   commands is visible.
+
+## Migration to an IFS project
+
+*Migrate to IFS Project...* on a library or on source files copies the members into a new IFS
+project, the reverse of the export. The facts below were verified on the IBM i (7.5, TOBi 3.4).
+
+* The handler reads the source files with `SourceFileCatalog` (`SYSTABLES` `FILE_TYPE` `S` joined
+  with `SYSCOLUMNS` of `SRCDTA`, member count from `SYSPARTITIONSTAT`) and the home directory for
+  the proposed project directory. Leaving the first page reads the members (`SYSPARTITIONSTAT`:
+  name, source type, text) and their contents with `RemoteSession.readMember()` and computes the
+  `MigrationPlan` in memory. *Finish* creates the project with `IfsProjectCreator` and starts the
+  `MigrationJob`, which writes the files of `MigrationFiles` with `RemoteJobs.writeText()` (CCSID
+  1208) and asks before replacing a file.
+* Why not `makei cvtsrcpf`: it fails for libraries with `#` in the name, renames existing files to
+  `name_1.type` instead of asking, ignores errors and converts no includes. The migration writes the
+  same format: `qxxxsrc/name.type` in lowercase, the `%METADATA` block and `.ibmi.json` with
+  `tgtCcsid`.
+* `CPYTOSTMF` of a member of a source file with CCSID 65535 fails with CPDA08C; with
+  `DBFCCSID(1141)` the characters are converted correctly. The CCSID is an option of the first page.
+* Copy books: the plan converts the includes once with provisional paths to find the members, that
+  are included (`MemberIncludeConverter.getIncludedMembers()`), and maps them to `typeinc`.
+* RPG: `/copy 'qcpysrc/consts.rpgleinc'` relative to the current directory works in free and fixed
+  format (directive from column 7) and nested. `CRTBNDRPG` of a UTF-8 source needs
+  `TGTCCSID(*JOB)`; otherwise it reports `RNS9339 Unable to open file`. The conditional block with
+  `/if defined(MBR_BUILD)` compiles without `DEFINE`. `CRTSQLRPGI` accepts
+  `exec sql include 'path'` with `CVTCCSID(*JOB)`, but the migration does not convert
+  `EXEC SQL INCLUDE` of members yet.
+* CL: `INCLUDE SRCSTMF()` finds a relative path in the directory of the including file (also
+  `../dir/file`), not in the current directory. `INCLUDE SRCMBR()` without `SRCFILE` uses the source
+  file of the including member.
+* TOBi compiles CL from a copy in `QTEMP/QSOURCE` (`crtfrmstmf`) with `INCDIR(*NONE)`, so that a
+  relative `INCLUDE SRCSTMF()` fails with CPF9D8D. The draft of `Rules.mk` sets
+  `private INCDIR := '<directory>'` for CL targets.
+* TOBi passes prerequisites with unknown extensions, e.g. `rpgleinc` and `clleinc`, unchanged to
+  make, which runs in the project directory. Without the directory (`consts.rpgleinc` instead of
+  `qcpysrc/consts.rpgleinc`), make reports "No rule to make target", the target is not built and
+  `makei` still reports success. The draft therefore lists copy books with their path.
+* `CRTPNLGRP` accepts the `.*` comment block before `:PNLGRP.`.
+* The wizard reuses `NewIfsProjectWizardPage`, which shows the error of a proposed directory at
+  once and rejects directories with `$` or `#`.

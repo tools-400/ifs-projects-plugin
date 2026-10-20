@@ -14,6 +14,8 @@ The plug-in adds to RDi:
 * **SSH terminal**: a command line (shell) of the IBM i in a view of RDi.
 * **Export to a library**: the source files of a project are copied into source members, e.g. for
   a change management system.
+* **Migration to an IFS project**: the members of source files are copied into a new IFS project,
+  e.g. to move a utility from source members to Git and TOBi.
 
 Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`).
 The compile errors are shown in the *Error List* view of RDi.
@@ -106,7 +108,7 @@ compare their files as usual.
 
 | Action (context menu) | Function |
 |---|---|
-| *New > IFS Project...* (on *IFS Projects* or on an IFS directory) | Creates the project. Optionally creates the directory and a new `iproj.json`. An existing `iproj.json` is not changed. |
+| *New > IFS Project...* (on *IFS Projects* or on an IFS directory) | Creates the project. Optionally creates the directory and a new `iproj.json`. An existing `iproj.json` is not changed. The directory must not contain `$` or `#`, because make interprets them. |
 | *Build* (project) | Builds the project with `buildCommand` of `iproj.json` or with the default build command of the preferences. |
 | *Build* (file) | Compiles the file with `compileCommand` of `iproj.json` or with the default compile command. |
 | *Check Syntax* (RPGLE, SQLRPGLE file) | Checks the source for errors without creating an object, see [Syntax check](#syntax-check). |
@@ -251,11 +253,78 @@ you are asked: *Yes*, *Yes To All*, *No*, *No To All* or *Cancel*. The commands 
 *Commands Log* view, a summary at the end. The next export of the project starts with the same
 settings.
 
+## Migration to an IFS project
+
+*Migrate to IFS Project...* in the context menu of a library or of source files in the *Remote
+Systems* view copies the members into a new IFS project, the reverse of the export. The members are
+not changed.
+
+**Source files.** On a library, the first page lists all its source files; on source files, only
+the selected ones. All are selected; *Select All* and *Deselect All* are to the right of the list.
+Options:
+
+* *Member text as comment %TEXT*: inserts the member text at the beginning of the file, like
+  `makei cvtsrcpf --text`. TOBi uses it as object text, the export reads it back.
+* *Keep the RPG directives of the members for the member build*: see include directives below.
+* *CCSID of source files with CCSID 65535*: the members of such files are read with this CCSID,
+  because `CPYTOSTMF` does not convert them otherwise.
+
+**Stream files.** The member `NAME` of type `TYPE` in the source file `QXXXSRC` becomes
+`qxxxsrc/name.type`, like `makei cvtsrcpf --tolower`, e.g. `QRPGLESRC(HELLO)` becomes
+`qrpglesrc/hello.rpgle`. A copy book, i.e. a member included by other members, gets the extension
+`typeinc`, which TOBi recommends, e.g. `qcpysrc/consts.rpgleinc`. The files are written in UTF-8
+(CCSID 1208).
+
+**Include directives** are converted to the stream files:
+
+* RPG: `/copy QCPYSRC,CONSTS`, `/copy MYLIB/QCPYSRC,CONSTS` and `/copy CONSTS` (source file
+  `QRPGLESRC`) become `/copy 'qcpysrc/consts.rpgleinc'`, relative to the project directory, in
+  which TOBi compiles. With the option to keep the member directives, the member build still works:
+
+  ```
+  /if defined(MBR_BUILD)
+  /copy QCPYSRC,CONSTS
+  /else
+  /copy 'qcpysrc/consts.rpgleinc'
+  /endif
+  ```
+
+  The build from the IFS needs no condition; the member build sets `DEFINE(MBR_BUILD)`, e.g. in the
+  `STRPREPRC` header.
+* CL: `INCLUDE SRCMBR(VARS) SRCFILE(QCPYSRC)` becomes `INCLUDE SRCSTMF('../qcpysrc/vars.clleinc')`,
+  relative to the directory of the source, where CL searches it. Without `SRCFILE`, the member is in
+  the source file of the including member.
+* Not converted are members of other libraries, of source files that are not migrated, members that
+  are not found, `EXEC SQL INCLUDE` of members and CL `INCLUDE` commands on several lines. The
+  preview shows them.
+
+**TOBi files.** If the build tool of the new project is TOBi, the migration also writes:
+
+* `.ibmi.json` in each directory with the CCSID of the source file (`tgtCcsid`).
+* `Rules.mk` in the project directory with the directories (`SUBDIRS`).
+* A draft of `Rules.mk` in each directory with one rule per member: a program, or a module, if the
+  `STRPREPRC` header uses `CRTRPGMOD`, `CRTCLMOD` or `OBJTYPE(*MODULE)`; `.FILE` for display,
+  printer and database files; `.CMD` and `.PNLGRP`. Copy books are prerequisites with their path in
+  the project, CL rules set the directory of the source as `INCDIR`. Check the draft and set the
+  parameters of the installer or of the `STRPREPRC` headers, because the defaults of TOBi differ
+  from the CL commands, e.g. `DBGVIEW` and `ACTGRP`.
+
+**Preview.** The second page lists the members with source type, stream file, status (*New*,
+*Error*) and problems. Members without source type are not migrated. Warnings, e.g. a source type
+unknown to TOBi, `$` or `#` in the member name or include directives that are not converted, do not
+prevent the migration. The tool tip of a row shows all problems; select a member to see its details.
+
+**Project.** The third page is the page of *New > IFS Project...*. It proposes the directory
+`<home>/<library>`; a directory with `$` or `#` is not accepted. *Finish* creates the project and
+writes the files in the background. Before an existing file is replaced, you are asked: *Yes*, *Yes
+To All*, *No*, *No To All* or *Cancel*. A summary is shown at the end.
+
 ## Files on the IBM i
 
 The plug-in stores its files in the folder `.ifsprojects` of your home directory:
 
-* `tmp`: temporary files of builds, syntax checks and exports. They are deleted after 24 hours.
+* `tmp`: temporary files of builds, syntax checks, exports and migrations. They are deleted after
+  24 hours.
 * `builds/<project>`: default deploy directories of local IFS projects.
 
 ## Preferences
@@ -271,7 +340,7 @@ The plug-in stores its files in the folder `.ifsprojects` of your home directory
 * *SSH Terminal*: connection (port, timeout, keep alive interval, encoding), log-on (user ID in
   lowercase, password of the RSE connection) and *Restore terminals after a restart*.
 * *Export to Library*: CCSID and record length of new source files for the first export of a
-  project.
+  project. The CCSID is also the default for source files with CCSID 65535 of the migration.
 
 ## For developers
 
