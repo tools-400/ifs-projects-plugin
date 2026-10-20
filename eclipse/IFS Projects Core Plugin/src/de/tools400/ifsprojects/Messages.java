@@ -305,6 +305,38 @@ public class Messages extends NLS {
 
     // Migration of source files
     public static String Task_Reading_source_files_of_A;
+    public static String Title_Migrate_to_IFS_project;
+    public static String Description_Migration_source_files_page;
+    public static String Description_Migration_preview_page;
+    public static String Label_Select_all;
+    public static String Label_Deselect_all;
+    public static String Label_Column_Source_file;
+    public static String Label_Column_Text;
+    public static String Label_Column_Members;
+    public static String Label_Column_CCSID;
+    public static String Label_Member_text_as_comment;
+    public static String Tooltip_Member_text_as_comment;
+    public static String Label_Keep_member_directives;
+    public static String Tooltip_Keep_member_directives;
+    public static String Label_CCSID_of_hex_source_files_colon;
+    public static String Tooltip_CCSID_of_hex_source_files;
+    public static String Error_Select_at_least_one_source_file;
+    public static String Error_No_member_migrated;
+    public static String Label_A_of_B_members_migrated_C_includes;
+    public static String Problem_Member_not_read_A;
+    public static String Problem_No_source_type;
+    public static String Problem_Unknown_source_type_A;
+    public static String Problem_Make_characters;
+    public static String Problem_Line_A_member_B_not_found;
+    public static String Problem_Line_A_member_B_not_migrated;
+    public static String Problem_Line_A_member_B_other_library;
+    public static String Question_Replace_file_A;
+    public static String Task_Migrating_A_to_B;
+    public static String Info_Migration_of_A_to_B_created_C_replaced_D_skipped_E;
+    public static String Error_Could_not_migrate_A_B;
+    public static String Info_Library_A_has_no_source_files;
+    public static String Error_Directory_contains_make_characters;
+    public static String Description_Migration_project_page;
 
     static {
         // initialize resource bundle

@@ -9,9 +9,7 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -40,14 +38,6 @@ public class MigrationMappingTest {
     @Test
     public void testGetDirectory() {
         assertEquals("qrpglesrc", MigrationMapping.getDirectory("QRPGLESRC"));
-    }
-
-    @Test
-    public void testHasMakeCharacters() {
-        assertTrue(MigrationMapping.hasMakeCharacters("$UTIL"));
-        assertTrue(MigrationMapping.hasMakeCharacters("UTIL#1"));
-        assertFalse(MigrationMapping.hasMakeCharacters("UTIL@1"));
-        assertFalse(MigrationMapping.hasMakeCharacters("HELLO_1"));
     }
 
     private static SourceMember member(String aSourceFile, String aName, String aSourceType) {

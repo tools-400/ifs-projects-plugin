@@ -38,6 +38,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.dialogs.SelectIfsDirectoryDialog;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
+import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
@@ -126,10 +127,12 @@ public class NewIfsProjectWizardPage extends WizardPage {
 
         setControl(main);
 
+        // An empty page shows no error yet, but the error of a proposed
+        // directory, e.g. a project name, that exists already.
         validate();
-        setErrorMessage(null);
 
         if (initialDirectory == null) {
+            setErrorMessage(null);
             directoryText.setFocus();
         } else {
             checkIProjFile();
@@ -164,6 +167,17 @@ public class NewIfsProjectWizardPage extends WizardPage {
      */
     public IProjConfig createConfig() {
         return iprojGroup.createConfig();
+    }
+
+    /**
+     * Returns the build tool of the project, that the build command of the new
+     * or of the existing iproj.json file uses.
+     *
+     * @return build tool or <code>null</code>, if the commands use none or
+     *         several build tools
+     */
+    public BuildTool getBuildTool() {
+        return BuildTool.findExisting(iprojGroup.getBuildCommand(), iprojGroup.getCompileCommand());
     }
 
     /**
@@ -315,6 +329,8 @@ public class NewIfsProjectWizardPage extends WizardPage {
 
         if (getDirectory() == null) {
             errorMessage = Messages.Error_Directory_must_be_absolute;
+        } else if (BuildTool.hasMakeCharacters(getDirectory())) {
+            errorMessage = Messages.Error_Directory_contains_make_characters;
         } else if (getProjectName().length() == 0) {
             errorMessage = Messages.Error_Project_name_must_not_be_empty;
         } else if (IfsProjectFilters.exists(host, getProjectName())) {

@@ -27,9 +27,6 @@ public final class MigrationMapping {
     private static final char EXTENSION_SEPARATOR = '.';
     private static final String COPY_BOOK_SUFFIX = "inc"; //$NON-NLS-1$
 
-    /** Characters of member names, that make interprets in Rules.mk. */
-    private static final String MAKE_CHARACTERS = "$#"; //$NON-NLS-1$
-
     private MigrationMapping() {
         // Utility class
     }
@@ -68,24 +65,5 @@ public final class MigrationMapping {
         }
 
         return getDirectory(aMember.getSourceFile()) + SEPARATOR + aMember.getName().toLowerCase(Locale.ROOT) + EXTENSION_SEPARATOR + extension;
-    }
-
-    /**
-     * Returns <code>true</code>, if the name of a member contains characters,
-     * that make interprets, when it is used in a <code>Rules.mk</code> file.
-     *
-     * @param aMember - name of the member
-     * @return <code>true</code>, if the name contains <code>$</code> or
-     *         <code>#</code>
-     */
-    public static boolean hasMakeCharacters(String aMember) {
-
-        for (int i = 0; i < aMember.length(); i++) {
-            if (MAKE_CHARACTERS.indexOf(aMember.charAt(i)) >= 0) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

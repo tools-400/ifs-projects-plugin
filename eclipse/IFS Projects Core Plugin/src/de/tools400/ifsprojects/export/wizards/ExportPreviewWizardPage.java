@@ -23,21 +23,18 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.export.ExportPlan;
 import de.tools400.ifsprojects.sources.IncludeConverter;
+import de.tools400.ifsprojects.swt.TableToolTips;
 
 /**
  * Second page of the export: the files of the project, the members, into
@@ -86,7 +83,7 @@ public class ExportPreviewWizardPage extends WizardPage {
         summaryData.widthHint = SUMMARY_WIDTH;
         summaryLabel.setLayoutData(summaryData);
 
-        final Table table = new Table(main, SWT.CHECK | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
+        Table table = new Table(main, SWT.CHECK | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
         GridData tableData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -115,13 +112,9 @@ public class ExportPreviewWizardPage extends WizardPage {
 
         // The tool tip shows the full texts of the problems, that the column
         // shows only partly.
-        table.addListener(SWT.MouseMove, new Listener() {
-            public void handleEvent(Event anEvent) {
-                TableItem tableItem = table.getItem(new Point(anEvent.x, anEvent.y));
-                String toolTip = tableItem == null ? null : getProblemsText((ExportPlan.Item)tableItem.getData());
-                if (toolTip == null ? table.getToolTipText() != null : !toolTip.equals(table.getToolTipText())) {
-                    table.setToolTipText(toolTip);
-                }
+        TableToolTips.install(table, new TableToolTips.Provider() {
+            public String getToolTip(Object anElement) {
+                return getProblemsText((ExportPlan.Item)anElement);
             }
         });
 

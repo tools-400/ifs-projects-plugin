@@ -227,6 +227,11 @@
             name="%Command_Export_IFS_project">
       </command>
       <command
+            id="de.tools400.ifsprojects.commands.migrateSourceFiles"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Migrate_source_files">
+      </command>
+      <command
             id="de.tools400.ifsprojects.commands.compileIfsFile"
             categoryId="de.tools400.ifsprojects.commands.category"
             name="%Command_Build_IFS_file">
@@ -299,6 +304,9 @@
             class="de.tools400.ifsprojects.handlers.ExportIfsProjectHandler">
       </handler>
       <handler
+            commandId="de.tools400.ifsprojects.commands.migrateSourceFiles"
+            class="de.tools400.ifsprojects.handlers.MigrateSourceFilesHandler">
+      </handler>      <handler
             commandId="de.tools400.ifsprojects.commands.compileIfsFile"
             class="de.tools400.ifsprojects.handlers.CompileIfsFileHandler">
       </handler>
@@ -514,6 +522,31 @@
                      </adapt>
                   </iterate>
                </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Library: migrate all source files into an IFS project -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.migrateSourceFiles"
+               label="%Label_Migrate_to_IFS_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <instanceof value="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteLibrary"/>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Source physical files: migrate into an IFS project -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.migrateSourceFiles"
+               label="%Label_Migrate_to_IFS_project">
+            <visibleWhen checkEnabled="false">
+               <iterate ifEmpty="false" operator="and">
+                  <instanceof value="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceFile"/>
+               </iterate>
             </visibleWhen>
          </command>
 

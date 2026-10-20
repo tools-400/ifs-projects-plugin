@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.MemberText;
 import de.tools400.ifsprojects.sources.SourceTypes;
@@ -73,6 +74,13 @@ public final class MigrationPlan {
         }
 
         compute();
+    }
+
+    /**
+     * Returns the settings of the migration.
+     */
+    public MigrationSettings getSettings() {
+        return settings;
     }
 
     /**
@@ -167,7 +175,7 @@ public final class MigrationPlan {
             anItem.problems.add(new Problem(ProblemType.UNKNOWN_SOURCE_TYPE, 0, sourceType, null));
         }
 
-        if (MigrationMapping.hasMakeCharacters(anItem.member.getName())) {
+        if (BuildTool.hasMakeCharacters(anItem.member.getName())) {
             anItem.problems.add(new Problem(ProblemType.MAKE_CHARACTERS, 0, anItem.member.getName(), null));
         }
     }

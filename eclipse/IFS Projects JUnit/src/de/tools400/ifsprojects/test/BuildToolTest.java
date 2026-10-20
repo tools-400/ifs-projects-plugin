@@ -9,7 +9,9 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -71,5 +73,13 @@ public class BuildToolTest {
         assertNull(BuildTool.findExisting("makei build && gmake docs", null));
         assertNull(BuildTool.findExisting(null, null));
         assertNull(BuildTool.findExisting("", ""));
+    }
+
+    @Test
+    public void testHasMakeCharacters() {
+        assertTrue(BuildTool.hasMakeCharacters("$UTIL"));
+        assertTrue(BuildTool.hasMakeCharacters("/home/jsmith/jsmith#cl"));
+        assertFalse(BuildTool.hasMakeCharacters("UTIL@1"));
+        assertFalse(BuildTool.hasMakeCharacters("/home/jsmith/src"));
     }
 }

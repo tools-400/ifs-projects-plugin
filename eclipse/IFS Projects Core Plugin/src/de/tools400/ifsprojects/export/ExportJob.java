@@ -18,9 +18,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
-import org.eclipse.swt.widgets.Display;
 
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.CommandCall;
@@ -29,11 +27,11 @@ import com.ibm.as400.access.IFSFile;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.build.CommandsLog;
+import de.tools400.ifsprojects.dialogs.JobSummary;
 import de.tools400.ifsprojects.dialogs.OverwriteQuery;
 import de.tools400.ifsprojects.dialogs.RememberingOverwriteQuery;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
-import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Exports the files of an {@link ExportPlan} into the members of a library in
@@ -57,12 +55,8 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
  */
 public class ExportJob extends Job {
 
-    /** Number of errors listed in the summary. */
-    private static final int MAX_LISTED_ERRORS = 20;
-
     private static final String TEMPORARY_FILE_SUFFIX = ".export"; //$NON-NLS-1$
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
-    private static final String INDENTATION = "  "; //$NON-NLS-1$
 
     private final IHost host;
     private final AS400 rseSystem;
@@ -286,28 +280,6 @@ public class ExportJob extends Job {
 
         CommandsLog.log(host, message.toString());
 
-        if (!errors.isEmpty()) {
-            message.append(LINE_SEPARATOR).append(LINE_SEPARATOR);
-            message.append(Messages.bind(Messages.Label_Errors_A, Integer.toString(errors.size()))).append(LINE_SEPARATOR);
-            for (int i = 0; i < errors.size() && i < MAX_LISTED_ERRORS; i++) {
-                message.append(INDENTATION).append(errors.get(i)).append(LINE_SEPARATOR);
-            }
-            if (errors.size() > MAX_LISTED_ERRORS) {
-                message.append(INDENTATION).append(Messages.bind(Messages.Label_And_A_more_files,
-                    Integer.toString(errors.size() - MAX_LISTED_ERRORS)));
-            }
-        }
-
-        final String text = message.toString();
-        final boolean isError = !errors.isEmpty();
-        Display.getDefault().asyncExec(new Runnable() {
-            public void run() {
-                if (isError) {
-                    MessageDialog.openWarning(PlatformUtils.getWorkbenchShell(), Messages.Title_Export_to_library, text);
-                } else {
-                    MessageDialog.openInformation(PlatformUtils.getWorkbenchShell(), Messages.Title_Export_to_library, text);
-                }
-            }
-        });
+        JobSummary.open(Messages.Title_Export_to_library, message.toString(), errors);
     }
 }

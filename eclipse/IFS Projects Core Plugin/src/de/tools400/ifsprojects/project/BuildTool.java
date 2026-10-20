@@ -24,6 +24,9 @@ public enum BuildTool {
     /** TOBi (The Object Builder for i) with iproj.json and Rules.mk. */
     TOBI("TOBi (makei)", "makei build", "makei compile -f {filename}", "makei"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
+    /** Characters, that make interprets in names: variables and comments. */
+    private static final String MAKE_CHARACTERS = "$#"; //$NON-NLS-1$
+
     private final String label;
     private final String buildCommand;
     private final String compileCommand;
@@ -124,5 +127,25 @@ public enum BuildTool {
         }
 
         return foundBuildTool;
+    }
+
+    /**
+     * Returns <code>true</code>, if a name contains characters, that make
+     * interprets: <code>$</code> and <code>#</code>. Such names break the
+     * makefiles of gmake and the Rules.mk files of TOBi.
+     *
+     * @param aName - name, e.g. of a member or of a directory
+     * @return <code>true</code>, if the name contains <code>$</code> or
+     *         <code>#</code>
+     */
+    public static boolean hasMakeCharacters(String aName) {
+
+        for (int i = 0; i < aName.length(); i++) {
+            if (MAKE_CHARACTERS.indexOf(aName.charAt(i)) >= 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
