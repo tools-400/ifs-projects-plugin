@@ -157,20 +157,13 @@ public class NewIfsProjectWizardPage extends WizardPage {
         return iprojGroup.isCreateIProj();
     }
 
-    public String getProjectDescription() {
-        return iprojGroup.getDescription();
-    }
-
-    public String getBuildCommand() {
-        return iprojGroup.getBuildCommand();
-    }
-
-    public String getCompileCommand() {
-        return iprojGroup.getCompileCommand();
-    }
-
-    public String getRepository() {
-        return iprojGroup.getRepository();
+    /**
+     * Returns the content of a new iproj.json file.
+     *
+     * @return configuration with the entered attributes
+     */
+    public IProjConfig createConfig() {
+        return iprojGroup.createConfig();
     }
 
     /**

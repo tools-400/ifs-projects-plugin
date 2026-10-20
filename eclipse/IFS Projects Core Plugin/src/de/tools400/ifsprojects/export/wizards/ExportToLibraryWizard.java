@@ -11,17 +11,16 @@ package de.tools400.ifsprojects.export.wizards;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.swt.widgets.Display;
 
 import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.dialogs.OverwriteQueryDialog;
 import de.tools400.ifsprojects.export.ExportAnalyzer;
 import de.tools400.ifsprojects.export.ExportJob;
 import de.tools400.ifsprojects.export.ExportPlan;
@@ -30,7 +29,6 @@ import de.tools400.ifsprojects.export.ExportSource;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteSession;
-import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Exports the source files of a project into members of a library, see
@@ -38,10 +36,6 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
  * {@link ExportAnalyzer}.
  */
 public class ExportToLibraryWizard extends Wizard {
-
-    private static final ExportJob.OverwriteQuery.Answer[] ANSWERS = { ExportJob.OverwriteQuery.Answer.YES,
-        ExportJob.OverwriteQuery.Answer.YES_TO_ALL, ExportJob.OverwriteQuery.Answer.NO, ExportJob.OverwriteQuery.Answer.NO_TO_ALL,
-        ExportJob.OverwriteQuery.Answer.CANCEL };
 
     private final ExportSource source;
     private final AS400 rseSystem;
@@ -96,7 +90,8 @@ public class ExportToLibraryWizard extends Wizard {
             IfsProjectsPlugin.logError("Could not save the export settings of: " + source.getName(), e); //$NON-NLS-1$
         }
 
-        new ExportJob(source.getHost(), rseSystem, source.getName(), plan, new ReplaceMemberQuery()).schedule();
+        new ExportJob(source.getHost(), rseSystem, source.getName(), plan, new OverwriteQueryDialog(Messages.Title_Export_to_library,
+            Messages.Question_Replace_member_A)).schedule();
 
         return true;
     }
@@ -146,31 +141,5 @@ public class ExportToLibraryWizard extends Wizard {
         previewPage.setPlan(plan[0]);
 
         return previewPage;
-    }
-
-    /**
-     * Asks the user with Yes, Yes To All, No, No To All and Cancel, whether an
-     * existing member is replaced.
-     */
-    private static class ReplaceMemberQuery implements ExportJob.OverwriteQuery {
-
-        public Answer ask(final String aMember) {
-
-            final Answer[] answer = { Answer.CANCEL };
-            Display.getDefault().syncExec(new Runnable() {
-                public void run() {
-                    MessageDialog dialog = new MessageDialog(PlatformUtils.getWorkbenchShell(), Messages.Title_Export_to_library, null, Messages.bind(
-                        Messages.Question_Replace_member_A, aMember), MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL,
-                            IDialogConstants.YES_TO_ALL_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.NO_TO_ALL_LABEL,
-                            IDialogConstants.CANCEL_LABEL }, 0);
-                    int index = dialog.open();
-                    if (index >= 0 && index < ANSWERS.length) {
-                        answer[0] = ANSWERS[index];
-                    }
-                }
-            });
-
-            return answer[0];
-        }
     }
 }

@@ -29,6 +29,8 @@ import com.ibm.as400.access.IFSFile;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.build.CommandsLog;
+import de.tools400.ifsprojects.dialogs.OverwriteQuery;
+import de.tools400.ifsprojects.dialogs.RememberingOverwriteQuery;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.PlatformUtils;
@@ -77,9 +79,6 @@ public class ExportJob extends Job {
     private int replaced;
     private int skipped;
 
-    /** Answer 'Yes To All' or 'No To All' of the user, see askOverwrite(). */
-    private OverwriteQuery.Answer answerToAll;
-
     /**
      * Creates the job.
      *
@@ -88,7 +87,7 @@ public class ExportJob extends Job {
      * @param aProjectName - name of the project
      * @param aPlan - plan of the export
      * @param anOverwriteQuery - asks the user, whether an existing member is
-     *        replaced
+     *        replaced; the job remembers 'Yes To All' and 'No To All'
      */
     public ExportJob(IHost aHost, AS400 aRseSystem, String aProjectName, ExportPlan aPlan, OverwriteQuery anOverwriteQuery) {
         super(Messages.bind(Messages.Task_Exporting_A_to_B, aProjectName, aPlan.getSettings().getLibrary()));
@@ -101,7 +100,7 @@ public class ExportJob extends Job {
         this.newSourceFiles = aPlan.getNewSourceFiles();
         this.ccsid = aPlan.getSettings().getCcsid();
         this.items = aPlan.getExportedItems();
-        this.overwriteQuery = anOverwriteQuery;
+        this.overwriteQuery = new RememberingOverwriteQuery(anOverwriteQuery);
         this.errors = new ArrayList<String>();
     }
 
@@ -193,12 +192,12 @@ public class ExportJob extends Job {
             return true;
         }
 
-        OverwriteQuery.Answer answer = askOverwrite(anItem);
+        OverwriteQuery.Answer answer = overwriteQuery.ask(getMemberName(anItem));
         if (answer == OverwriteQuery.Answer.CANCEL) {
             return false;
         }
 
-        if (answer == OverwriteQuery.Answer.YES || answer == OverwriteQuery.Answer.YES_TO_ALL) {
+        if (answer.isReplace()) {
             replace(aCommandCall, aTemporaryFile, anItem);
         } else {
             skipped++;
@@ -206,24 +205,6 @@ public class ExportJob extends Job {
         }
 
         return true;
-    }
-
-    /**
-     * Asks the user, whether an existing member is replaced, unless the user
-     * has answered 'Yes To All' or 'No To All' before.
-     */
-    private OverwriteQuery.Answer askOverwrite(ExportPlan.Item anItem) {
-
-        if (answerToAll != null) {
-            return answerToAll;
-        }
-
-        OverwriteQuery.Answer answer = overwriteQuery.ask(getMemberName(anItem));
-        if (answer == OverwriteQuery.Answer.YES_TO_ALL || answer == OverwriteQuery.Answer.NO_TO_ALL) {
-            answerToAll = answer;
-        }
-
-        return answer;
     }
 
     private void create(CommandCall aCommandCall, IFSFile aTemporaryFile, ExportPlan.Item anItem) throws Exception {
@@ -328,30 +309,5 @@ public class ExportJob extends Job {
                 }
             }
         });
-    }
-
-    /**
-     * Asks the user, whether an existing member is replaced.
-     */
-    public interface OverwriteQuery {
-
-        /**
-         * Answers of the question.
-         */
-        enum Answer {
-            YES,
-            YES_TO_ALL,
-            NO,
-            NO_TO_ALL,
-            CANCEL;
-        }
-
-        /**
-         * Asks the user. Called by the job, not on the UI thread.
-         *
-         * @param aMember - member, e.g. <code>JSMITH#CL/QRPGLESRC(HELLO)</code>
-         * @return answer
-         */
-        Answer ask(String aMember);
     }
 }
