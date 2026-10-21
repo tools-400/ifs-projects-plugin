@@ -43,7 +43,7 @@ final class ClIncludeConverter extends ExportIncludeConverter {
     }
 
     @Override
-    protected LineConverter createLineConverter(final String aPath, final Result aResult) {
+    protected LineConverter createLineConverter(final String aPath, String aContent, final Result aResult) {
 
         return new ClLineConverter() {
 

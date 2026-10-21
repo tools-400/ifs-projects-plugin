@@ -55,7 +55,9 @@ public class TobiBuildFilesTest {
         add("QRPGLESRC", "HELLO", "RPGLE", "**FREE\n/copy QCPYSRC,TYPES\n/copy QCPYSRC,CONSTS\n/copy QCPYSRC,MISSING\n");
         add("QRPGLESRC", "UTILS", "RPGLE", "      * >>PRE-COMPILER<<\n      *   >>CRTCMD<<  CRTRPGMOD MODULE(&LI/&OB) +\n"
             + "      *                           SRCSTMF('&STMF');\n      * >>END-PRE-COMPILER<<\n     H NOMAIN\n");
-        add("QRPGLESRC", "SQLMOD", "SQLRPGLE", "// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) OBJTYPE(*MODULE);\n");
+        add("QRPGLESRC", "SQLMOD", "SQLRPGLE", "**FREE\n// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) OBJTYPE(*MODULE);\n"
+            + "exec sql include HOSTVARS;\n");
+        add("QCPYSRC", "HOSTVARS", "SQLRPGLE", "**FREE\n");
         add("QCPYSRC", "CONSTS", "RPGLE", "**FREE\n");
         add("QCPYSRC", "TYPES", "RPGLE", "**FREE\n");
         add("QCLSRC", "START", "CLLE", "PGM\nINCLUDE SRCMBR(VARS)\nENDPGM\n");
@@ -72,7 +74,9 @@ public class TobiBuildFilesTest {
         assertEquals(String.format(HEADER, "QRPGLESRC") //
             + "\nHELLO.PGM: hello.rpgle qcpysrc/consts.rpgleinc qcpysrc/types.rpgleinc\n" //
             + "\nUTILS.MODULE: utils.rpgle\n" //
-            + "\nSQLMOD.MODULE: sqlmod.sqlrpgle\n", rules(plan, "QRPGLESRC"));
+            + "\n# DBGVIEW(*SOURCE) fails for EXEC SQL INCLUDE of a stream file (SQL8009).\n" //
+            + "SQLMOD.MODULE: private DBGVIEW := *LIST\n" //
+            + "SQLMOD.MODULE: sqlmod.sqlrpgle qcpysrc/hostvars.sqlrpgleinc\n", rules(plan, "QRPGLESRC"));
         assertEquals(String.format(HEADER, "QCPYSRC"), rules(plan, "QCPYSRC"));
         assertEquals(String.format(HEADER, "QCLSRC") //
             + "\nSTART.PGM: private INCDIR := 'qclsrc'\nSTART.PGM: start.clle qclsrc/vars.clleinc\n\t$(PGM.CLLE_TO_PGM_RECIPE)\n" //

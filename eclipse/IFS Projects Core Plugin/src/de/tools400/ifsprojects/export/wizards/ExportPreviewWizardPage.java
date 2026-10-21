@@ -190,7 +190,7 @@ public class ExportPreviewWizardPage extends WizardPage {
             }
             if (item.getIncludes() != null) {
                 for (IncludeConverter.Include include : item.getIncludes().getIncludes()) {
-                    if (include.getProblem() == null) {
+                    if (include.getTarget() != null) {
                         includes++;
                     }
                 }
@@ -261,7 +261,7 @@ public class ExportPreviewWizardPage extends WizardPage {
 
         if (anItem.getIncludes() != null) {
             for (IncludeConverter.Include include : anItem.getIncludes().getIncludes()) {
-                if (include.getProblem() == null) {
+                if (include.getTarget() != null) {
                     details.append(Messages.bind(Messages.Label_Line_A_B_converted_to_C, new Object[] { Integer.toString(include.getLineNumber()),
                         include.getName(), include.getTarget() })).append(LINE_SEPARATOR);
                 }

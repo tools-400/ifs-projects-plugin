@@ -107,6 +107,77 @@ public class MigrationPlanTest {
     }
 
     @Test
+    public void testPlan_sqlIncludeFile_ownSourceFile() {
+
+        add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\nexec sql include HOSTVARS;\n");
+        add("QRPGLESRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\ndcl-s x char(1);\n");
+
+        List<Item> items = createPlan(false).getItems();
+
+        assertEquals("**FREE\nexec sql include 'qrpglesrc/hostvars.sqlrpgleinc';\n", items.get(0).getContent());
+        assertTrue(items.get(0).getProblems().isEmpty());
+        assertEquals(Arrays.asList("qrpglesrc/hostvars.sqlrpgleinc"), items.get(0).getIncludedPaths());
+        // The included member is a copy book
+        assertEquals("qrpglesrc/hostvars.sqlrpgleinc", items.get(1).getPath());
+    }
+
+    @Test
+    public void testPlan_sqlIncludeFile_otherSourceFile() {
+
+        // The members of all statements have to be in one source file, so
+        // QCPYSRC is found, although HOSTVARS is in QRPGLESRC, too.
+        add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\nexec sql include HOSTVARS;\nexec sql include CURSORS;\n");
+        add("QRPGLESRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
+        add("QCPYSRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
+        add("QCPYSRC", "CURSORS", "SQLRPGLE", null, "**FREE\n");
+
+        List<Item> items = createPlan(false).getItems();
+
+        assertEquals("**FREE\nexec sql include 'qcpysrc/hostvars.sqlrpgleinc';\nexec sql include 'qcpysrc/cursors.sqlrpgleinc';\n",
+            items.get(0).getContent());
+        assertEquals("qrpglesrc/hostvars.sqlrpgle", items.get(1).getPath());
+        assertEquals("qcpysrc/hostvars.sqlrpgleinc", items.get(2).getPath());
+    }
+
+    @Test
+    public void testPlan_sqlIncludeFile_header() {
+
+        // INCFILE of the STRPREPRC header wins over the own source file.
+        add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\n" //
+            + "// >>PRE-COMPILER<<\n" //
+            + "// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') +\n" //
+            + "//            INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2);\n" //
+            + "// >>END-PRE-COMPILER<<\n" //
+            + "exec sql include HOSTVARS;\n");
+        add("QRPGLESRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
+        add("QCPYSRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
+
+        List<Item> items = createPlan(false).getItems();
+
+        assertTrue(items.get(0).getContent().contains("exec sql include 'qcpysrc/hostvars.sqlrpgleinc';"));
+        assertEquals("qcpysrc/hostvars.sqlrpgleinc", items.get(2).getPath());
+    }
+
+    @Test
+    public void testPlan_sqlIncludeFile_unknown() {
+
+        // HOSTVARS is in two source files, MISSING in none
+        add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\nexec sql include HOSTVARS;\nexec sql include MISSING;\n");
+        add("QCPYSRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
+        add("QCLSRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
+
+        Item hello = createPlan(false).getItems().get(0);
+
+        assertEquals("**FREE\nexec sql include HOSTVARS;\nexec sql include MISSING;\n", hello.getContent());
+        assertTrue(hello.isMigrated());
+        assertEquals(2, hello.getProblems().size());
+        assertEquals(ProblemType.INCLUDE, hello.getProblems().get(0).getType());
+        assertEquals(IncludeConverter.Problem.AMBIGUOUS, hello.getProblems().get(0).getIncludeProblem());
+        assertEquals("HOSTVARS", hello.getProblems().get(0).getText());
+        assertEquals(IncludeConverter.Problem.AMBIGUOUS, hello.getProblems().get(1).getIncludeProblem());
+    }
+
+    @Test
     public void testPlan_noMemberText() {
 
         add("QRPGLESRC", "HELLO", "RPGLE", "Hello world", "**FREE\n");

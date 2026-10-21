@@ -38,8 +38,8 @@ public class ExportIncludeConverterTest {
     private static final String PROJECT = "/home/jsmith/proj";
 
     private static final List<String> FILES = Arrays.asList("qrpglesrc/hello.pgm.rpgle", "qrpglesrc/local.rpgleinc", "inc/consts.rpgleinc",
-        "inc/proto.rpgleinc", "x.rpgleinc", "inc/x.rpgleinc", "qrpglesrc/toolongname1.rpgleinc", "qclsrc/start.pgm.clle", "qclsrc/w.clinc",
-        "inc/w.clinc", "inc/v.clinc", "r.clinc", "README.md");
+        "inc/proto.rpgleinc", "x.rpgleinc", "inc/x.rpgleinc", "qrpglesrc/toolongname1.rpgleinc", "qrpglesrc/sqlvars.sqlrpgleinc",
+        "inc/sqlvars.sqlrpgleinc", "qclsrc/start.pgm.clle", "qclsrc/w.clinc", "inc/w.clinc", "inc/v.clinc", "r.clinc", "README.md");
 
     @Test
     public void testCreate() {
@@ -89,17 +89,68 @@ public class ExportIncludeConverterTest {
     @Test
     public void testRpg_problems() {
 
-        Result result = convert("RPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n/copy '/QIBM/include/qusec.rpgleinc'\n/copy missing.rpgleinc\n"
-            + "/copy toolongname1\nexec sql include 'inc/sqlvars.rpgleinc';\nexec sql include sqlca;\n");
+        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n/copy '/QIBM/include/qusec.rpgleinc'\n/copy missing.rpgleinc\n"
+            + "/copy toolongname1\nexec sql include 'inc/missing.sqlrpgleinc';\nexec sql include 'qrpglesrc/toolongname1.rpgleinc';\n"
+            + "exec sql include sqlca;\nexec sql include\n");
 
         assertEquals("**FREE\n/copy '/QIBM/include/qusec.rpgleinc'\n/copy missing.rpgleinc\n/copy toolongname1\n"
-            + "exec sql include 'inc/sqlvars.rpgleinc';\nexec sql include sqlca;\n", result.getContent());
+            + "exec sql include 'inc/missing.sqlrpgleinc';\nexec sql include 'qrpglesrc/toolongname1.rpgleinc';\n"
+            + "exec sql include sqlca;\nexec sql include\n", result.getContent());
         assertTrue(result.hasProblems());
         assertInclude(result.getIncludes().get(0), 2, "/QIBM/include/qusec.rpgleinc", null, Problem.NOT_FOUND);
         assertInclude(result.getIncludes().get(1), 3, "missing.rpgleinc", null, Problem.NOT_FOUND);
         assertInclude(result.getIncludes().get(2), 4, "toolongname1", null, Problem.NOT_TRANSFERRED);
-        assertInclude(result.getIncludes().get(3), 5, "inc/sqlvars.rpgleinc", null, Problem.NOT_SUPPORTED);
+        assertInclude(result.getIncludes().get(3), 5, "inc/missing.sqlrpgleinc", null, Problem.NOT_FOUND);
+        assertInclude(result.getIncludes().get(4), 6, "qrpglesrc/toolongname1.rpgleinc", null, Problem.NOT_TRANSFERRED);
+        assertInclude(result.getIncludes().get(5), 8, "include", null, Problem.NOT_SUPPORTED);
+        assertEquals(6, result.getIncludes().size());
+    }
+
+    @Test
+    public void testSqlInclude() {
+
+        // The source file of INCFILE is the source file of the including
+        // member, so only the first statement needs no INCFILE.
+        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n" //
+            + "exec sql include 'qrpglesrc/sqlvars.sqlrpgleinc';\n" //
+            + "EXEC SQL\n" //
+            + "  INCLUDE 'inc/sqlvars.sqlrpgleinc';\n" //
+            + "exec sql include SQLVARS;\n");
+
+        assertEquals("**FREE\n" //
+            + "exec sql include sqlvars;\n" //
+            + "EXEC SQL\n" //
+            + "  INCLUDE SQLVARS;\n" //
+            + "exec sql include SQLVARS;\n", result.getContent());
+
+        assertEquals(2, result.getIncludes().size());
+        assertInclude(result.getIncludes().get(0), 2, "qrpglesrc/sqlvars.sqlrpgleinc", "QRPGLESRC,SQLVARS", null);
+        assertInclude(result.getIncludes().get(1), 4, "inc/sqlvars.sqlrpgleinc", "INC,SQLVARS", Problem.INCLUDE_FILE);
+    }
+
+    @Test
+    public void testSqlInclude_searchOrder() {
+
+        // The current directory (the project directory) and the directory of
+        // the source, but neither the include directories nor other
+        // extensions (verified with CRTSQLRPGI).
+        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n" //
+            + "exec sql include 'inc/sqlvars.sqlrpgleinc';\n" // project directory
+            + "exec sql include 'sqlvars.sqlrpgleinc';\n" // directory of the source
+            + "exec sql include 'sqlvars';\n" // no extension is added
+            + "exec sql include 'consts.rpgleinc';\n"); // include directory inc is not searched
+
+        assertEquals("**FREE\n" //
+            + "exec sql include sqlvars;\n" //
+            + "exec sql include sqlvars;\n" //
+            + "exec sql include 'sqlvars';\n" //
+            + "exec sql include 'consts.rpgleinc';\n", result.getContent());
+
         assertEquals(4, result.getIncludes().size());
+        assertInclude(result.getIncludes().get(0), 2, "inc/sqlvars.sqlrpgleinc", "INC,SQLVARS", Problem.INCLUDE_FILE);
+        assertInclude(result.getIncludes().get(1), 3, "sqlvars.sqlrpgleinc", "QRPGLESRC,SQLVARS", null);
+        assertInclude(result.getIncludes().get(2), 4, "sqlvars", null, Problem.NOT_FOUND);
+        assertInclude(result.getIncludes().get(3), 5, "consts.rpgleinc", null, Problem.NOT_FOUND);
     }
 
     @Test
@@ -111,7 +162,7 @@ public class ExportIncludeConverterTest {
             + "      */copy inc/consts.rpgleinc\n" //
             + "     C/COPY inc/consts.rpgleinc\n" //
             + "        /copy 'inc/consts.rpgleinc'\n" //
-            + "     C/EXEC SQL INCLUDE 'inc/sqlvars.rpgleinc'\n" //
+            + "     C/EXEC SQL INCLUDE 'inc/sqlvars.sqlrpgleinc'\n" //
             + "     C/END-EXEC\n";
 
         Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", source);
@@ -122,11 +173,11 @@ public class ExportIncludeConverterTest {
             + "      */copy inc/consts.rpgleinc\n" //
             + "     C/COPY inc/consts.rpgleinc\n" //
             + "        /copy inc,consts\n" //
-            + "     C/EXEC SQL INCLUDE 'inc/sqlvars.rpgleinc'\n" //
+            + "     C/EXEC SQL INCLUDE SQLVARS\n" //
             + "     C/END-EXEC\n", result.getContent());
         assertEquals(4, result.getIncludes().size());
         assertInclude(result.getIncludes().get(0), 2, "inc/consts.rpgleinc", "INC,CONSTS", null);
-        assertInclude(result.getIncludes().get(3), 7, "inc/sqlvars.rpgleinc", null, Problem.NOT_SUPPORTED);
+        assertInclude(result.getIncludes().get(3), 7, "inc/sqlvars.sqlrpgleinc", "INC,SQLVARS", Problem.INCLUDE_FILE);
     }
 
     @Test

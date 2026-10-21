@@ -288,7 +288,10 @@ public final class ExportPlan {
         if (anItem.includes != null) {
             for (IncludeConverter.Include include : anItem.includes.getIncludes()) {
                 if (include.getProblem() != null) {
-                    anItem.problems.add(new Problem(ProblemType.INCLUDE, include.getLineNumber(), include.getName(), 0, 0, include.getProblem()));
+                    // A converted directive is named by its member, e.g. the
+                    // source file of INCLUDE_FILE.
+                    String text = include.getTarget() == null ? include.getName() : include.getTarget();
+                    anItem.problems.add(new Problem(ProblemType.INCLUDE, include.getLineNumber(), text, 0, 0, include.getProblem()));
                 }
             }
         }

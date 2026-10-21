@@ -18,9 +18,9 @@ import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.SourceTypes;
 
 /**
- * Converts the include directives of a migrated member, that refer to
- * members, so that they refer to the stream files of the migration, e.g.
- * <code>/copy QCPYSRC,CONSTS</code> to
+ * Converts the include directives and the <code>EXEC SQL INCLUDE</code>
+ * statements of a migrated member, that refer to members, so that they refer to
+ * the stream files of the migration, e.g. <code>/copy QCPYSRC,CONSTS</code> to
  * <code>/copy 'qcpysrc/consts.rpgleinc'</code>. Directives, that refer to
  * stream files, are not changed. A directive is not converted, if its member
  * is in another library, in a source file, that is not migrated, or not
@@ -63,14 +63,18 @@ public abstract class MemberIncludeConverter extends IncludeConverter {
      *        see {@link #MemberIncludeConverter(String, Map, Set)}
      * @param aSourceFiles - migrated source files
      * @param aStyle - style of the RPG directives
+     * @param aSqlIncludeFile - source file of the <code>EXEC SQL INCLUDE</code>
+     *        statements of the member, optionally qualified with a library, or
+     *        <code>null</code>, if it cannot be determined, see
+     *        {@link MigrationPlan}
      * @return converter or <code>null</code>, if the includes of the source
      *         type are not converted
      */
     public static MemberIncludeConverter create(String aSourceType, String aLibrary, Map<String, String> aPaths, Set<String> aSourceFiles,
-        IncludeStyle aStyle) {
+        IncludeStyle aStyle, String aSqlIncludeFile) {
 
         if (SourceTypes.RPGLE.equalsIgnoreCase(aSourceType) || SourceTypes.SQLRPGLE.equalsIgnoreCase(aSourceType)) {
-            return new RpgMemberIncludeConverter(aLibrary, aPaths, aSourceFiles, aStyle);
+            return new RpgMemberIncludeConverter(aLibrary, aPaths, aSourceFiles, aStyle, aSqlIncludeFile);
         }
 
         if (SourceTypes.CLLE.equalsIgnoreCase(aSourceType)) {

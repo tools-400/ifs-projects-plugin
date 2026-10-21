@@ -228,8 +228,13 @@ becomes `INCLUDE SRCMBR(VARS) SRCFILE(QCLSRC)`. The copy book is searched like t
   `iproj.json` and the directory of the source, also with the extensions `.rpgleinc` and `.rpgle`.
   A name without `/`, `.` and `,`, that is no file of the project, stays a member name.
 * CL (`INCLUDE SRCSTMF`): in the directory of the source and the `includePath` directories.
-* Not converted are `EXEC SQL INCLUDE`, CL `INCLUDE` commands on several lines and copy books
-  outside of the project. The preview shows them.
+* `EXEC SQL INCLUDE 'inc/hostvars.sqlrpgleinc'` becomes `EXEC SQL INCLUDE HOSTVARS`, also if the
+  statement spans several lines or stands in fixed format between `C/EXEC SQL` and `C/END-EXEC`.
+  The statement names only a member, its source file is the parameter `INCFILE` of the compile
+  command, by default the source file of the compiled member. If the copy book goes into another
+  source file, `INCFILE` has to be specified; the preview warns about it.
+* Not converted are CL `INCLUDE` commands on several lines and copy books outside of the project.
+  The preview shows them.
 
 **Member text** from the comment `%TEXT` in the first lines of the file, as written by
 `makei cvtsrcpf --text`:
@@ -290,13 +295,27 @@ Options:
   ```
 
   The build from the IFS needs no condition; the member build sets `DEFINE(MBR_BUILD)`, e.g. in the
-  `STRPREPRC` header.
+  `STRPREPRC` header. The option applies to the SQL statements below, too.
+* RPG with SQL: `exec sql include HOSTVARS` becomes
+  `exec sql include 'qcpysrc/hostvars.sqlrpgleinc'`, also if the statement spans several lines or
+  stands in fixed format between `C/EXEC SQL` and `C/END-EXEC`. The statement names only a member;
+  its source file is the parameter `INCFILE` of the compiler, by default the source file of the
+  compiled member. Because `INCFILE` names one source file, all statements of a member refer to the
+  same one, which the migration determines:
+
+  * `INCFILE` of the `STRPREPRC` header of the member, if it has one.
+  * Otherwise the source file, that contains the members of all statements of the member: its own
+    source file, which is the default of the compiler, otherwise the only other migrated source
+    file, that contains them all. That all members have to be in one source file usually makes it
+    unambiguous, e.g. if `HOSTVARS` exists twice, but only `QCPYSRC` contains `HOSTVARS` and
+    `CURSORS` together.
+  * If no or several source files contain them, the statements of the member are not converted and
+    the preview shows it.
 * CL: `INCLUDE SRCMBR(VARS) SRCFILE(QCPYSRC)` becomes `INCLUDE SRCSTMF('../qcpysrc/vars.clleinc')`,
   relative to the directory of the source, where CL searches it. Without `SRCFILE`, the member is in
   the source file of the including member.
 * Not converted are members of other libraries, of source files that are not migrated, members that
-  are not found, `EXEC SQL INCLUDE` of members and CL `INCLUDE` commands on several lines. The
-  preview shows them.
+  are not found and CL `INCLUDE` commands on several lines. The preview shows them.
 
 **TOBi files.** If the build tool of the new project is TOBi, the migration also writes:
 
@@ -305,7 +324,9 @@ Options:
 * A draft of `Rules.mk` in each directory with one rule per member: a program, or a module, if the
   `STRPREPRC` header uses `CRTRPGMOD`, `CRTCLMOD` or `OBJTYPE(*MODULE)`; `.FILE` for display,
   printer and database files; `.CMD` and `.PNLGRP`. Copy books are prerequisites with their path in
-  the project, CL rules set the directory of the source as `INCDIR`. Check the draft and set the
+  the project, CL rules set the directory of the source as `INCDIR`, and a source with an
+  `EXEC SQL INCLUDE` of a stream file gets `DBGVIEW := *LIST`, because the default `*SOURCE` of
+  TOBi fails for it (`SQL8009`). Check the draft and set the
   parameters of the installer or of the `STRPREPRC` headers, because the defaults of TOBi differ
   from the CL commands, e.g. `DBGVIEW` and `ACTGRP`.
 

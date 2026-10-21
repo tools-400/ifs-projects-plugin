@@ -11,17 +11,16 @@ package de.tools400.ifsprojects.migration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.sources.RpgIncludeDirective;
 import de.tools400.ifsprojects.sources.RpgLineConverter;
+import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
 
 /**
- * Converts the <code>/COPY</code> and <code>/INCLUDE</code> directives of RPG
- * sources and copy books, that refer to members, see {@link RpgLineConverter}
- * for the columns.
+ * Converts the <code>/COPY</code> and <code>/INCLUDE</code> directives and the
+ * <code>EXEC SQL INCLUDE</code> statements of RPG sources and copy books, that
+ * refer to members, see {@link RpgLineConverter} for the columns.
  * <ul>
  * <li>Member forms: <code>FILE,MEMBER</code>, <code>LIB/FILE,MEMBER</code> and
  * <code>MEMBER</code>, which is a member of <code>QRPGLESRC</code>.</li>
@@ -29,20 +28,21 @@ import de.tools400.ifsprojects.sources.RpgLineConverter;
  * project directory, which is the current directory of the build, e.g.
  * <code>/copy 'qcpysrc/consts.rpgleinc'</code> (verified with
  * <code>CRTBNDRPG</code> and nested copy books).</li>
- * <li>With {@link IncludeStyle#CONDITIONAL}, the member directive is kept for
- * the member build, see there.</li>
- * <li><code>EXEC SQL INCLUDE</code> of a member is not converted yet.</li>
+ * <li><code>EXEC SQL INCLUDE</code> names only a member, whose source file is
+ * the parameter <code>INCFILE</code> of the compiler; it is passed to the
+ * constructor, see
+ * {@link MemberIncludeConverter#create(String, String, Map, Set, IncludeStyle, String)}.
+ * The converted statement refers to the stream file like the directives, e.g.
+ * <code>exec sql include 'qcpysrc/hostvars.sqlrpgleinc'</code>, see
+ * {@link #getSqlIncludePath(String, String)}.</li>
+ * <li>With {@link IncludeStyle#CONDITIONAL}, the member directive and the
+ * member statement are kept for the member build, see there.</li>
  * </ul>
  */
 final class RpgMemberIncludeConverter extends MemberIncludeConverter {
 
     /** Source file of a member without source file, e.g. <code>/COPY CONSTS</code>. */
     private static final String DEFAULT_SOURCE_FILE = "QRPGLESRC"; //$NON-NLS-1$
-
-    /** <code>EXEC SQL INCLUDE</code> of a member, except SQLCA and SQLDA. */
-    private static final Pattern SQL_INCLUDE = Pattern.compile("\\bEXEC\\s+SQL\\s+INCLUDE\\s+(?!(?:SQLCA|SQLDA)\\b)([A-Z0-9$#@_]+)", //$NON-NLS-1$
-        Pattern.CASE_INSENSITIVE);
-    private static final String LINE_COMMENT = "//"; //$NON-NLS-1$
 
     private static final String IF_DEFINED = "/IF DEFINED("; //$NON-NLS-1$
     private static final String ELSE = "/ELSE"; //$NON-NLS-1$
@@ -54,16 +54,18 @@ final class RpgMemberIncludeConverter extends MemberIncludeConverter {
     private static final char QUOTE = '\'';
 
     private final IncludeStyle style;
+    private final String sqlIncludeFile;
 
-    RpgMemberIncludeConverter(String aLibrary, Map<String, String> aPaths, Set<String> aSourceFiles, IncludeStyle aStyle) {
+    RpgMemberIncludeConverter(String aLibrary, Map<String, String> aPaths, Set<String> aSourceFiles, IncludeStyle aStyle, String aSqlIncludeFile) {
         super(aLibrary, aPaths, aSourceFiles);
         this.style = aStyle;
+        this.sqlIncludeFile = aSqlIncludeFile;
     }
 
     @Override
-    protected LineConverter createLineConverter(final String aKey, final Result aResult) {
+    protected LineConverter createLineConverter(final String aKey, String aContent, final Result aResult) {
 
-        return new RpgLineConverter() {
+        return new RpgLineConverter(aContent) {
 
             @Override
             protected String convertDirective(int aLineNumber, RpgIncludeDirective aDirective) {
@@ -71,8 +73,8 @@ final class RpgMemberIncludeConverter extends MemberIncludeConverter {
             }
 
             @Override
-            protected void checkCode(int aLineNumber, String aCode) {
-                checkSqlInclude(aLineNumber, aCode, aResult);
+            protected String convertSqlInclude(RpgSqlIncludeDirective aDirective) {
+                return RpgMemberIncludeConverter.this.convertSqlInclude(aDirective, aResult);
             }
         };
     }
@@ -125,39 +127,107 @@ final class RpgMemberIncludeConverter extends MemberIncludeConverter {
         addConverted(aResult, aLineNumber, name, path);
 
         if (style == IncludeStyle.CONDITIONAL) {
-            return getConditional(aDirective, converted);
+            return getConditional(aDirective.getIndentation(), aDirective.getKeyword(), aDirective.getLine(), converted);
         }
 
         return converted;
     }
 
     /**
-     * Returns the converted directive, that is used, unless the condition of
-     * the member build is defined.
+     * Converts an <code>EXEC SQL INCLUDE</code> statement of a member.
+     *
+     * @return converted statement or <code>null</code>, if it has not been
+     *         changed
      */
-    private static String getConditional(RpgIncludeDirective aDirective, String aConverted) {
+    private String convertSqlInclude(RpgSqlIncludeDirective aDirective, Result aResult) {
 
-        String indentation = aDirective.getIndentation();
-        String keyword = aDirective.getKeyword();
+        String name = aDirective.getName();
+        if (name == null) {
+            addProblem(aResult, aDirective.getFirstLineNumber(), aDirective.getText(), Problem.NOT_SUPPORTED);
+            return null;
+        }
 
-        StringBuilder lines = new StringBuilder();
-        lines.append(indentation).append(toCaseOf(IF_DEFINED, keyword)).append(IncludeStyle.MEMBER_CONDITION).append(')');
-        lines.append(RpgLineConverter.LINE_SEPARATOR).append(aDirective.getLine());
-        lines.append(RpgLineConverter.LINE_SEPARATOR).append(indentation).append(toCaseOf(ELSE, keyword));
-        lines.append(RpgLineConverter.LINE_SEPARATOR).append(aConverted);
-        lines.append(RpgLineConverter.LINE_SEPARATOR).append(indentation).append(toCaseOf(ENDIF, keyword));
+        if (aDirective.isQuoted()) {
+            return null; // already a stream file
+        }
 
-        return lines.toString();
+        int lineNumber = aDirective.getLineNumber();
+        String member = name.toUpperCase(Locale.ROOT);
+        if (!ClCommands.isObjectName(member)) {
+            return null;
+        }
+
+        if (sqlIncludeFile == null) {
+            addProblem(aResult, lineNumber, name, Problem.AMBIGUOUS);
+            return null;
+        }
+
+        String library = null;
+        String sourceFile = sqlIncludeFile;
+        int slash = sourceFile.indexOf(LIBRARY_SEPARATOR);
+        if (slash >= 0) {
+            library = sourceFile.substring(0, slash);
+            sourceFile = sourceFile.substring(slash + 1);
+        }
+
+        String path = resolve(aResult, lineNumber, name, library, sourceFile, member);
+        if (path == null) {
+            return null;
+        }
+
+        String target = getSqlIncludePath(path);
+        String converted = aDirective.replaceName(QUOTE + target + QUOTE);
+        if (converted == null) {
+            addProblem(aResult, lineNumber, name, Problem.TOO_LONG);
+            return null;
+        }
+
+        addConverted(aResult, lineNumber, name, target);
+
+        if (style == IncludeStyle.CONDITIONAL) {
+            return getConditional(aDirective.getIndentation(), aDirective.getKeyword(), aDirective.getStatement(), converted);
+        }
+
+        return converted;
     }
 
-    private static void checkSqlInclude(int aLineNumber, String aLine, Result aResult) {
+    /**
+     * Returns the path, to which a converted <code>EXEC SQL INCLUDE</code>
+     * statement refers: the path relative to the project directory, which is
+     * the current directory of the build, like the <code>/COPY</code>
+     * directives. This is the only place, that forms the path. If the SQL
+     * precompiler searched a relative path in the directory of the including
+     * stream file instead, like CL does, the path would be
+     * <code>IfsPaths.getRelativePath(getPath(aKey), aPath)</code> of the
+     * including member, see {@link ClMemberIncludeConverter}.
+     *
+     * @param aPath - path of the included stream file relative to the project
+     *        directory
+     * @return path of the statement
+     */
+    private static String getSqlIncludePath(String aPath) {
+        return aPath;
+    }
 
-        int comment = aLine.indexOf(LINE_COMMENT);
-        String code = comment < 0 ? aLine : aLine.substring(0, comment);
+    /**
+     * Returns the converted directive or statement, that is used, unless the
+     * condition of the member build is defined.
+     *
+     * @param anIndentation - characters, in front of which a directive starts
+     * @param aKeyword - keyword, whose case the directives follow
+     * @param anOriginal - directive or statement of the member
+     * @param aConverted - converted directive or statement
+     * @return lines separated by {@link RpgLineConverter#LINE_SEPARATOR}
+     */
+    private static String getConditional(String anIndentation, String aKeyword, String anOriginal, String aConverted) {
 
-        Matcher matcher = SQL_INCLUDE.matcher(code);
-        if (matcher.find()) {
-            addProblem(aResult, aLineNumber, matcher.group(1), Problem.NOT_SUPPORTED);
-        }
+        StringBuilder lines = new StringBuilder();
+        lines.append(anIndentation).append(toCaseOf(IF_DEFINED, aKeyword)).append(IncludeStyle.MEMBER_CONDITION).append(')');
+        lines.append(RpgLineConverter.LINE_SEPARATOR).append(anOriginal);
+        lines.append(RpgLineConverter.LINE_SEPARATOR).append(anIndentation).append(toCaseOf(ELSE, aKeyword));
+        lines.append(RpgLineConverter.LINE_SEPARATOR).append(aConverted);
+        lines.append(RpgLineConverter.LINE_SEPARATOR).append(anIndentation).append(toCaseOf(ENDIF, aKeyword));
+
+        return lines.toString();
     }
 }

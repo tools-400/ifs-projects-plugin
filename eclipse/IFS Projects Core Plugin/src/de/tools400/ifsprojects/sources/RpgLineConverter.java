@@ -8,13 +8,18 @@
 
 package de.tools400.ifsprojects.sources;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
- * Finds the <code>/COPY</code> and <code>/INCLUDE</code> directives in the
- * lines of an RPG source or copy book and lets the subclass convert them.
+ * Finds the <code>/COPY</code> and <code>/INCLUDE</code> directives and the
+ * <code>EXEC SQL INCLUDE</code> statements (see {@link RpgSqlStatements}) in
+ * the lines of an RPG source or copy book and lets the subclass convert them.
+ * A converted SQL statement is written with its first line; its further lines
+ * are dropped.
  * <ul>
  * <li>Fixed format: the directive starts in column 7 or later, columns 81 and
  * later are comments and keep their position. Comment lines (<code>*</code> in
@@ -43,8 +48,28 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
      */
     public static final char LINE_SEPARATOR = '\n';
 
+    private final Map<Integer, RpgSqlIncludeDirective> sqlIncludes;
+
     private boolean isFree;
     private boolean isData;
+
+    /** Number of lines of a converted SQL statement, that are still to drop. */
+    private int droppedLines;
+
+    /**
+     * Creates the converter of the lines of a source.
+     *
+     * @param aContent - content of the source, which is searched for the
+     *        <code>EXEC SQL INCLUDE</code> statements, because they may span
+     *        several lines
+     */
+    protected RpgLineConverter(String aContent) {
+
+        this.sqlIncludes = new HashMap<Integer, RpgSqlIncludeDirective>();
+        for (RpgSqlIncludeDirective directive : RpgSqlStatements.find(aContent)) {
+            sqlIncludes.put(Integer.valueOf(directive.getFirstLineNumber()), directive);
+        }
+    }
 
     /**
      * Returns <code>true</code>, if the first line of a source starts with
@@ -59,6 +84,11 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
 
     public final String convert(int aLineNumber, String aLine) {
 
+        if (droppedLines > 0) {
+            droppedLines--;
+            return null;
+        }
+
         if (aLineNumber == 1 && isFree(aLine)) {
             isFree = true;
             return aLine;
@@ -67,6 +97,16 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
         if (isData || aLine.startsWith(COMPILE_TIME_DATA)) {
             isData = true;
             return aLine;
+        }
+
+        RpgSqlIncludeDirective sqlInclude = sqlIncludes.get(Integer.valueOf(aLineNumber));
+        if (sqlInclude != null) {
+            String converted = convertSqlInclude(sqlInclude);
+            if (converted == null) {
+                return aLine;
+            }
+            droppedLines = sqlInclude.getLineCount() - 1;
+            return converted;
         }
 
         return isFree ? convertFree(aLineNumber, aLine) : convertFixed(aLineNumber, aLine);
@@ -83,13 +123,16 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
     protected abstract String convertDirective(int aLineNumber, RpgIncludeDirective aDirective);
 
     /**
-     * Checks a line of code, which has not been changed by
-     * {@link #convertDirective}, e.g. for <code>EXEC SQL INCLUDE</code>.
+     * Converts an <code>EXEC SQL INCLUDE</code> statement, which may span
+     * several lines.
      *
-     * @param aLineNumber - line number, starting at 1
-     * @param aCode - line without the comment columns of fixed format sources
+     * @param aDirective - statement
+     * @return lines of the converted statement, separated by
+     *         {@link #LINE_SEPARATOR}, see
+     *         {@link RpgSqlIncludeDirective#replaceName(String)}, or
+     *         <code>null</code>, if the statement is not changed
      */
-    protected abstract void checkCode(int aLineNumber, String aCode);
+    protected abstract String convertSqlInclude(RpgSqlIncludeDirective aDirective);
 
     private String convertFree(int aLineNumber, String aLine) {
 
@@ -97,8 +140,6 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
         if (converted != null) {
             return converted;
         }
-
-        checkCode(aLineNumber, aLine);
 
         return aLine;
     }
@@ -118,8 +159,6 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
                 return appendComment(converted, comment);
             }
         }
-
-        checkCode(aLineNumber, code);
 
         return aLine;
     }

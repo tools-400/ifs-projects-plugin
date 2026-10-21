@@ -266,6 +266,7 @@ public class Messages extends NLS {
     public static String Problem_Line_A_include_B_not_exported;
     public static String Problem_Line_A_include_B_not_supported;
     public static String Problem_Line_A_include_B_too_long;
+    public static String Problem_Line_A_include_B_other_source_file;
     public static String Task_Exporting_A_to_B;
     public static String Question_Replace_member_A;
     public static String Log_Member_A_skipped;
@@ -325,6 +326,7 @@ public class Messages extends NLS {
     public static String Problem_Line_A_member_B_not_found;
     public static String Problem_Line_A_member_B_not_migrated;
     public static String Problem_Line_A_member_B_other_library;
+    public static String Problem_Line_A_member_B_source_file_unknown;
     public static String Question_Replace_file_A;
     public static String Task_Migrating_A_to_B;
     public static String Info_Migration_of_A_to_B_created_C_replaced_D_skipped_E;

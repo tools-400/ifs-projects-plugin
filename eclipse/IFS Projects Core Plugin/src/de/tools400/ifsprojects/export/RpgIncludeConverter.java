@@ -9,15 +9,15 @@
 package de.tools400.ifsprojects.export;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.tools400.ifsprojects.sources.RpgIncludeDirective;
 import de.tools400.ifsprojects.sources.RpgLineConverter;
+import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
 
 /**
- * Converts the <code>/COPY</code> and <code>/INCLUDE</code> directives of RPG
- * sources and copy books, see {@link RpgLineConverter} for the columns.
+ * Converts the <code>/COPY</code> and <code>/INCLUDE</code> directives and the
+ * <code>EXEC SQL INCLUDE</code> statements of RPG sources and copy books, see
+ * {@link RpgLineConverter} for the columns.
  * <ul>
  * <li>A quoted name (<code>'...'</code>, <code>"..."</code>) is a stream file,
  * an unquoted name with a comma a member (unchanged). An unquoted name without
@@ -25,15 +25,15 @@ import de.tools400.ifsprojects.sources.RpgLineConverter;
  * member name, unless it contains a slash or a period.</li>
  * <li>The converted directive refers to the member without library, e.g.
  * <code>/COPY INC,CONSTS</code>, in the case of the directive.</li>
- * <li><code>EXEC SQL INCLUDE</code> of a stream file cannot be converted,
- * because a member can only be specified with the parameter
- * <code>INCFILE</code> of the compiler.</li>
+ * <li><code>EXEC SQL INCLUDE</code> names only a member, e.g.
+ * <code>EXEC SQL INCLUDE HOSTVARS</code>. The compiler searches it in the
+ * source file of the parameter <code>INCFILE</code>, by default the source
+ * file of the compiled member. Therefore a statement, whose member is exported
+ * into another source file than the including member, is converted and
+ * reported as {@link Problem#INCLUDE_FILE}.</li>
  * </ul>
  */
 final class RpgIncludeConverter extends ExportIncludeConverter {
-
-    private static final Pattern SQL_INCLUDE = Pattern.compile("\\bEXEC\\s+SQL\\s+INCLUDE\\s+(['\"])(.*?)(\\1|$)", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
-    private static final String LINE_COMMENT = "//"; //$NON-NLS-1$
 
     private static final char MEMBER_SEPARATOR = ',';
     private static final char SEPARATOR = '/';
@@ -44,9 +44,9 @@ final class RpgIncludeConverter extends ExportIncludeConverter {
     }
 
     @Override
-    protected LineConverter createLineConverter(final String aPath, final Result aResult) {
+    protected LineConverter createLineConverter(final String aPath, String aContent, final Result aResult) {
 
-        return new RpgLineConverter() {
+        return new RpgLineConverter(aContent) {
 
             @Override
             protected String convertDirective(int aLineNumber, RpgIncludeDirective aDirective) {
@@ -54,8 +54,8 @@ final class RpgIncludeConverter extends ExportIncludeConverter {
             }
 
             @Override
-            protected void checkCode(int aLineNumber, String aCode) {
-                checkSqlInclude(aLineNumber, aCode, aResult);
+            protected String convertSqlInclude(RpgSqlIncludeDirective aDirective) {
+                return RpgIncludeConverter.this.convertSqlInclude(aPath, aDirective, aResult);
             }
         };
     }
@@ -102,14 +102,52 @@ final class RpgIncludeConverter extends ExportIncludeConverter {
         return converted;
     }
 
-    private static void checkSqlInclude(int aLineNumber, String aLine, Result aResult) {
+    /**
+     * Converts an <code>EXEC SQL INCLUDE</code> statement of a stream file to
+     * the member name.
+     *
+     * @return converted statement or <code>null</code>, if it has not been
+     *         changed
+     */
+    private String convertSqlInclude(String aPath, RpgSqlIncludeDirective aDirective, Result aResult) {
 
-        int comment = aLine.indexOf(LINE_COMMENT);
-        String code = comment < 0 ? aLine : aLine.substring(0, comment);
-
-        Matcher matcher = SQL_INCLUDE.matcher(code);
-        if (matcher.find()) {
-            addProblem(aResult, aLineNumber, matcher.group(2), Problem.NOT_SUPPORTED);
+        String name = aDirective.getName();
+        if (name == null) {
+            addProblem(aResult, aDirective.getFirstLineNumber(), aDirective.getText(), Problem.NOT_SUPPORTED);
+            return null;
         }
+
+        if (!aDirective.isQuoted()) {
+            return null; // already a member
+        }
+
+        int lineNumber = aDirective.getLineNumber();
+
+        String file = getResolver().resolveSqlInclude(aPath, name);
+        if (file == null) {
+            addProblem(aResult, lineNumber, name, Problem.NOT_FOUND);
+            return null;
+        }
+
+        ExportMapping.Entry member = getMember(file);
+        if (member == null) {
+            addProblem(aResult, lineNumber, name, Problem.NOT_TRANSFERRED);
+            return null;
+        }
+
+        String converted = aDirective.replaceName(toCaseOf(member.getMember(), aDirective.getKeyword()));
+        if (converted == null) {
+            addProblem(aResult, lineNumber, name, Problem.TOO_LONG);
+            return null;
+        }
+
+        ExportMapping.Entry including = getMember(aPath);
+        if (including != null && !including.getSourceFile().equals(member.getSourceFile())) {
+            addConverted(aResult, lineNumber, name, member.getTarget(), Problem.INCLUDE_FILE);
+        } else {
+            addConverted(aResult, lineNumber, name, member.getTarget());
+        }
+
+        return converted;
     }
 }

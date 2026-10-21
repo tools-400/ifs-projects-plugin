@@ -22,15 +22,19 @@ import java.util.TreeSet;
 import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.MemberText;
+import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
+import de.tools400.ifsprojects.sources.RpgSqlStatements;
 import de.tools400.ifsprojects.sources.SourceTypes;
 
 /**
  * Plan of a migration: the stream files of the members of source files, their
- * converted contents and the problems. The plan is computed in two passes:
- * the first pass finds the copy books, i.e. the members included by other
- * members, which get the extension of copy books, see
- * {@link MigrationMapping}; the second pass converts the include directives
- * to these paths and inserts the member text.
+ * converted contents and the problems. The plan is computed in three passes:
+ * the first pass determines the source file of the <code>EXEC SQL
+ * INCLUDE</code> statements of each member, see
+ * {@link #getSqlIncludeFiles()}; the second pass finds the copy books, i.e.
+ * the members included by other members, which get the extension of copy
+ * books, see {@link MigrationMapping}; the third pass converts the include
+ * directives to these paths and inserts the member text.
  * <p>
  * The contents must have the line separator <code>\n</code>, which the plan
  * uses for the lines it inserts.
@@ -107,23 +111,136 @@ public final class MigrationPlan {
 
     private void compute() {
 
-        Set<String> copyBooks = findCopyBooks();
+        Map<String, String> sqlIncludeFiles = getSqlIncludeFiles();
+        Set<String> copyBooks = findCopyBooks(sqlIncludeFiles);
         Map<String, String> paths = getPaths(copyBooks);
 
         for (Item item : items) {
             item.path = paths.get(item.member.getKey());
             addStaticProblems(item);
             if (item.isMigrated()) {
-                convert(item, paths);
+                convert(item, paths, sqlIncludeFiles.get(item.member.getKey()));
             }
         }
+    }
+
+    /**
+     * Returns the source file, in which the SQL precompiler searches the
+     * members of the <code>EXEC SQL INCLUDE</code> statements of a member, by
+     * the key of the member. Members without such a statement are omitted.
+     * <p>
+     * The statements name only a member, the source file is the parameter
+     * <code>INCFILE</code> of the compiler, by default the source file of the
+     * compiled member (<code>*SRCFILE</code>). Because <code>INCFILE</code>
+     * specifies one source file, all statements of a member refer to the same
+     * one. It is therefore determined per member:
+     * <ol>
+     * <li><code>INCFILE</code> of the <code>STRPREPRC</code> header, see
+     * {@link SourceHeader#getIncludeFile(String)}.</li>
+     * <li>Otherwise the source file, that contains the members of all
+     * statements: the own source file, which is the default of the compiler,
+     * otherwise the only one of the other migrated source files. That all
+     * names have to be in one source file resolves most ambiguities.</li>
+     * </ol>
+     * If no or several source files contain them, the value is
+     * <code>null</code> and the converter reports the statements, see
+     * {@link IncludeConverter.Problem#AMBIGUOUS}.
+     */
+    private Map<String, String> getSqlIncludeFiles() {
+
+        Map<String, Set<String>> sourceFilesOfMembers = new HashMap<String, Set<String>>();
+        for (Item item : items) {
+            String name = item.member.getName().toUpperCase(Locale.ROOT);
+            Set<String> files = sourceFilesOfMembers.get(name);
+            if (files == null) {
+                files = new HashSet<String>();
+                sourceFilesOfMembers.put(name, files);
+            }
+            files.add(item.member.getSourceFile().toUpperCase(Locale.ROOT));
+        }
+
+        Map<String, String> includeFiles = new HashMap<String, String>();
+        for (Item item : items) {
+
+            if (item.content == null || item.member.getSourceType() == null) {
+                continue;
+            }
+
+            List<String> names = getSqlIncludeNames(item.content);
+            if (names.isEmpty()) {
+                continue;
+            }
+
+            String includeFile = SourceHeader.getIncludeFile(item.content);
+            if (includeFile == null) {
+                includeFile = getSourceFileOf(item, names, sourceFilesOfMembers);
+            }
+
+            if (includeFile != null) {
+                includeFiles.put(item.member.getKey(), includeFile);
+            }
+        }
+
+        return includeFiles;
+    }
+
+    /**
+     * Returns the names of the members of the <code>EXEC SQL INCLUDE</code>
+     * statements of a source.
+     */
+    private static List<String> getSqlIncludeNames(String aContent) {
+
+        List<String> names = new ArrayList<String>();
+        for (RpgSqlIncludeDirective directive : RpgSqlStatements.find(aContent)) {
+            if (directive.getName() != null && !directive.isQuoted()) {
+                names.add(directive.getName().toUpperCase(Locale.ROOT));
+            }
+        }
+
+        return names;
+    }
+
+    /**
+     * Returns the source file, that contains all members of the
+     * <code>EXEC SQL INCLUDE</code> statements of a member, or
+     * <code>null</code>, if no or several source files contain them.
+     */
+    private static String getSourceFileOf(Item anItem, List<String> aNames, Map<String, Set<String>> aSourceFilesOfMembers) {
+
+        Set<String> candidates = null;
+        for (String name : aNames) {
+            Set<String> sourceFiles = aSourceFilesOfMembers.get(name);
+            if (sourceFiles == null) {
+                return null;
+            }
+            if (candidates == null) {
+                candidates = new HashSet<String>(sourceFiles);
+            } else {
+                candidates.retainAll(sourceFiles);
+            }
+        }
+
+        if (candidates == null || candidates.isEmpty()) {
+            return null;
+        }
+
+        String ownSourceFile = anItem.member.getSourceFile().toUpperCase(Locale.ROOT);
+        if (candidates.contains(ownSourceFile)) {
+            return ownSourceFile;
+        }
+
+        if (candidates.size() == 1) {
+            return candidates.iterator().next();
+        }
+
+        return null;
     }
 
     /**
      * Converts the includes with provisional paths, in which no member is a
      * copy book, and returns the members, to which the includes refer.
      */
-    private Set<String> findCopyBooks() {
+    private Set<String> findCopyBooks(Map<String, String> aSqlIncludeFiles) {
 
         Map<String, String> paths = getPaths(Collections.<String> emptySet());
 
@@ -131,7 +248,7 @@ public final class MigrationPlan {
         for (Item item : items) {
             if (item.content != null && item.member.getSourceType() != null) {
                 MemberIncludeConverter converter = MemberIncludeConverter.create(item.member.getSourceType(), library, paths, sourceFiles,
-                    IncludeStyle.REPLACE);
+                    IncludeStyle.REPLACE, aSqlIncludeFiles.get(item.member.getKey()));
                 if (converter != null) {
                     converter.convert(item.member.getKey(), item.content);
                     copyBooks.addAll(converter.getIncludedMembers());
@@ -180,11 +297,12 @@ public final class MigrationPlan {
         }
     }
 
-    private void convert(Item anItem, Map<String, String> aPaths) {
+    private void convert(Item anItem, Map<String, String> aPaths, String aSqlIncludeFile) {
 
         String content = anItem.content;
 
-        MemberIncludeConverter converter = MemberIncludeConverter.create(anItem.member.getSourceType(), library, aPaths, sourceFiles, settings.getIncludeStyle());
+        MemberIncludeConverter converter = MemberIncludeConverter.create(anItem.member.getSourceType(), library, aPaths, sourceFiles,
+            settings.getIncludeStyle(), aSqlIncludeFile);
         if (converter != null) {
             anItem.includes = converter.convert(anItem.member.getKey(), content);
             content = anItem.includes.getContent();

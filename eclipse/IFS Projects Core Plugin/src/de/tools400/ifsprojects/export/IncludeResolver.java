@@ -28,6 +28,9 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * <code>.rpgleinc</code> and <code>.rpgle</code>.</li>
  * <li>CL (<code>INCLUDE SRCSTMF()</code>): the directory of the including file
  * and the include directories. The current directory is not searched.</li>
+ * <li><code>EXEC SQL INCLUDE</code>: the current directory and the directory of
+ * the including file, without the extensions. The SQL precompiler searches
+ * neither the include directories nor other extensions.</li>
  * </ul>
  * Absolute paths are found, if they are in the project directory. Like the
  * IFS, the search ignores the case.
@@ -97,6 +100,31 @@ public final class IncludeResolver {
         directories.add(getDirectory(anIncludingFile));
 
         return resolve(directories, aName, RPG_EXTENSIONS);
+    }
+
+    /**
+     * Returns the file of an <code>EXEC SQL INCLUDE</code> statement of RPG:
+     * the current directory, which is the project directory for TOBi, and the
+     * directory of the including file. The include directories are not
+     * searched and the name is not completed with an extension (verified with
+     * <code>CRTSQLRPGI</code>: both end with
+     * <code>SQL8021 Source stream file could not be opened</code>).
+     *
+     * @param anIncludingFile - path of the including file relative to the
+     *        project directory
+     * @param aName - path of the statement, e.g.
+     *        <code>inc/hostvars.sqlrpgleinc</code>
+     * @return path of the file relative to the project directory, as passed to
+     *         the constructor, or <code>null</code>, if it is not a file of the
+     *         project
+     */
+    public String resolveSqlInclude(String anIncludingFile, String aName) {
+
+        List<String> directories = new ArrayList<String>();
+        directories.add(ROOT);
+        directories.add(getDirectory(anIncludingFile));
+
+        return resolve(directories, aName, NO_EXTENSIONS);
     }
 
     /**

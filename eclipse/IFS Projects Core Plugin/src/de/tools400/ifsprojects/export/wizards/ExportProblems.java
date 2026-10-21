@@ -58,6 +58,8 @@ final class ExportProblems {
                 return Messages.bind(Messages.Problem_Line_A_include_B_not_exported, lineNumber, aProblem.getText());
             case TOO_LONG:
                 return Messages.bind(Messages.Problem_Line_A_include_B_too_long, lineNumber, aProblem.getText());
+            case INCLUDE_FILE:
+                return Messages.bind(Messages.Problem_Line_A_include_B_other_source_file, lineNumber, aProblem.getText());
             default:
                 return Messages.bind(Messages.Problem_Line_A_include_B_not_supported, lineNumber, aProblem.getText());
             }

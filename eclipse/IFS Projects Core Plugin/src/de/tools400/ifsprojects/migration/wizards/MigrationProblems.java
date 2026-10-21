@@ -53,6 +53,8 @@ final class MigrationProblems {
                 return Messages.bind(Messages.Problem_Line_A_member_B_other_library, lineNumber, aProblem.getText());
             case TOO_LONG:
                 return Messages.bind(Messages.Problem_Line_A_include_B_too_long, lineNumber, aProblem.getText());
+            case AMBIGUOUS:
+                return Messages.bind(Messages.Problem_Line_A_member_B_source_file_unknown, lineNumber, aProblem.getText());
             default:
                 return Messages.bind(Messages.Problem_Line_A_include_B_not_supported, lineNumber, aProblem.getText());
             }

@@ -50,7 +50,7 @@ final class ClMemberIncludeConverter extends MemberIncludeConverter {
     }
 
     @Override
-    protected LineConverter createLineConverter(final String aKey, final Result aResult) {
+    protected LineConverter createLineConverter(final String aKey, String aContent, final Result aResult) {
 
         return new ClLineConverter() {
 

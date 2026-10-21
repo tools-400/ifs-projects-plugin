@@ -44,10 +44,10 @@ Packages below `de.tools400.ifsprojects`:
 | `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables`, `BuildTool` (also `hasMakeCharacters`: `$` and `#`). `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. `IfsProjectCreator`: directory, `iproj.json` and filter of a new IFS project. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
-| `sources` | Members and stream files, independent of the direction of a conversion: `SourceTypes` (extensions of TOBi, copy books `<type>inc`, default source files), `MemberText` (comment block `%METADATA`/`%TEXT` of `makei cvtsrcpf --text`: read and insert), `IncludeConverter` (converts a source line by line) with `RpgLineConverter`/`RpgIncludeDirective` (columns, `**FREE`, compile-time data) and `ClLineConverter` (labels, comments, continuation lines). |
+| `sources` | Members and stream files, independent of the direction of a conversion: `SourceTypes` (extensions of TOBi, copy books `<type>inc`, default source files), `MemberText` (comment block `%METADATA`/`%TEXT` of `makei cvtsrcpf --text`: read and insert), `IncludeConverter` (converts a source line by line) with `RpgLineConverter`/`RpgIncludeDirective` (columns, `**FREE`, compile-time data) and `ClLineConverter` (labels, comments, continuation lines). `RpgSqlStatements`/`RpgSqlIncludeDirective`: the `EXEC SQL INCLUDE` statements, which may span several lines, searched before the conversion; `RpgLineConverter` writes a converted statement as a block with its first line and drops its further lines (a line converter, that returns `null`). |
 | `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
-| `migration` | Migration of source members into a new IFS project: `SourceFileCatalog` (SQL catalog) with `SourceFile` and `SourceMember`, `MigrationMapping` (member to stream file), `MemberIncludeConverter` (`RpgMemberIncludeConverter`, `ClMemberIncludeConverter`), `IncludeStyle`, `MigrationSettings`, `MigrationPlan` (preview) computed by `MigrationAnalyzer`, `TobiBuildFiles` (`.ibmi.json`, `Rules.mk`), `MigrationFiles` (all files to write) and `MigrationJob`. |
+| `migration` | Migration of source members into a new IFS project: `SourceFileCatalog` (SQL catalog) with `SourceFile` and `SourceMember`, `MigrationMapping` (member to stream file), `MemberIncludeConverter` (`RpgMemberIncludeConverter`, `ClMemberIncludeConverter`), `IncludeStyle`, `MigrationSettings`, `MigrationPlan` (preview) computed by `MigrationAnalyzer`, `SourceHeader` (create command and `INCFILE` of the `STRPREPRC` header), `TobiBuildFiles` (`.ibmi.json`, `Rules.mk`), `MigrationFiles` (all files to write) and `MigrationJob`. |
 | `migration.wizards` | `MigrateToIfsProjectWizard` with `SourceFilesWizardPage`, `MigrationPreviewWizardPage` and `project.wizards.NewIfsProjectWizardPage`. Started by `handlers.MigrateSourceFilesHandler` on a library or on source files. |
 | `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. |
 | `dialogs` | `SelectIfsDirectoryDialog`, `ToolTipInputDialog`. `OverwriteQuery` (Yes, Yes To All, No, No To All, Cancel) with `OverwriteQueryDialog` and `RememberingOverwriteQuery`, which remembers the answers '... To All' for a job. `JobSummary`: message and errors at the end of the export and of the migration. |
@@ -252,6 +252,13 @@ source members, e.g. for a change management system. The facts below were verifi
     is the member `QRPGLESRC,NAME` of the library list. Each copy book needs its own `**FREE`.
   * CL searches the directory of the including file and the `INCDIR` directories, not the current
     directory.
+  * `EXEC SQL INCLUDE` names only a member, which the SQL precompiler searches in the source file
+    of `INCFILE`, by default the source file of the compiled member. A statement, whose member is
+    exported into another source file, is converted and reported as `INCLUDE_FILE`, because the
+    export cannot write the source file into the source. `IncludeResolver.resolveSqlInclude`
+    searches the directories of RPG without the extensions; that this is a superset of the
+    directories of the precompiler does not matter, because the converted statement names the
+    member, not the path.
 * `RpgLineConverter` (used by `RpgIncludeConverter`): fixed format from column 7, the columns 81
   and later keep their position, compile-time data after the first `**` line are not changed.
   `ClIncludeConverter`: only `INCLUDE SRCSTMF()` on one line. The target is written in the case
@@ -296,9 +303,43 @@ project, the reverse of the export. The facts below were verified on the IBM i (
 * RPG: `/copy 'qcpysrc/consts.rpgleinc'` relative to the current directory works in free and fixed
   format (directive from column 7) and nested. `CRTBNDRPG` of a UTF-8 source needs
   `TGTCCSID(*JOB)`; otherwise it reports `RNS9339 Unable to open file`. The conditional block with
-  `/if defined(MBR_BUILD)` compiles without `DEFINE`. `CRTSQLRPGI` accepts
-  `exec sql include 'path'` with `CVTCCSID(*JOB)`, but the migration does not convert
-  `EXEC SQL INCLUDE` of members yet.
+  `/if defined(MBR_BUILD)` compiles without `DEFINE`.
+* `EXEC SQL INCLUDE` of a member becomes `exec sql include '<path>'`; `CRTSQLRPGI` accepts the path
+  with `CVTCCSID(*JOB)`. Because the statement names only a member, whose source file is the
+  parameter `INCFILE` of the compiler (default: the source file of the member) and because
+  `INCFILE` names one source file, all statements of a member refer to the same source file.
+  `MigrationPlan.getSqlIncludeFiles()` determines it: `INCFILE` of the `STRPREPRC` header
+  (`SourceHeader`), otherwise the source file, that contains the members of all statements of the
+  member (its own source file first, then the only other migrated source file, that contains them
+  all); if no or several contain them, the statements are reported as `AMBIGUOUS`. The members
+  found this way become copy books like those of `/COPY`, so they get the extension `typeinc` and
+  the `Rules.mk` draft lists them as prerequisites.
+* Verified with `CRTSQLRPGI` and `makei build` (7.5, TOBi 3.4):
+  * A relative path of `exec sql include '<path>'` is found in the current directory, which is the
+    project directory of a TOBi build, and in the directory of the including stream file; absolute
+    paths work. The migration therefore writes the path relative to the project directory, like
+    `/COPY` (`RpgMemberIncludeConverter.getSqlIncludePath()`, the only place that forms the path).
+  * The precompiler searches neither `INCDIR` nor other extensions: both end with
+    `SQL8021 Source stream file could not be opened`.
+  * It evaluates `/if defined(MBR_BUILD)`, so `IncludeStyle.CONDITIONAL` may enclose an
+    `exec sql` statement.
+  * An included source, that is free format, needs its own `**FREE` line, like a copy book of
+    `/COPY`; otherwise its declarations are read as fixed format and the host variables are
+    unknown (`SQL0312`). The migration does not change the content, so a member, that was included
+    as a member, already has the right form.
+  * An included source must not contain an `EXEC SQL INCLUDE` itself:
+    `SQL0008 Nested INCLUDE statements not supported`, for stream files and for members. The
+    conversion does not report it: the message applies to members as well, so a source, that
+    compiles as a member, has no nested statement, and the migration does not add one.
+  * `DBGVIEW(*SOURCE)`, the default of TOBi, fails as soon as a statement includes a stream file:
+    `SQL8009 Debug view creation failed` (CPF956B, CPF9551, CPF956A). Without such a statement it
+    works, `DBGVIEW(*LIST)` and `(*STMT)` always do. The draft of `Rules.mk` therefore sets
+    `private DBGVIEW := *LIST` for an `SQLRPGLE` target, whose converted source includes a stream
+    file (verified: the generated rule builds).
+  * Members (export): `EXEC SQL INCLUDE HOSTVARS` compiles without `INCFILE`, if `HOSTVARS` is in
+    the source file of the compiled member; otherwise it reports
+    `SQL0004 Member HOSTVARS for SQL INCLUDE not found` and needs `INCFILE`, which is the reason
+    for `Problem.INCLUDE_FILE`.
 * CL: `INCLUDE SRCSTMF()` finds a relative path in the directory of the including file (also
   `../dir/file`), not in the current directory. `INCLUDE SRCMBR()` without `SRCFILE` uses the source
   file of the including member.

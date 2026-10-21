@@ -14,10 +14,11 @@ import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.SourceTypes;
 
 /**
- * Converts the include directives of a source, that refer to stream files, so
- * that they refer to the members of the export, e.g.
- * <code>/copy 'inc/consts.rpgleinc'</code> to <code>/copy inc,consts</code>.
- * Directives, that refer to members, are not changed.
+ * Converts the include directives and the <code>EXEC SQL INCLUDE</code>
+ * statements of a source, that refer to stream files, so that they refer to the
+ * members of the export, e.g. <code>/copy 'inc/consts.rpgleinc'</code> to
+ * <code>/copy inc,consts</code>. Directives, that refer to members, are not
+ * changed.
  */
 public abstract class ExportIncludeConverter extends IncludeConverter {
 

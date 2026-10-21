@@ -13,10 +13,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import de.tools400.ifsprojects.ibmi.IfsPaths;
+import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
+import de.tools400.ifsprojects.sources.RpgSqlStatements;
 import de.tools400.ifsprojects.sources.SourceTypes;
 
 /**
@@ -28,12 +28,16 @@ import de.tools400.ifsprojects.sources.SourceTypes;
  * the source files.</li>
  * <li>A draft of the <code>Rules.mk</code> of a directory with one rule per
  * member. The object type comes from the <code>STRPREPRC</code> header
- * (<code>&gt;&gt;CRTCMD&lt;&lt;</code>), otherwise from the source type. The
+ * (<code>&gt;&gt;CRTCMD&lt;&lt;</code>, see {@link SourceHeader}), otherwise
+ * from the source type. The
  * copy books of a member are its prerequisites with their paths relative to the
  * project directory, because TOBi passes prerequisites with unknown extensions
  * like <code>rpgleinc</code> unchanged to make, which runs in the project
  * directory. CL programs and panel groups get the recipe, that TOBi 3.4 does not
- * assign itself, and CL sources the directory of the source as INCDIR.</li>
+ * assign itself, CL sources the directory of the source as INCDIR, and sources
+ * with an <code>EXEC SQL INCLUDE</code> of a stream file
+ * <code>DBGVIEW := *LIST</code>, because the default <code>*SOURCE</code> of
+ * TOBi fails for them.</li>
  * </ul>
  */
 public final class TobiBuildFiles {
@@ -48,13 +52,6 @@ public final class TobiBuildFiles {
     private static final String TAB = "\t"; //$NON-NLS-1$
     private static final String JOB_CCSID = "*JOB"; //$NON-NLS-1$
 
-    private static final Pattern CREATE_COMMAND = Pattern.compile(">>CRTCMD<<\\s*(\\w+)", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
-    private static final Pattern MODULE_OBJECT_TYPE = Pattern.compile("OBJTYPE\\(\\s*\\*MODULE\\s*\\)", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
-    private static final int HEADER_LINES = 100;
-
-    /** Suffix of the commands, that create modules, e.g. <code>CRTRPGMOD</code>. */
-    private static final String MODULE_COMMAND_SUFFIX = "MOD"; //$NON-NLS-1$
-
     private static final String MODULE = "MODULE"; //$NON-NLS-1$
     private static final String PGM = "PGM"; //$NON-NLS-1$
     private static final String FILE = "FILE"; //$NON-NLS-1$
@@ -63,6 +60,9 @@ public final class TobiBuildFiles {
 
     private static final String CL_PROGRAM_RECIPE = "$(PGM.CLLE_TO_PGM_RECIPE)"; //$NON-NLS-1$
     private static final String PANEL_GROUP_RECIPE = "$(PNLGRPSRC_TO_PNLGRP_RECIPE)"; //$NON-NLS-1$
+
+    /** Reason of the DBGVIEW of a program with an EXEC SQL INCLUDE. */
+    private static final String DEBUG_VIEW_COMMENT = "# DBGVIEW(*SOURCE) fails for EXEC SQL INCLUDE of a stream file (SQL8009)."; //$NON-NLS-1$
 
     private TobiBuildFiles() {
         // Utility class
@@ -178,6 +178,11 @@ public final class TobiBuildFiles {
             // TOBi compiles CL from a copy in QTEMP, so that INCLUDE finds
             // relative paths only in INCDIR (verified with makei 3.4).
             rule.append(target).append(": private INCDIR := '").append(MigrationMapping.getDirectory(anItem.getMember().getSourceFile())).append("'").append(LF); //$NON-NLS-1$ //$NON-NLS-2$
+        } else if (SourceTypes.SQLRPGLE.equals(sourceType) && hasSqlIncludeOfStreamFile(anItem.getContent())) {
+            // DBGVIEW(*SOURCE), the default of TOBi, fails for a statement
+            // that includes a stream file (verified with makei 3.4).
+            rule.append(DEBUG_VIEW_COMMENT).append(LF);
+            rule.append(target).append(": private DBGVIEW := *LIST").append(LF); //$NON-NLS-1$
         }
         rule.append(target).append(": ").append(fileName); //$NON-NLS-1$
         for (String copyBook : anItem.getIncludedPaths()) {
@@ -195,6 +200,22 @@ public final class TobiBuildFiles {
     }
 
     /**
+     * Returns <code>true</code>, if a source includes a stream file with an
+     * <code>EXEC SQL INCLUDE</code> statement, i.e. the statement has a quoted
+     * name.
+     */
+    private static boolean hasSqlIncludeOfStreamFile(String aContent) {
+
+        for (RpgSqlIncludeDirective directive : RpgSqlStatements.find(aContent)) {
+            if (directive.isQuoted()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns the object type of a member: from the create command of its
      * <code>STRPREPRC</code> header, otherwise from its source type.
      *
@@ -204,15 +225,7 @@ public final class TobiBuildFiles {
     private static String getObjectType(String aSourceType, String aContent) {
 
         if (SourceTypes.RPGLE.equals(aSourceType) || SourceTypes.SQLRPGLE.equals(aSourceType) || SourceTypes.CLLE.equals(aSourceType)) {
-            String header = getHeader(aContent);
-            Matcher matcher = CREATE_COMMAND.matcher(header);
-            if (matcher.find()) {
-                String command = matcher.group(1).toUpperCase(Locale.ROOT);
-                if (command.endsWith(MODULE_COMMAND_SUFFIX) || MODULE_OBJECT_TYPE.matcher(header).find()) {
-                    return MODULE;
-                }
-            }
-            return PGM;
+            return SourceHeader.isModule(aContent) ? MODULE : PGM;
         }
 
         if ("DSPF".equals(aSourceType) || "PRTF".equals(aSourceType) || "PF".equals(aSourceType) || "LF".equals(aSourceType)) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -228,15 +241,5 @@ public final class TobiBuildFiles {
         }
 
         return null;
-    }
-
-    private static String getHeader(String aContent) {
-
-        int end = 0;
-        for (int i = 0; i < HEADER_LINES && end >= 0; i++) {
-            end = aContent.indexOf(LF, end + 1);
-        }
-
-        return end < 0 ? aContent : aContent.substring(0, end);
     }
 }

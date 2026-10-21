@@ -19,7 +19,9 @@ import java.util.Locale;
  * <code>/copy inc,consts</code>). The subclasses decide, to what a directive
  * refers after the conversion, see {@link RpgLineConverter} and
  * {@link ClLineConverter}. The rest of the source is kept unchanged, including
- * the line separators.
+ * the line separators; only a converted statement, that spans several lines, is
+ * written as a block with the line separator <code>\n</code>, see
+ * {@link LineConverter#convert(int, String)}.
  */
 public abstract class IncludeConverter {
 
@@ -37,9 +39,24 @@ public abstract class IncludeConverter {
         StringBuilder content = new StringBuilder(aContent.length());
 
         List<String[]> lines = splitLines(aContent);
-        LineConverter lineConverter = createLineConverter(aPath, result);
+        LineConverter lineConverter = createLineConverter(aPath, aContent, result);
+
+        String[] converted = new String[lines.size()];
         for (int i = 0; i < lines.size(); i++) {
-            content.append(lineConverter.convert(i + 1, lines.get(i)[0])).append(lines.get(i)[1]);
+            converted[i] = lineConverter.convert(i + 1, lines.get(i)[0]);
+        }
+
+        for (int i = 0; i < lines.size(); i++) {
+            if (converted[i] == null) {
+                continue;
+            }
+            // The dropped lines belong to the text of this line, so the text
+            // is ended by the line separator of the last of them.
+            int last = i;
+            while (last + 1 < lines.size() && converted[last + 1] == null) {
+                last++;
+            }
+            content.append(converted[i]).append(lines.get(last)[1]);
         }
 
         result.content = content.toString();
@@ -51,10 +68,13 @@ public abstract class IncludeConverter {
      * Returns the converter of the lines of a source.
      *
      * @param aPath - path of the source, see {@link #convert(String, String)}
+     * @param aContent - content of the source, which a converter of statements
+     *        that span several lines searches before the conversion, see
+     *        {@link RpgSqlStatements}
      * @param aResult - result, to which the includes are added
      * @return converter
      */
-    protected abstract LineConverter createLineConverter(String aPath, Result aResult);
+    protected abstract LineConverter createLineConverter(String aPath, String aContent, Result aResult);
 
     /**
      * Adds a converted directive to a result.
@@ -66,6 +86,21 @@ public abstract class IncludeConverter {
      */
     protected static void addConverted(Result aResult, int aLineNumber, String aName, String aTarget) {
         aResult.includes.add(new Include(aLineNumber, aName, aTarget, null));
+    }
+
+    /**
+     * Adds a converted directive, that needs attention, to a result, e.g.
+     * because the member of an <code>EXEC SQL INCLUDE</code> is in another
+     * source file, see {@link Problem#INCLUDE_FILE}.
+     *
+     * @param aResult - result
+     * @param aLineNumber - line number, starting at 1
+     * @param aName - name of the directive before the conversion
+     * @param aTarget - name of the directive after the conversion
+     * @param aProblem - reason, why it needs attention
+     */
+    protected static void addConverted(Result aResult, int aLineNumber, String aName, String aTarget, Problem aProblem) {
+        aResult.includes.add(new Include(aLineNumber, aName, aTarget, aProblem));
     }
 
     /**
@@ -103,7 +138,7 @@ public abstract class IncludeConverter {
      * @return lines, each an array with the text of the line and its line
      *         separator, which is empty for the last line
      */
-    private static List<String[]> splitLines(String aText) {
+    static List<String[]> splitLines(String aText) {
 
         List<String[]> lines = new ArrayList<String[]>();
 
@@ -140,7 +175,10 @@ public abstract class IncludeConverter {
          *
          * @param aLineNumber - line number, starting at 1
          * @param aLine - line without line separator
-         * @return converted or unchanged line
+         * @return converted or unchanged line, or <code>null</code>, if the
+         *         line and its line separator are dropped, because the
+         *         converter has written it with a previous line, e.g. a
+         *         statement that spans several lines
          */
         String convert(int aLineNumber, String aLine);
     }
@@ -159,14 +197,33 @@ public abstract class IncludeConverter {
          */
         NOT_TRANSFERRED,
 
-        /** The directive cannot be converted, e.g. <code>EXEC SQL INCLUDE</code>. */
+        /**
+         * The directive cannot be converted, e.g. an <code>EXEC SQL
+         * INCLUDE</code> statement, whose name cannot be isolated.
+         */
         NOT_SUPPORTED,
 
         /** The converted directive does not fit into the columns of the source. */
         TOO_LONG,
 
         /** The directive refers to a member of another library. */
-        OTHER_LIBRARY;
+        OTHER_LIBRARY,
+
+        /**
+         * The directive has been converted, but the member is in another
+         * source file than the including member. Because <code>EXEC SQL
+         * INCLUDE</code> names only a member, the source file has to be
+         * specified with the parameter <code>INCFILE</code> of the compiler.
+         */
+        INCLUDE_FILE,
+
+        /**
+         * The source file of the <code>EXEC SQL INCLUDE</code> statements of a
+         * member cannot be determined, because no or several source files
+         * contain their members, see
+         * {@link de.tools400.ifsprojects.migration.MigrationPlan}.
+         */
+        AMBIGUOUS;
     }
 
     /**
@@ -211,8 +268,10 @@ public abstract class IncludeConverter {
         }
 
         /**
-         * Returns the problem, because of which the directive has not been
-         * converted, or <code>null</code>, if it has been converted.
+         * Returns the problem of the directive or <code>null</code>, if it has
+         * none. A converted directive, i.e. one with a target, may have a
+         * problem, that needs attention, see
+         * {@link IncludeConverter#addConverted(Result, int, String, String, Problem)}.
          */
         public Problem getProblem() {
             return problem;
