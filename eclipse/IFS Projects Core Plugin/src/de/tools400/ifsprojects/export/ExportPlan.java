@@ -550,6 +550,14 @@ public final class ExportPlan {
         }
 
         /**
+         * Returns the content of the file, as it has been read, or
+         * <code>null</code>, if it could not be read.
+         */
+        public String getOriginalContent() {
+            return rawContent;
+        }
+
+        /**
          * Returns the include directives of the file or <code>null</code>, if
          * they are not converted.
          */

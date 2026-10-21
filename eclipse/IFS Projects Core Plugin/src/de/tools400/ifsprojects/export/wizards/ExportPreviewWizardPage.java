@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -29,6 +31,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.dialogs.SourceViewDialog;
 import de.tools400.ifsprojects.export.ExportPlan;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.swt.CheckboxTableGroup;
@@ -109,6 +112,12 @@ public class ExportPreviewWizardPage extends WizardPage {
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent anEvent) {
                 showDetails((ExportPlan.Item)((IStructuredSelection)anEvent.getSelection()).getFirstElement());
+            }
+        });
+
+        viewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent anEvent) {
+                showSource((ExportPlan.Item)((IStructuredSelection)anEvent.getSelection()).getFirstElement());
             }
         });
 
@@ -273,6 +282,21 @@ public class ExportPreviewWizardPage extends WizardPage {
         }
 
         detailsText.setText(details.toString().trim());
+    }
+
+    /**
+     * Shows the content of the member of a file, which does not exist yet, and
+     * the file, from which it is created.
+     */
+    private void showSource(ExportPlan.Item anItem) {
+
+        if (anItem == null) {
+            return;
+        }
+
+        String member = anItem.getMember() == null ? anItem.getPath() : anItem.getSourceFile() + '(' + anItem.getMember() + ')';
+
+        SourceViewDialog.open(getShell(), anItem.getPath(), anItem.getPath(), anItem.getOriginalContent(), member, anItem.getContent());
     }
 
     /**

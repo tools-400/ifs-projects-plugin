@@ -9,6 +9,8 @@
 package de.tools400.ifsprojects.migration.wizards;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -27,6 +29,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.dialogs.SourceViewDialog;
 import de.tools400.ifsprojects.migration.MigrationPlan;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.swt.TableToolTips;
@@ -97,6 +100,12 @@ public class MigrationPreviewWizardPage extends WizardPage {
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent anEvent) {
                 showDetails((MigrationPlan.Item)((IStructuredSelection)anEvent.getSelection()).getFirstElement());
+            }
+        });
+
+        viewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent anEvent) {
+                showSource((MigrationPlan.Item)((IStructuredSelection)anEvent.getSelection()).getFirstElement());
             }
         });
 
@@ -194,6 +203,22 @@ public class MigrationPreviewWizardPage extends WizardPage {
         }
 
         detailsText.setText(details.toString().trim());
+    }
+
+    /**
+     * Shows the content of the stream file of a member, which does not exist
+     * yet, and the member, from which it is created.
+     */
+    private void showSource(MigrationPlan.Item anItem) {
+
+        if (anItem == null) {
+            return;
+        }
+
+        String member = anItem.getMember().getKey();
+        String path = anItem.getPath() == null ? member : anItem.getPath();
+
+        SourceViewDialog.open(getShell(), path, member, anItem.getOriginalContent(), path, anItem.getContent());
     }
 
     /**

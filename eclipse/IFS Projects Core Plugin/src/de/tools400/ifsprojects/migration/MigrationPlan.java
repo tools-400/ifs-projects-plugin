@@ -454,6 +454,15 @@ public final class MigrationPlan {
         }
 
         /**
+         * Returns the content of the member, as it has been read, with the
+         * line separator <code>\n</code>, or <code>null</code>, if it could
+         * not be read.
+         */
+        public String getOriginalContent() {
+            return content;
+        }
+
+        /**
          * Returns the include directives of the member or <code>null</code>,
          * if its source type has none.
          */

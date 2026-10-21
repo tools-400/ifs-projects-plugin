@@ -253,6 +253,16 @@ characters that do not exist in the CCSID of the source file or include directiv
 converted, do not prevent the export. Select a file to see all its problems, the converted include
 directives and the member text. You can deselect files.
 
+A **double-click on a file** shows the source, that would be written into the member — the member
+does not exist yet, so it cannot be opened in an editor:
+
+* *Result*: the converted source in the viewer of the text editors, with line numbers and the text
+  font of the workbench. *Find* is the search of the editors, on the button and on Ctrl+F.
+  Replacing is not possible: the source is only shown, it is written by *Finish*.
+* *Comparison*: the stream file of the project and the member side by side, so that the converted
+  lines are easy to find. The search is only available on *Result*, because the compare viewer of
+  the platform offers it in an editor only.
+
 **Export.** *Finish* starts the export in the background. Before an existing member is replaced,
 you are asked: *Yes*, *Yes To All*, *No*, *No To All* or *Cancel*. The commands are shown in the
 *Commands Log* view, a summary at the end. The next export of the project starts with the same
@@ -334,6 +344,9 @@ Options:
 *Error*) and problems. Members without source type are not migrated. Warnings, e.g. a source type
 unknown to TOBi, `$` or `#` in the member name or include directives that are not converted, do not
 prevent the migration. The tool tip of a row shows all problems; select a member to see its details.
+A **double-click on a member** shows the source, that would be written into the stream file, like
+the preview of the export: the tab *Result* with line numbers and the search, the tab
+*Comparison* with the member and the stream file side by side.
 
 **Project.** The third page is the page of *New > IFS Project...*. It proposes the directory
 `<home>/<library>`; a directory with `$` or `#` is not accepted. *Finish* creates the project and

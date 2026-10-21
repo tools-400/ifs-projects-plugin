@@ -305,6 +305,9 @@ public class Messages extends NLS {
     public static String Description_Migration_source_files_page;
     public static String Description_Migration_preview_page;
     public static String Label_Select_all;
+    public static String Label_Tab_Result;
+    public static String Label_Tab_Comparison;
+    public static String Label_Find;
     public static String Label_Deselect_all;
     public static String Label_Column_Source_file;
     public static String Label_Column_Text;
