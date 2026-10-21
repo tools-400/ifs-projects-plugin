@@ -23,21 +23,24 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IFindReplaceTarget;
 import org.eclipse.jface.text.source.CompositeRuler;
 import org.eclipse.jface.text.source.LineNumberRulerColumn;
 import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -52,13 +55,24 @@ import de.tools400.ifsprojects.Messages;
  * <ul>
  * <li>Tab <i>Result</i>: the converted source in the viewer of the text
  * editors ({@link SourceViewer}) with line numbers and the text font of the
- * workbench, read-only. <i>Find/Replace</i> is the action of the editors
- * ({@link FindReplaceAction}), on the button and on Ctrl+F.</li>
+ * workbench, read-only.</li>
  * <li>Tab <i>Comparison</i>: the source before and after the conversion in the
  * compare viewer of the platform, read-only. It is missing, if there is
- * nothing to compare. The compare viewer keeps its find/replace target to
- * itself and wires its own action to a workbench part, which a dialog does not
- * have; therefore the button is disabled on this tab.</li>
+ * nothing to compare.</li>
+ * </ul>
+ * The search is the action of the editors ({@link FindReplaceAction}) on both
+ * tabs, on the button and on Ctrl+F; replacing is not possible, because both
+ * viewers are read-only.
+ * <ul>
+ * <li>Ctrl+F is bound in the context <i>In Windows</i> only, which is not
+ * active while the shell of a dialog is active - unlike Copy and Paste, which
+ * the workbench binds for <i>In Dialogs and Windows</i>. The dialog therefore
+ * catches the key itself with a filter of the display, limited to its own
+ * shell, see {@link #hookFindKey()}.</li>
+ * <li>The target of the comparison comes from
+ * {@link TextMergeViewer#getAdapter(Class)}; it follows the pane with the
+ * focus, therefore the tab sets the focus into the viewer, when it is
+ * selected. Without it, the target is empty and the search finds nothing.</li>
  * </ul>
  */
 public final class SourceViewDialog extends Dialog {
@@ -86,6 +100,9 @@ public final class SourceViewDialog extends Dialog {
 
     private TabFolder tabs;
     private FindReplaceAction findReplace;
+    private TextMergeViewer compareViewer;
+    private FindReplaceAction compareFindReplace;
+    private Listener findKeyFilter;
 
     /**
      * Creates the dialog.
@@ -154,7 +171,69 @@ public final class SourceViewDialog extends Dialog {
             comparison.setControl(createCompareViewer(tabs));
         }
 
+        // The target of the comparison follows the pane with the focus.
+        tabs.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent anEvent) {
+                if (compareViewer != null && tabs.getSelectionIndex() != RESULT_TAB) {
+                    compareViewer.getControl().setFocus();
+                }
+            }
+        });
+
+        hookFindKey();
+
         return area;
+    }
+
+    /**
+     * Catches Ctrl+F, which the workbench binds in the context 'In Windows'
+     * only, so that it is not active in a dialog. The filter is limited to the
+     * shell of this dialog and is removed, when the shell is disposed.
+     */
+    private void hookFindKey() {
+
+        final Shell shell = getShell();
+        final Display display = shell.getDisplay();
+
+        findKeyFilter = new Listener() {
+            public void handleEvent(Event anEvent) {
+
+                if (!anEvent.doit || !(anEvent.widget instanceof Control) || ((Control)anEvent.widget).getShell() != shell) {
+                    return;
+                }
+
+                int modifiers = anEvent.stateMask & SWT.MODIFIER_MASK;
+                if (modifiers == SWT.MOD1 && anEvent.keyCode == 'f') {
+                    anEvent.doit = false;
+                    anEvent.type = SWT.None;
+                    currentFindReplace().run();
+                }
+            }
+        };
+
+        display.addFilter(SWT.KeyDown, findKeyFilter);
+
+        shell.addDisposeListener(new DisposeListener() {
+            public void widgetDisposed(DisposeEvent anEvent) {
+                if (findKeyFilter != null) {
+                    display.removeFilter(SWT.KeyDown, findKeyFilter);
+                    findKeyFilter = null;
+                }
+            }
+        });
+    }
+
+    /**
+     * Returns the action of the search of the tab, that is selected.
+     */
+    private FindReplaceAction currentFindReplace() {
+
+        if (compareFindReplace != null && tabs.getSelectionIndex() != RESULT_TAB) {
+            return compareFindReplace;
+        }
+
+        return findReplace;
     }
 
     /**
@@ -178,15 +257,6 @@ public final class SourceViewDialog extends Dialog {
 
         findReplace = new FindReplaceAction(FIND_REPLACE_BUNDLE, "", getShell(), viewer.getFindReplaceTarget()); //$NON-NLS-1$
 
-        viewer.getTextWidget().addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent anEvent) {
-                if (anEvent.stateMask == SWT.MOD1 && (anEvent.keyCode == 'f' || anEvent.keyCode == 'F')) {
-                    findReplace.run();
-                }
-            }
-        });
-
         return composite;
     }
 
@@ -205,33 +275,28 @@ public final class SourceViewDialog extends Dialog {
         configuration.setLeftEditable(false);
         configuration.setRightEditable(false);
 
-        TextMergeViewer viewer = new TextMergeViewer(composite, SWT.NONE, configuration);
-        viewer.setInput(new DiffNode(new Content(originalLabel, originalContent), new Content(resultLabel, resultContent)));
+        compareViewer = new TextMergeViewer(composite, SWT.NONE, configuration);
+        compareViewer.setInput(new DiffNode(new Content(originalLabel, originalContent), new Content(resultLabel, resultContent)));
+
+        // The viewer builds the action of the search itself, if it runs
+        // without a workbench part, and offers its target as an adapter.
+        IFindReplaceTarget target = compareViewer.getAdapter(IFindReplaceTarget.class);
+        compareFindReplace = new FindReplaceAction(FIND_REPLACE_BUNDLE, "", getShell(), target); //$NON-NLS-1$
 
         return composite;
     }
 
     @Override
     protected void createButtonsForButtonBar(Composite aParent) {
-
-        final Button find = createButton(aParent, FIND_ID, Messages.Label_Find, false);
+        createButton(aParent, FIND_ID, Messages.Label_Find, false);
         createButton(aParent, IDialogConstants.CLOSE_ID, IDialogConstants.CLOSE_LABEL, true);
-
-        // The compare viewer wires its own Find/Replace to a workbench part,
-        // which a dialog does not have, and keeps its target to itself.
-        tabs.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent anEvent) {
-                find.setEnabled(tabs.getSelectionIndex() == RESULT_TAB);
-            }
-        });
     }
 
     @Override
     protected void buttonPressed(int aButtonId) {
 
         if (aButtonId == FIND_ID) {
-            findReplace.run();
+            currentFindReplace().run();
             return;
         }
 
