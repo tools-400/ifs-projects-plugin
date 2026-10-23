@@ -36,6 +36,12 @@ In RDi, choose *Help > Install New Software...*, add the update site
 https://tools-400.github.io/ifs-projects/update-site/eclipse/rdi8.0/ and install *IFS Projects*.
 Restart RDi afterwards. Home page: https://tools-400.github.io/ifs-projects/.
 
+The update site also offers *IFS Projects STRPREPRC Headers*, which reads the compile commands of
+the `STRPREPRC` headers of source members, see [Migration to an IFS
+project](#migration-to-an-ifs-project). Install it, if your members have such headers. A build tool
+with another header, e.g. the `BUILD` command of Scott Klement, can be added by a plug-in of its
+own, see [EXTENDING.md](EXTENDING.md).
+
 ## Quick start
 
 1. In the *Remote Systems* view, expand your IBM i connection, right-click *IFS Projects* and
@@ -312,7 +318,9 @@ Options:
   compiled member. Because `INCFILE` names one source file, all statements of a member refer to the
   same one, which the migration determines:
 
-  * `INCFILE` of the `STRPREPRC` header of the member, if it has one.
+  * `INCFILE` of the header of the member, if it has one and the feature of its build tool is
+    installed, e.g. *IFS Projects STRPREPRC Headers*, and not switched off, see
+    [Preferences](#preferences).
   * Otherwise the source file, that contains the members of all statements of the member: its own
     source file, which is the default of the compiler, otherwise the only other migrated source
     file, that contains them all. That all members have to be in one source file usually makes it
@@ -331,7 +339,7 @@ Options:
 * `.ibmi.json` in each directory with the CCSID of the source file (`tgtCcsid`).
 * `Rules.mk` in the project directory with the directories (`SUBDIRS`).
 * A draft of `Rules.mk` in each directory with one rule per member: a program, or a module, if the
-  `STRPREPRC` header uses `CRTRPGMOD`, `CRTCLMOD` or `OBJTYPE(*MODULE)`; `.FILE` for display,
+  header of the member uses `CRTRPGMOD`, `CRTCLMOD` or `OBJTYPE(*MODULE)`; `.FILE` for display,
   printer and database files; `.CMD` and `.PNLGRP`. Copy books are prerequisites with their path in
   the project, CL rules set the directory of the source as `INCDIR`, and a source with an
   `EXEC SQL INCLUDE` of a stream file gets `DBGVIEW := *LIST`, because the default `*SOURCE` of
@@ -372,12 +380,17 @@ The plug-in stores its files in the folder `.ifsprojects` of your home directory
   the same name.
 * *SSH Terminal*: connection (port, timeout, keep alive interval, encoding), log-on (user ID in
   lowercase, password of the RSE connection) and *Restore terminals after a restart*.
+* *Migration*: *Build tool headers* lists the build tools, whose headers are read when source
+  members are migrated, see [Migration to an IFS project](#migration-to-an-ifs-project). All are
+  used by default. Switch one off, if its headers are obsolete, e.g. because the members are no
+  longer built with it. The list is empty, if no feature of a build tool is installed.
 * *Export to Library*: CCSID and record length of new source files for the first export of a
   project. The CCSID is also the default for source files with CCSID 65535 of the migration.
 
 ## For developers
 
 How the plug-in works internally and how it is built: [DEVELOPMENT.md](DEVELOPMENT.md).
+How to add a build tool with a plug-in of your own: [EXTENDING.md](EXTENDING.md).
 
 ## License
 
