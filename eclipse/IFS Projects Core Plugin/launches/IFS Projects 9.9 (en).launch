@@ -1237,6 +1237,8 @@
         <setEntry value="biz.isphere.tn5250j.rse@default:default"/>
         <setEntry value="de.tools400.ifsprojects.buildcmd.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.buildcmd.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.compile.plugin@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.compile.junit@default:false"/>
         <setEntry value="de.tools400.ifsprojects.core.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.junit@default:false"/>
         <setEntry value="de.tools400.ifsprojects.strpreprc.plugin@default:default"/>

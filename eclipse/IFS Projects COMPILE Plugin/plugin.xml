@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Parser of the header of the COMPILE command of Alan Campin. No other
+       header contains its marker, therefore it is asked last.
+     ==========================================================================
+   -->
+
+   <extension point="de.tools400.ifsprojects.core.plugin.sourceHeaderParsers">
+      <parser
+            id="de.tools400.ifsprojects.headers.compile"
+            name="%Parser_COMPILE"
+            class="de.tools400.ifsprojects.compile.CompileHeaderParser"
+            priority="80">
+      </parser>
+   </extension>
+
+</plugin>

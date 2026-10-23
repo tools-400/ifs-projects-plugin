@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: IFS Projects COMPILE JUnit
+Bundle-SymbolicName: de.tools400.ifsprojects.compile.junit
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Tools/400
+Fragment-Host: de.tools400.ifsprojects.compile.plugin
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.junit
