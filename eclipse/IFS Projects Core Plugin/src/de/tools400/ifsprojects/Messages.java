@@ -300,6 +300,12 @@ public class Messages extends NLS {
     public static String Label_CCSID_Turkey;
 
     // Migration of source files
+    public static String Description_Migration_preference_page;
+    public static String Label_Group_Build_tool_headers;
+    public static String Tooltip_Build_tool_headers;
+    public static String Label_Column_Build_tool;
+    public static String Label_Column_Id;
+    public static String Label_No_build_tool_headers_installed;
     public static String Task_Reading_source_files_of_A;
     public static String Title_Migrate_to_IFS_project;
     public static String Description_Migration_source_files_page;

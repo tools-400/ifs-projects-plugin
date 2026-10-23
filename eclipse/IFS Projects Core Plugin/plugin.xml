@@ -835,6 +835,13 @@
          <keywordReference id="de.tools400.ifsprojects.keywords"/>
       </page>
       <page
+            id="de.tools400.ifsprojects.preferencepages.MigrationPreferencePage"
+            category="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
+            class="de.tools400.ifsprojects.preferencepages.MigrationPreferencePage"
+            name="%PreferencePage_Migration">
+         <keywordReference id="de.tools400.ifsprojects.keywords"/>
+      </page>
+      <page
             id="de.tools400.ifsprojects.preferencepages.ExportPreferencePage"
             category="de.tools400.ifsprojects.preferencepages.IfsProjectsPreferencePage"
             class="de.tools400.ifsprojects.preferencepages.ExportPreferencePage"
