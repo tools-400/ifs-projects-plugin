@@ -29,6 +29,12 @@ import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
  * commands and the selection of the parser. The headers themselves are read by
  * plug-ins of their own, which are tested in fragments of those, see
  * {@link TestHeaderParser}.
+ * <p>
+ * A parser, that throws an exception, is skipped and logged as well. That path
+ * is not tested here: the logging loads <code>IfsProjectsPlugin</code> and with
+ * it <code>org.eclipse.core.runtime.Plugin</code>, which fails in a plain JUnit
+ * run of RDi, because signed and unsigned jars of that package are on the class
+ * path (<code>SecurityException: signer information does not match</code>).
  */
 public class SourceHeaderTest {
 
@@ -156,9 +162,9 @@ public class SourceHeaderTest {
     }
 
     @Test
-    public void testParsers_aFailingParserIsSkipped() {
+    public void testParsers_aParserWithoutAResultIsSkipped() {
 
-        SourceHeaderParsers parsers = new SourceHeaderParsers(new FailingParser(), new TestHeaderParser());
+        SourceHeaderParsers parsers = new SourceHeaderParsers(new NoResultParser(), new TestHeaderParser());
 
         assertEquals("CRTRPGMOD", parsers.parse("// BUILD: CRTRPGMOD MODULE(&LI/&OB)\n", "RPGLE").getCreateCommand().getName());
     }
@@ -188,12 +194,12 @@ public class SourceHeaderTest {
     }
 
     /**
-     * Parser of a plug-in with a bug: it must not stop the migration.
+     * Parser of a plug-in, that returns nothing at all: the next one is asked.
      */
-    private static final class FailingParser implements ISourceHeaderParser {
+    private static final class NoResultParser implements ISourceHeaderParser {
 
         public List<CreateCommand> parse(String aContent, String aSourceType) {
-            throw new IllegalStateException("Broken parser");
+            return null;
         }
     }
 }

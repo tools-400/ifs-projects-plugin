@@ -70,7 +70,13 @@ Packages below `de.tools400.ifsprojects`:
 
 The `*Commands` classes have no RDi dependency. Neither have the package `sources`, `ExportMapping`,
 `IncludeResolver`, the include converters, `SourceCheck`, `ExportPlan`, `MigrationPlan`,
-`TobiBuildFiles` and `MigrationFiles`, which only use IBM Toolbox for Java.
+`TobiBuildFiles` and `MigrationFiles`, which only use IBM Toolbox for Java. The one exception is
+`sources.headers.SourceHeaderParsers`: it reads the extension registry and the preferences, and it
+logs a parser, that throws, with `IfsProjectsPlugin`. A unit test must therefore not make it log:
+loading `IfsProjectsPlugin` pulls in `org.eclipse.core.runtime.Plugin`, which fails in a plain
+JUnit run with `SecurityException: signer information does not match`, because signed and unsigned
+jars of that package are on the class path of RDi. Everything the migration itself calls -
+`parse()` with its parsers - works without the platform.
 
 ## IBM i
 
