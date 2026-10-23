@@ -10,6 +10,7 @@ package de.tools400.ifsprojects.buildcmd;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 import de.tools400.ifsprojects.sources.headers.CreateCommand;
 import de.tools400.ifsprojects.sources.headers.HeaderLines;
@@ -31,12 +32,11 @@ import de.tools400.ifsprojects.sources.headers.QuotedStrings;
  *
  * A command starts behind <code>*&gt;</code>, which may stand anywhere in a
  * line, and ends at the optional <code>&lt;*</code> outside of a quoted string
- * or at the end of the line.
- * A line, that ends with <code>-</code>, is continued by the next line, which
- * repeats <code>*&gt;</code>; a line without the marker ends the command, so
- * that an unterminated one does not swallow the source. The prefix
- * <code>IGN:</code>, with which the build tool ignores a failing command, is
- * removed.
+ * or at the end of the line. A line, that ends with <code>-</code>, is
+ * continued by the next line, which repeats <code>*&gt;</code>; a line without
+ * the marker ends the command, so that an unterminated one does not swallow
+ * the source. The prefix <code>IGN:</code>, with which the build tool ignores
+ * a failing command, is removed.
  * <p>
  * The substitution variables of the build tool start with <code>&amp;</code>,
  * e.g. <code>&amp;L</code> for the library of the source and <code>&amp;ON</code>
@@ -63,48 +63,77 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
     private static final char CONTINUATION = '-';
     private static final char BLANK = ' ';
 
+    @Override
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<String> lines = HeaderLines.read(aContent);
-
         List<CreateCommand> commands = new ArrayList<CreateCommand>();
-        for (int i = 0; i < lines.size(); i++) {
 
-            int tag = lines.get(i).indexOf(START_TAG);
+        ListIterator<String> lines = HeaderLines.read(aContent).listIterator();
+        while (lines.hasNext()) {
+
+            String line = lines.next();
+            int tag = line.indexOf(START_TAG);
             if (tag < 0) {
                 continue;
             }
 
-            StringBuilder text = new StringBuilder();
-            String line = lines.get(i).substring(tag + START_TAG.length());
-
-            while (true) {
-
-                line = removeEndTag(text, line);
-
-                if (!isContinued(line)) {
-                    text.append(line);
-                    break;
-                }
-
-                text.append(line.substring(0, line.length() - 1)).append(BLANK);
-
-                int next = i + 1 < lines.size() ? lines.get(i + 1).indexOf(START_TAG) : -1;
-                if (next < 0) {
-                    break;
-                }
-
-                i++;
-                line = lines.get(i).substring(next + START_TAG.length());
-            }
-
-            CreateCommand command = CreateCommand.parse(removeIgnorePrefix(text.toString()));
+            String text = readCommand(line.substring(tag + START_TAG.length()), lines);
+            CreateCommand command = CreateCommand.parse(removeIgnorePrefix(text));
             if (command != null) {
                 commands.add(command);
             }
         }
 
         return commands;
+    }
+
+    /**
+     * Returns the text of a command. A continued line is joined with the next
+     * line, if that repeats the start tag.
+     *
+     * @param aFirstLine - text behind the start tag
+     * @param aLines - lines behind the line of the start tag
+     * @return text of the command
+     */
+    private static String readCommand(String aFirstLine, ListIterator<String> aLines) {
+
+        StringBuilder text = new StringBuilder();
+
+        String line = aFirstLine;
+        while (line != null) {
+
+            line = removeEndTag(text, line);
+            if (!isContinued(line)) {
+                return text.append(line).toString();
+            }
+
+            text.append(line.substring(0, line.length() - 1)).append(BLANK);
+
+            line = readContinuationLine(aLines);
+        }
+
+        return text.toString();
+    }
+
+    /**
+     * Returns the text behind the start tag of the next line, if it continues
+     * a command, i.e. if it repeats the start tag. Otherwise the line is not
+     * read and <code>null</code> is returned.
+     */
+    private static String readContinuationLine(ListIterator<String> aLines) {
+
+        if (!aLines.hasNext()) {
+            return null;
+        }
+
+        String line = aLines.next();
+        int tag = line.indexOf(START_TAG);
+        if (tag < 0) {
+            aLines.previous();
+            return null;
+        }
+
+        return line.substring(tag + START_TAG.length());
     }
 
     /**

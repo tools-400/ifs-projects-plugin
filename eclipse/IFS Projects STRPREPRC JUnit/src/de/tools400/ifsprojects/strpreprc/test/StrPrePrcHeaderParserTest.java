@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import de.tools400.ifsprojects.sources.headers.CreateCommand;
 import de.tools400.ifsprojects.sources.headers.SourceHeader;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
 import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
@@ -139,6 +140,43 @@ public class StrPrePrcHeaderParserTest {
 
         assertEquals("CRTBNDRPG", header.getCreateCommand().getName());
         assertNull(header.getIncludeFile());
+    }
+
+    @Test
+    public void testContinuationWithAndWithoutBlank() {
+
+        // '+' separates the lines with a blank, '-' joins them.
+        CreateCommand withBlank = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) DBG+\n//VIEW(*LIST);\n").getCreateCommand();
+        assertEquals("*LIST", withBlank.getParameter("VIEW"));
+        assertNull(withBlank.getParameter("DBGVIEW"));
+
+        CreateCommand withoutBlank = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) DBG-\n//VIEW(*LIST);\n").getCreateCommand();
+        assertEquals("*LIST", withoutBlank.getParameter("DBGVIEW"));
+    }
+
+    @Test
+    public void testSemicolonInAQuotedStringOfTwoLines() {
+
+        // The string starts on the previous line, so the semicolon is part of
+        // it and does not end the command.
+        SourceHeader header = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) TEXT('Orders +\n" //
+            + "//               and; invoices') DBGVIEW(*LIST);\n");
+
+        String text = header.getCreateCommand().getParameter("TEXT");
+        assertTrue(text, text.startsWith("'Orders ") && text.endsWith(" and; invoices'"));
+        assertEquals("*LIST", header.getCreateCommand().getParameter("DBGVIEW"));
+    }
+
+    @Test
+    public void testNotTerminatedBeforeTheNextCommand() {
+
+        // The tag of the next command ends the command and is read again.
+        SourceHeader header = header("// >>CRTCMD<< CRTRPGMOD MODULE(&LI/&OB) +\n" //
+            + "// >>CRTCMD<< CRTPGM PGM(&LI/&OB) MODULE(&OB);\n");
+
+        assertEquals(2, header.getCommands().size());
+        assertEquals("&LI/&OB", header.getCommands().get(0).getParameter("MODULE"));
+        assertEquals("CRTPGM", header.getCreateCommand().getName());
     }
 
     @Test

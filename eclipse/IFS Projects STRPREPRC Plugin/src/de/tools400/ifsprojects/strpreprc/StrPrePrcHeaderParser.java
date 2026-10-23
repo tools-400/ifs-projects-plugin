@@ -10,6 +10,7 @@ package de.tools400.ifsprojects.strpreprc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,14 +31,15 @@ import de.tools400.ifsprojects.sources.headers.QuotedStrings;
  * </pre>
  *
  * A command starts behind the tag <code>&gt;&gt;CRTCMD&lt;&lt;</code> and ends
- * with a semicolon. A line, that ends with <code>+</code> or <code>-</code>, is
- * continued by the next line of the header, from which the comment characters
- * of the source are removed: <code>//</code> of free form RPG, <code>*</code>
- * of fixed form RPG, also in column 7 behind a form type, e.g.
+ * with a semicolon outside of a quoted string, which can span several lines.
+ * A line, that ends with <code>+</code> or <code>-</code>, is continued by the
+ * next line of the header, from which the comment characters of the source
+ * are removed: <code>//</code> of free form RPG, <code>*</code> of fixed form
+ * RPG, also in column 7 behind a form type, e.g.
  * <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H*</code>, the start of a comment of CL
- * and <code>--</code> of SQL. A
- * line, that is no comment or that contains another tag, ends the command, so
- * that a header without a semicolon does not swallow the source.
+ * and <code>--</code> of SQL. A line, that is no comment or that contains
+ * another tag, ends the command, so that a header without a semicolon does not
+ * swallow the source.
  * <p>
  * Only the create commands are read. The commands of
  * <code>&gt;&gt;EXECUTE&lt;&lt;</code> do not create the object of the source.
@@ -65,6 +67,9 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     private static final String CL_COMMENT = "/*"; //$NON-NLS-1$
     private static final String SQL_COMMENT = "--"; //$NON-NLS-1$
     private static final String CL_COMMENT_END = "*/"; //$NON-NLS-1$
+
+    /** Start of a comment of free form RPG, of CL and of SQL. */
+    private static final String[] COMMENT_STARTS = { RPG_COMMENT, CL_COMMENT, SQL_COMMENT };
     private static final char FIXED_FORM_COMMENT = '*';
 
     /** Index of column 6 of fixed form RPG, the form type, e.g. H or C. */
@@ -85,59 +90,86 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     private static final char END_OF_COMMAND = ';';
     private static final char BLANK = ' ';
 
+    @Override
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<String> lines = HeaderLines.read(aContent);
-
         List<CreateCommand> commands = new ArrayList<CreateCommand>();
-        for (int i = 0; i < lines.size(); i++) {
 
-            int tag = indexOfTag(lines.get(i));
+        ListIterator<String> lines = HeaderLines.read(aContent).listIterator();
+        while (lines.hasNext()) {
+
+            String line = lines.next();
+            int tag = indexOfTag(line);
             if (tag < 0) {
                 continue;
             }
 
-            StringBuilder text = new StringBuilder();
-            String line = lines.get(i).substring(tag + CREATE_COMMAND_TAG.length());
-
-            while (true) {
-
-                line = removeCommentEnd(line);
-
-                int end = indexOfEndOfCommand(line);
-                if (end >= 0) {
-                    text.append(line.substring(0, end));
-                    break;
-                }
-
-                char continuation = getContinuation(line);
-                if (continuation == 0) {
-                    text.append(line);
-                    break;
-                }
-
-                text.append(line.substring(0, line.length() - 1));
-
-                String next = i + 1 < lines.size() ? removeCommentCharacters(lines.get(i + 1)) : null;
-                if (next == null || TAG_PATTERN.matcher(next).find()) {
-                    break;
-                }
-
-                if (continuation == CONTINUATION_WITH_BLANK) {
-                    text.append(BLANK);
-                }
-
-                i++;
-                line = next;
-            }
-
-            CreateCommand command = CreateCommand.parse(text.toString());
+            CreateCommand command = CreateCommand.parse(readCommand(line.substring(tag + CREATE_COMMAND_TAG.length()), lines));
             if (command != null) {
                 commands.add(command);
             }
         }
 
         return commands;
+    }
+
+    /**
+     * Returns the text of a command up to its semicolon. A continued line is
+     * joined with the next line, if that is a comment without another tag.
+     *
+     * @param aFirstLine - text behind the tag
+     * @param aLines - lines behind the line of the tag
+     * @return text of the command
+     */
+    private static String readCommand(String aFirstLine, ListIterator<String> aLines) {
+
+        StringBuilder text = new StringBuilder();
+
+        String line = aFirstLine;
+        while (line != null) {
+
+            line = removeCommentEnd(line);
+
+            int end = indexOfEndOfCommand(text, line);
+            if (end >= 0) {
+                return text.append(line.substring(0, end)).toString();
+            }
+
+            Continuation continuation = Continuation.of(line);
+            if (continuation == Continuation.NONE) {
+                return text.append(line).toString();
+            }
+
+            text.append(line.substring(0, line.length() - 1));
+
+            line = readContinuationLine(aLines);
+            if (line != null && continuation == Continuation.WITH_BLANK) {
+                text.append(BLANK);
+            }
+        }
+
+        return text.toString();
+    }
+
+    /**
+     * Returns the next line without its comment characters, if it continues a
+     * command, i.e. if it is a comment without another tag. Otherwise the line
+     * is not read, so that it is searched for the next tag, and
+     * <code>null</code> is returned.
+     */
+    private static String readContinuationLine(ListIterator<String> aLines) {
+
+        if (!aLines.hasNext()) {
+            return null;
+        }
+
+        String line = removeCommentCharacters(aLines.next());
+        if (line == null || TAG_PATTERN.matcher(line).find()) {
+            aLines.previous();
+            return null;
+        }
+
+        return line;
     }
 
     /**
@@ -179,8 +211,10 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
             return null;
         }
 
-        if (aLine.startsWith(RPG_COMMENT, i) || aLine.startsWith(CL_COMMENT, i) || aLine.startsWith(SQL_COMMENT, i)) {
-            return aLine.substring(i + 2);
+        for (String commentStart : COMMENT_STARTS) {
+            if (aLine.startsWith(commentStart, i)) {
+                return aLine.substring(i + commentStart.length());
+            }
         }
 
         if (isFixedFormComment(aLine)) {
@@ -216,39 +250,63 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     }
 
     /**
-     * Returns the continuation character at the end of a line or <code>0</code>,
-     * if the line is not continued.
+     * Returns the index of the semicolon in a line, that ends the command, or
+     * <code>-1</code>. A semicolon in a quoted string is part of the command;
+     * the string can start on a previous line of the command.
+     *
+     * @param aPreviousLines - text of the previous lines of the command
+     * @param aLine - line of the command
      */
-    private static char getContinuation(String aLine) {
+    private static int indexOfEndOfCommand(CharSequence aPreviousLines, String aLine) {
 
-        if (aLine.isEmpty()) {
-            return 0;
-        }
-
-        char last = aLine.charAt(aLine.length() - 1);
-
-        return last == CONTINUATION_WITH_BLANK || last == CONTINUATION ? last : 0;
-    }
-
-    /**
-     * Returns the index of the semicolon, that ends the command, or
-     * <code>-1</code>. A semicolon in a quoted string is part of the command.
-     */
-    private static int indexOfEndOfCommand(String aLine) {
-
+        String text = aPreviousLines + aLine;
         int i = 0;
-        while (i < aLine.length()) {
-            char character = aLine.charAt(i);
+        while (i < text.length()) {
+            char character = text.charAt(i);
             if (character == QuotedStrings.QUOTE) {
-                i = QuotedStrings.skip(aLine, i);
+                i = QuotedStrings.skip(text, i);
                 continue;
             }
-            if (character == END_OF_COMMAND) {
-                return i;
+            if (character == END_OF_COMMAND && i >= aPreviousLines.length()) {
+                return i - aPreviousLines.length();
             }
             i++;
         }
 
         return -1;
+    }
+
+    /**
+     * Continuation of a line of a command by the next line.
+     */
+    private enum Continuation {
+
+        /** The line is not continued. */
+        NONE,
+
+        /** <code>+</code>: the lines are separated by a blank. */
+        WITH_BLANK,
+
+        /** <code>-</code>: the lines are joined without a blank. */
+        WITHOUT_BLANK;
+
+        /**
+         * Returns the continuation by the last character of a line.
+         */
+        static Continuation of(String aLine) {
+
+            if (aLine.isEmpty()) {
+                return NONE;
+            }
+
+            switch (aLine.charAt(aLine.length() - 1)) {
+            case CONTINUATION_WITH_BLANK:
+                return WITH_BLANK;
+            case CONTINUATION:
+                return WITHOUT_BLANK;
+            default:
+                return NONE;
+            }
+        }
     }
 }

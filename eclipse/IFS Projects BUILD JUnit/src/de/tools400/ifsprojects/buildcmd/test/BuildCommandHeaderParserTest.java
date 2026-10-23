@@ -160,6 +160,19 @@ public class BuildCommandHeaderParserTest {
     }
 
     @Test
+    public void testNotContinuedBeforeTheNextCommand() {
+
+        // A line without the marker ends the command; the next one is found.
+        SourceHeader header = header("      *>  CRTRPGMOD MODULE(&O/&ON) -\n" //
+            + "     H NOMAIN\n" //
+            + "      *>  CRTPGM PGM(&O/&ON) MODULE(&ON)\n");
+
+        assertEquals(2, header.getCommands().size());
+        assertEquals("&O/&ON", header.getCommands().get(0).getParameter("MODULE"));
+        assertEquals("CRTPGM", header.getCreateCommand().getName());
+    }
+
+    @Test
     public void testNoHeader() {
 
         assertTrue(header("**FREE\ndsply 'Hello';\n").isEmpty());
