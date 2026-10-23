@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="de.tools400.ifsprojects.core.plugin" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="de.tools400.ifsprojects.core.plugin" id="sourceHeaderParsers" name="Source Header Parsers"/>
+      </appInfo>
+      <documentation>
+         Contributes a parser, that reads the commands of the header of a build tool from a source, e.g. of STRPREPRC or of the BUILD command of Scott Klement. The parser with the highest priority, that finds a header, is used. A source, whose header no parser knows, has no header: the object type then comes from the source type and the SQL include file from the migrated source files.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="parser" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="parser">
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Unique ID of the parser.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Name of the build tool, e.g. STRPREPRC. Shown on the preference page, on which the parsers can be switched off.
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Implementation of the parser.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":de.tools400.ifsprojects.sources.headers.ISourceHeaderParser"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="priority" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Priority of the parser. The parsers are called in the order of their priority, the highest one first.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;extension point=&quot;de.tools400.ifsprojects.core.plugin.sourceHeaderParsers&quot;&gt;
+   &lt;parser
+         id=&quot;de.tools400.ifsprojects.headers.strpreprc&quot;
+         name=&quot;%Parser_STRPREPRC&quot;
+         class=&quot;de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser&quot;
+         priority=&quot;100&quot;&gt;
+   &lt;/parser&gt;
+&lt;/extension&gt;
+      </documentation>
+   </annotation>
+
+</schema>

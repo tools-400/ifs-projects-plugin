@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Parser of the STRPREPRC header
+     ==========================================================================
+   -->
+
+   <extension point="de.tools400.ifsprojects.core.plugin.sourceHeaderParsers">
+      <parser
+            id="de.tools400.ifsprojects.headers.strpreprc"
+            name="%Parser_STRPREPRC"
+            class="de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser"
+            priority="100">
+      </parser>
+   </extension>
+
+</plugin>

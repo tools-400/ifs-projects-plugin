@@ -10,6 +10,16 @@
 
    <extension-point id="terminalLaunchers" name="%ExtensionPoint_Terminal_Launchers" schema="schema/terminalLaunchers.exsd"/>
 
+   <!--
+     ==========================================================================
+       Parsers of the headers of the build tools, e.g. STRPREPRC. The parsers
+       are contributed by separate plug-ins, so that only the build tools, that
+       are used, are installed.
+     ==========================================================================
+   -->
+
+   <extension-point id="sourceHeaderParsers" name="%ExtensionPoint_Source_Header_Parsers" schema="schema/sourceHeaderParsers.exsd"/>
+
    <extension point="de.tools400.ifsprojects.core.plugin.terminalLaunchers">
       <launcher
             id="de.tools400.ifsprojects.launchers.tm"

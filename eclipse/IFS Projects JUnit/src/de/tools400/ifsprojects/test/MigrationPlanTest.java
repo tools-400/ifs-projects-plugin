@@ -29,6 +29,8 @@ import de.tools400.ifsprojects.migration.MigrationSettings;
 import de.tools400.ifsprojects.migration.SourceMember;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.MemberText;
+import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
+import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
 
 public class MigrationPlanTest {
 
@@ -187,7 +189,7 @@ public class MigrationPlanTest {
 
     private MigrationPlan createPlan(boolean anIsMemberText) {
         return new MigrationPlan("jsmith#cl", Arrays.asList("QRPGLESRC", "QCPYSRC", "QCLSRC"), members, contents, readErrors,
-            new MigrationSettings(IncludeStyle.REPLACE, anIsMemberText, 1141));
+            new MigrationSettings(IncludeStyle.REPLACE, anIsMemberText, 1141), new SourceHeaderParsers(new StrPrePrcHeaderParser()));
     }
 
     private void add(String aSourceFile, String aName, String aSourceType, String aText, String aContent) {

@@ -8,8 +8,12 @@
 
 package de.tools400.ifsprojects.preferences;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -44,6 +48,7 @@ public final class Preferences {
     public static final String RESTORE_TERMINALS = "restoreTerminals"; //$NON-NLS-1$
     public static final String EXPORT_CCSID = "exportCcsid"; //$NON-NLS-1$
     public static final String EXPORT_RECORD_LENGTH = "exportRecordLength"; //$NON-NLS-1$
+    public static final String DISABLED_SOURCE_HEADER_PARSERS = "disabledSourceHeaderParsers"; //$NON-NLS-1$
 
     private static final int DEFAULT_PORT = TerminalRequest.DEFAULT_PORT;
     private static final int DEFAULT_TIMEOUT = TerminalRequest.DEFAULT_TIMEOUT;
@@ -59,6 +64,10 @@ public final class Preferences {
     private static final boolean DEFAULT_RESTORE_TERMINALS = false;
     private static final int DEFAULT_EXPORT_CCSID = 1141;
     private static final int DEFAULT_EXPORT_RECORD_LENGTH = 112;
+    private static final String DEFAULT_DISABLED_SOURCE_HEADER_PARSERS = ""; //$NON-NLS-1$
+
+    /** Separator of the IDs of the disabled parsers. */
+    private static final String ID_SEPARATOR = ","; //$NON-NLS-1$
 
     private Preferences() {
         // Singleton class
@@ -91,6 +100,7 @@ public final class Preferences {
         preferenceStore.setDefault(RESTORE_TERMINALS, DEFAULT_RESTORE_TERMINALS);
         preferenceStore.setDefault(EXPORT_CCSID, DEFAULT_EXPORT_CCSID);
         preferenceStore.setDefault(EXPORT_RECORD_LENGTH, DEFAULT_EXPORT_RECORD_LENGTH);
+        preferenceStore.setDefault(DISABLED_SOURCE_HEADER_PARSERS, DEFAULT_DISABLED_SOURCE_HEADER_PARSERS);
     }
 
     /*
@@ -186,6 +196,46 @@ public final class Preferences {
      */
     public int getExportRecordLength() {
         return getInt(EXPORT_RECORD_LENGTH, ExportSettings.MIN_RECORD_LENGTH, ExportSettings.MAX_RECORD_LENGTH, DEFAULT_EXPORT_RECORD_LENGTH);
+    }
+
+    /**
+     * Returns the IDs of the parsers of the headers of the build tools, that
+     * are switched off on the preference page of the migration. The disabled
+     * parsers are stored, so that a parser, that is installed later, is used
+     * without a change of the preferences.
+     *
+     * @return IDs, never <code>null</code>
+     */
+    public Set<String> getDisabledSourceHeaderParsers() {
+
+        Set<String> ids = new HashSet<String>();
+        for (String id : preferenceStore.getString(DISABLED_SOURCE_HEADER_PARSERS).split(ID_SEPARATOR)) {
+            String trimmed = StringUtils.trimToNull(id);
+            if (trimmed != null) {
+                ids.add(trimmed);
+            }
+        }
+
+        return ids;
+    }
+
+    /**
+     * Stores the IDs of the parsers of the headers of the build tools, that
+     * are switched off.
+     *
+     * @param anIds - IDs of the disabled parsers
+     */
+    public void setDisabledSourceHeaderParsers(Collection<String> anIds) {
+
+        StringBuilder value = new StringBuilder();
+        for (String id : new TreeSet<String>(anIds)) {
+            if (value.length() > 0) {
+                value.append(ID_SEPARATOR);
+            }
+            value.append(id);
+        }
+
+        preferenceStore.setValue(DISABLED_SOURCE_HEADER_PARSERS, value.toString());
     }
 
     private int getInt(String aKey, int aMinimum, int aMaximum, int aDefault) {

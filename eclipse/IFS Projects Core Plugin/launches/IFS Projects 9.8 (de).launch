@@ -909,6 +909,7 @@
         <setEntry value="com.jcrcmds.core@default:default"/>
         <setEntry value="de.tools400.ifsprojects.core.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.strpreprc.plugin@default:default"/>
         <setEntry value="de.tools400.java.scoped.variables.core@default:default"/>
         <setEntry value="de.tools400.lpex.irpgformatter.core.plugin@default:default"/>
         <setEntry value="de.tools400.lpex.menuextension.plugin@default:default"/>

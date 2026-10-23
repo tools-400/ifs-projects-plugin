@@ -19,6 +19,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
 
 /**
  * Reads the members of source files from the IBM i and computes the
@@ -80,6 +81,6 @@ public final class MigrationAnalyzer {
             aMonitor.worked(1);
         }
 
-        return new MigrationPlan(aLibrary, sourceFileNames, members, contents, readErrors, aSettings);
+        return new MigrationPlan(aLibrary, sourceFileNames, members, contents, readErrors, aSettings, SourceHeaderParsers.getEnabled());
     }
 }

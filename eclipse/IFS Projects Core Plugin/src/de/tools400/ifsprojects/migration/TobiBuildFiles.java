@@ -18,6 +18,7 @@ import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
 import de.tools400.ifsprojects.sources.RpgSqlStatements;
 import de.tools400.ifsprojects.sources.SourceTypes;
+import de.tools400.ifsprojects.sources.headers.SourceHeader;
 
 /**
  * Contents of the build files of TOBi for migrated source files:
@@ -27,8 +28,8 @@ import de.tools400.ifsprojects.sources.SourceTypes;
  * <li><code>Rules.mk</code> of the project directory with the directories of
  * the source files.</li>
  * <li>A draft of the <code>Rules.mk</code> of a directory with one rule per
- * member. The object type comes from the <code>STRPREPRC</code> header
- * (<code>&gt;&gt;CRTCMD&lt;&lt;</code>, see {@link SourceHeader}), otherwise
+ * member. The object type comes from the create command of the header of the
+ * build tool, e.g. <code>STRPREPRC</code> (see {@link SourceHeader}), otherwise
  * from the source type. The
  * copy books of a member are its prerequisites with their paths relative to the
  * project directory, because TOBi passes prerequisites with unknown extensions
@@ -167,7 +168,7 @@ public final class TobiBuildFiles {
             return ""; // copy book //$NON-NLS-1$
         }
 
-        String objectType = getObjectType(sourceType, anItem.getContent());
+        String objectType = getObjectType(sourceType, anItem.getHeader());
         if (objectType == null) {
             return null;
         }
@@ -216,16 +217,16 @@ public final class TobiBuildFiles {
     }
 
     /**
-     * Returns the object type of a member: from the create command of its
-     * <code>STRPREPRC</code> header, otherwise from its source type.
+     * Returns the object type of a member: from the create command of the
+     * header of its build tool, otherwise from its source type.
      *
      * @return object type or <code>null</code>, if no rule is created for the
      *         source type
      */
-    private static String getObjectType(String aSourceType, String aContent) {
+    private static String getObjectType(String aSourceType, SourceHeader aHeader) {
 
         if (SourceTypes.RPGLE.equals(aSourceType) || SourceTypes.SQLRPGLE.equals(aSourceType) || SourceTypes.CLLE.equals(aSourceType)) {
-            return SourceHeader.isModule(aContent) ? MODULE : PGM;
+            return aHeader.isModule() ? MODULE : PGM;
         }
 
         if ("DSPF".equals(aSourceType) || "PRTF".equals(aSourceType) || "PF".equals(aSourceType) || "LF".equals(aSourceType)) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$

@@ -24,6 +24,8 @@ import de.tools400.ifsprojects.migration.MigrationSettings;
 import de.tools400.ifsprojects.migration.SourceFile;
 import de.tools400.ifsprojects.migration.SourceMember;
 import de.tools400.ifsprojects.migration.TobiBuildFiles;
+import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
+import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
 
 public class TobiBuildFilesTest {
 
@@ -69,7 +71,8 @@ public class TobiBuildFilesTest {
         add("QSQLSRC", "CUST", "TABLE", "create table cust (id int);\n");
 
         MigrationPlan plan = new MigrationPlan("JSMITH#CL", Arrays.asList("QRPGLESRC", "QCPYSRC", "QCLSRC", "QDDSSRC", "QCMDSRC", "QPNLSRC",
-            "QSQLSRC"), members, contents, new HashMap<String, String>(), new MigrationSettings(IncludeStyle.REPLACE, false, 1141));
+            "QSQLSRC"), members, contents, new HashMap<String, String>(), new MigrationSettings(IncludeStyle.REPLACE, false, 1141),
+            new SourceHeaderParsers(new StrPrePrcHeaderParser()));
 
         assertEquals(String.format(HEADER, "QRPGLESRC") //
             + "\nHELLO.PGM: hello.rpgle qcpysrc/consts.rpgleinc qcpysrc/types.rpgleinc\n" //

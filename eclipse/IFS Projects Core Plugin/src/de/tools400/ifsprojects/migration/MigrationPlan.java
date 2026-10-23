@@ -25,6 +25,8 @@ import de.tools400.ifsprojects.sources.MemberText;
 import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
 import de.tools400.ifsprojects.sources.RpgSqlStatements;
 import de.tools400.ifsprojects.sources.SourceTypes;
+import de.tools400.ifsprojects.sources.headers.SourceHeader;
+import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
 
 /**
  * Plan of a migration: the stream files of the members of source files, their
@@ -60,9 +62,10 @@ public final class MigrationPlan {
      * @param aReadErrors - errors of the members, that could not be read, by
      *        their keys
      * @param aSettings - settings
+     * @param aParsers - parsers of the headers of the build tools
      */
     public MigrationPlan(String aLibrary, Collection<String> aSourceFiles, List<SourceMember> aMembers, Map<String, String> aContents,
-        Map<String, String> aReadErrors, MigrationSettings aSettings) {
+        Map<String, String> aReadErrors, MigrationSettings aSettings, SourceHeaderParsers aParsers) {
 
         this.library = aLibrary.toUpperCase(Locale.ROOT);
         this.sourceFiles = new HashSet<String>();
@@ -74,7 +77,8 @@ public final class MigrationPlan {
         this.items = new ArrayList<Item>();
         for (SourceMember member : aMembers) {
             String content = aContents.get(member.getKey());
-            items.add(new Item(member, content == null ? null : content.replace(CRLF, LF), aReadErrors.get(member.getKey())));
+            content = content == null ? null : content.replace(CRLF, LF);
+            items.add(new Item(member, content, aReadErrors.get(member.getKey()), aParsers.parse(content, member.getSourceType())));
         }
 
         compute();
@@ -135,8 +139,8 @@ public final class MigrationPlan {
      * specifies one source file, all statements of a member refer to the same
      * one. It is therefore determined per member:
      * <ol>
-     * <li><code>INCFILE</code> of the <code>STRPREPRC</code> header, see
-     * {@link SourceHeader#getIncludeFile(String)}.</li>
+     * <li><code>INCFILE</code> of the header of the build tool, see
+     * {@link SourceHeader#getIncludeFile()}.</li>
      * <li>Otherwise the source file, that contains the members of all
      * statements: the own source file, which is the default of the compiler,
      * otherwise the only one of the other migrated source files. That all
@@ -171,7 +175,7 @@ public final class MigrationPlan {
                 continue;
             }
 
-            String includeFile = SourceHeader.getIncludeFile(item.content);
+            String includeFile = item.header.getIncludeFile();
             if (includeFile == null) {
                 includeFile = getSourceFileOf(item, names, sourceFilesOfMembers);
             }
@@ -418,6 +422,7 @@ public final class MigrationPlan {
         private final SourceMember member;
         private final String content;
         private final String readError;
+        private final SourceHeader header;
         private final List<Problem> problems;
         private final List<String> includedPaths;
 
@@ -425,16 +430,28 @@ public final class MigrationPlan {
         private String migratedContent;
         private IncludeConverter.Result includes;
 
-        Item(SourceMember aMember, String aContent, String aReadError) {
+        Item(SourceMember aMember, String aContent, String aReadError, SourceHeader aHeader) {
             this.member = aMember;
             this.content = aContent;
             this.readError = aReadError;
+            this.header = aHeader;
             this.problems = new ArrayList<Problem>();
             this.includedPaths = new ArrayList<String>();
         }
 
         public SourceMember getMember() {
             return member;
+        }
+
+        /**
+         * Returns the header of the build tool of the member, e.g. of
+         * <code>STRPREPRC</code>, with the command, that creates its object.
+         *
+         * @return header, {@link SourceHeader#NONE}, if the member has none or
+         *         if no parser of its build tool is installed
+         */
+        public SourceHeader getHeader() {
+            return header;
         }
 
         /**
