@@ -157,6 +157,12 @@ Nested parentheses and quoted strings are handled, e.g. `BNDDIR((*LIBL/MAIN) (QC
 
 ### 6. Tests
 
+Put the tests into a **fragment of your own plug-in**, like `IFS Projects STRPREPRC JUnit` does.
+A fragment of the core plug-in must not require yours: the dependencies of a fragment belong to its
+host, so the core plug-in would require your plug-in, which requires the core plug-in - PDE then
+refuses to build the update site with *A cycle was detected when generating the classpath*. The
+tests of the core plug-in therefore use a parser of their own (`TestHeaderParser`).
+
 A parser is plain Java without Eclipse dependencies, so it can be tested with JUnit alone. The
 registry can be tested without the platform, too:
 

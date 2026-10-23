@@ -25,7 +25,8 @@ that add a build tool [EXTENDING.md](EXTENDING.md).
     editor is opened: `SecurityException: setContextClassLoader`, then `NoClassDefFoundError`,
     and the Java perspective does not open. Auto-start of single bundles is not enough, LSP4E
     loads several of them. RDi itself does not allow the security manager.
-* Unit tests: fragment `eclipse/IFS Projects JUnit` (*Run As > JUnit Test*) with Java 11 or
+* Unit tests: the fragments `eclipse/IFS Projects JUnit` (core plug-in) and
+  `eclipse/IFS Projects STRPREPRC JUnit` (STRPREPRC plug-in), *Run As > JUnit Test*, with Java 11 or
   later. The bundles of RDi 9.8 are Java 11 class files; with Java 8 (e.g. the J9 of RDi 9.6) the
   tests that load Eclipse classes fail with `UnsupportedClassVersionError`.
 * Update site: *Build All* in `eclipse/IFS Projects Update Site/site.xml`.

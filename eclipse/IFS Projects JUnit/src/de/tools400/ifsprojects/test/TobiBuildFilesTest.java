@@ -25,7 +25,6 @@ import de.tools400.ifsprojects.migration.SourceFile;
 import de.tools400.ifsprojects.migration.SourceMember;
 import de.tools400.ifsprojects.migration.TobiBuildFiles;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
-import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
 
 public class TobiBuildFilesTest {
 
@@ -55,16 +54,15 @@ public class TobiBuildFilesTest {
     public void testGetDirectoryRules() {
 
         add("QRPGLESRC", "HELLO", "RPGLE", "**FREE\n/copy QCPYSRC,TYPES\n/copy QCPYSRC,CONSTS\n/copy QCPYSRC,MISSING\n");
-        add("QRPGLESRC", "UTILS", "RPGLE", "      * >>PRE-COMPILER<<\n      *   >>CRTCMD<<  CRTRPGMOD MODULE(&LI/&OB) +\n"
-            + "      *                           SRCSTMF('&STMF');\n      * >>END-PRE-COMPILER<<\n     H NOMAIN\n");
-        add("QRPGLESRC", "SQLMOD", "SQLRPGLE", "**FREE\n// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) OBJTYPE(*MODULE);\n"
+        add("QRPGLESRC", "UTILS", "RPGLE", "      * BUILD: CRTRPGMOD MODULE(&LI/&OB) SRCSTMF('&STMF')\n     H NOMAIN\n");
+        add("QRPGLESRC", "SQLMOD", "SQLRPGLE", "**FREE\n// BUILD: CRTSQLRPGI OBJ(&LI/&OB) OBJTYPE(*MODULE)\n"
             + "exec sql include HOSTVARS;\n");
         add("QCPYSRC", "HOSTVARS", "SQLRPGLE", "**FREE\n");
         add("QCPYSRC", "CONSTS", "RPGLE", "**FREE\n");
         add("QCPYSRC", "TYPES", "RPGLE", "**FREE\n");
         add("QCLSRC", "START", "CLLE", "PGM\nINCLUDE SRCMBR(VARS)\nENDPGM\n");
         add("QCLSRC", "VARS", "CLLE", "DCL VAR(&A) TYPE(*CHAR)\n");
-        add("QCLSRC", "STARTM", "CLLE", "/* >>CRTCMD<< CRTCLMOD MODULE(&LI/&OB); */\nPGM\nENDPGM\n");
+        add("QCLSRC", "STARTM", "CLLE", "/* BUILD: CRTCLMOD MODULE(&LI/&OB) */\nPGM\nENDPGM\n");
         add("QDDSSRC", "HELLOD", "DSPF", "     A          R FMT1\n");
         add("QCMDSRC", "HELLO", "CMD", "CMD PROMPT('Hello')\n");
         add("QPNLSRC", "HELLOP", "PNLGRP", ":PNLGRP.\n:EPNLGRP.\n");
@@ -72,7 +70,7 @@ public class TobiBuildFilesTest {
 
         MigrationPlan plan = new MigrationPlan("JSMITH#CL", Arrays.asList("QRPGLESRC", "QCPYSRC", "QCLSRC", "QDDSSRC", "QCMDSRC", "QPNLSRC",
             "QSQLSRC"), members, contents, new HashMap<String, String>(), new MigrationSettings(IncludeStyle.REPLACE, false, 1141),
-            new SourceHeaderParsers(new StrPrePrcHeaderParser()));
+            new SourceHeaderParsers(new TestHeaderParser()));
 
         assertEquals(String.format(HEADER, "QRPGLESRC") //
             + "\nHELLO.PGM: hello.rpgle qcpysrc/consts.rpgleinc qcpysrc/types.rpgleinc\n" //

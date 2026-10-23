@@ -23,11 +23,16 @@ import de.tools400.ifsprojects.sources.headers.CreateCommand;
 import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
 import de.tools400.ifsprojects.sources.headers.SourceHeader;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
-import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
 
+/**
+ * The part of the headers, that all build tools have in common: the CL
+ * commands and the selection of the parser. The headers themselves are read by
+ * plug-ins of their own, which are tested in fragments of those, see
+ * {@link TestHeaderParser}.
+ */
 public class SourceHeaderTest {
 
-    private final SourceHeaderParsers parsers = new SourceHeaderParsers(new StrPrePrcHeaderParser());
+    private final SourceHeaderParsers parsers = new SourceHeaderParsers(new TestHeaderParser());
 
     @Test
     public void testCommand_name() {
@@ -73,123 +78,62 @@ public class SourceHeaderTest {
     }
 
     @Test
+    public void testCommand_endOfAClComment() {
+
+        // The parser of a build tool removes it; what is left is ignored.
+        CreateCommand command = CreateCommand.parse("CRTCLMOD MODULE(&LI/&OB) */");
+
+        assertEquals("CRTCLMOD", command.getName());
+        assertEquals("&LI/&OB", command.getParameter("MODULE"));
+    }
+
+    @Test
     public void testHeader_isModule() {
 
-        assertTrue(header("// >>CRTCMD<< CRTRPGMOD MODULE(&LI/&OB);\n").isModule());
-        assertTrue(header("// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) OBJTYPE(*MODULE);\n").isModule());
-        assertFalse(header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB);\n").isModule());
+        assertTrue(header("// BUILD: CRTRPGMOD MODULE(&LI/&OB)\n").isModule());
+        assertTrue(header("// BUILD: CRTSQLRPGI OBJ(&LI/&OB) OBJTYPE(*MODULE)\n").isModule());
+        assertFalse(header("// BUILD: CRTBNDRPG PGM(&LI/&OB)\n").isModule());
         assertFalse(header("**FREE\ndsply 'Hello';\n").isModule());
     }
 
     @Test
     public void testHeader_getIncludeFile() {
 
-        assertEquals("QCPYSRC", header("// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) INCFILE(&SL/QCPYSRC);\n").getIncludeFile());
-        assertEquals("QCPYSRC", header("// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) INCFILE(qcpysrc);\n").getIncludeFile());
-        assertEquals("*LIBL/QCPYSRC", header("// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) INCFILE(*LIBL/QCPYSRC);\n").getIncludeFile());
-        assertNull(header("// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) INCFILE(*SRCFILE);\n").getIncludeFile());
-        assertNull(header("// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB);\n").getIncludeFile());
+        assertEquals("QCPYSRC", header("// BUILD: CRTSQLRPGI OBJ(&LI/&OB) INCFILE(&SL/QCPYSRC)\n").getIncludeFile());
+        assertEquals("QCPYSRC", header("// BUILD: CRTSQLRPGI OBJ(&LI/&OB) INCFILE(qcpysrc)\n").getIncludeFile());
+        assertEquals("*LIBL/QCPYSRC", header("// BUILD: CRTSQLRPGI OBJ(&LI/&OB) INCFILE(*LIBL/QCPYSRC)\n").getIncludeFile());
+        assertNull(header("// BUILD: CRTSQLRPGI OBJ(&LI/&OB) INCFILE(*SRCFILE)\n").getIncludeFile());
+        assertNull(header("// BUILD: CRTSQLRPGI OBJ(&LI/&OB)\n").getIncludeFile());
     }
 
     @Test
     public void testHeader_createCommandIsTheLastOne() {
 
         // The modules of a program are created before it is bound.
-        SourceHeader header = header("// >>CRTCMD<< CRTRPGMOD MODULE(&LI/&OB);\n" //
-            + "// >>CRTCMD<< CRTPGM PGM(&LI/&OB) MODULE(&OB);\n");
+        SourceHeader header = header("// BUILD: CRTRPGMOD MODULE(&LI/&OB)\n" //
+            + "// BUILD: CRTPGM PGM(&LI/&OB) MODULE(&OB)\n" //
+            + "// BUILD: CHGOBJOWN OBJ(&LI/&OB) OBJTYPE(*PGM) NEWOWN(QPGMR)\n");
 
-        assertEquals(2, header.getCommands().size());
+        assertEquals(3, header.getCommands().size());
         assertEquals("CRTPGM", header.getCreateCommand().getName());
         assertFalse(header.isModule());
     }
 
     @Test
-    public void testParser_freeFormRpg() {
+    public void testHeader_withoutACreateCommand() {
 
-        SourceHeader header = header("**FREE\n" //
-            + "// >>PRE-COMPILER<<\n" //
-            + "// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') +\n" //
-            + "//            INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2);\n" //
-            + "// >>END-PRE-COMPILER<<\n" //
-            + "dsply 'Hello';\n");
+        SourceHeader header = header("// BUILD: CHGOBJOWN OBJ(&LI/&OB) OBJTYPE(*PGM)\n");
 
-        assertEquals("CRTSQLRPGI", header.getCreateCommand().getName());
-        assertEquals("'&STMF'", header.getCreateCommand().getParameter("SRCSTMF"));
-        assertEquals("QCPYSRC", header.getIncludeFile());
-    }
-
-    @Test
-    public void testParser_fixedFormRpg() {
-
-        SourceHeader header = header("      * >>PRE-COMPILER<<\n" //
-            + "      *   >>CRTCMD<<  CRTRPGMOD MODULE(&LI/&OB) +\n" //
-            + "      *                         SRCSTMF('&STMF');\n" //
-            + "      * >>END-PRE-COMPILER<<\n" //
-            + "     H NOMAIN\n");
-
-        assertEquals("CRTRPGMOD", header.getCreateCommand().getName());
-        assertEquals("'&STMF'", header.getCreateCommand().getParameter("SRCSTMF"));
-        assertTrue(header.isModule());
-    }
-
-    @Test
-    public void testParser_cl() {
-
-        SourceHeader header = header("/* >>PRE-COMPILER<<                                     */\n" //
-            + "/*   >>CRTCMD<< CRTCLMOD MODULE(&LI/&OB) +               */\n" //
-            + "/*              SRCSTMF('&STMF');                       */\n" //
-            + "/* >>END-PRE-COMPILER<<                                 */\n" //
-            + "PGM\nENDPGM\n");
-
-        assertEquals("CRTCLMOD", header.getCreateCommand().getName());
-        assertEquals("'&STMF'", header.getCreateCommand().getParameter("SRCSTMF"));
-    }
-
-    @Test
-    public void testParser_endsAtTheSource() {
-
-        // The command is not terminated, the source must not become part of it.
-        SourceHeader header = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) +\n" //
-            + "**FREE\n" //
-            + "dsply 'INCFILE(QOTHER)';\n");
-
-        assertEquals("CRTBNDRPG", header.getCreateCommand().getName());
+        assertFalse(header.isEmpty());
+        assertNull(header.getCreateCommand());
+        assertFalse(header.isModule());
         assertNull(header.getIncludeFile());
-    }
-
-    @Test
-    public void testParser_endsAtTheNextTag() {
-
-        SourceHeader header = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) +\n" //
-            + "// >>END-PRE-COMPILER<<\n");
-
-        assertEquals("CRTBNDRPG", header.getCreateCommand().getName());
-        assertEquals("&LI/&OB", header.getCreateCommand().getParameter("PGM"));
-    }
-
-    @Test
-    public void testParser_noHeader() {
-
-        assertTrue(header("**FREE\ndsply 'Hello';\n").isEmpty());
-        assertTrue(header("").isEmpty());
-    }
-
-    @Test
-    public void testParser_behindTheHeaderLines() {
-
-        StringBuilder content = new StringBuilder("**FREE\n");
-        for (int i = 0; i < 120; i++) {
-            content.append("// line ").append(i).append('\n');
-        }
-        content.append("// >>CRTCMD<< CRTRPGMOD MODULE(&LI/&OB);\n");
-
-        assertTrue(header(content.toString()).isEmpty());
     }
 
     @Test
     public void testParsers_withoutAnyParser() {
 
-        SourceHeader header = new SourceHeaderParsers().parse("// >>CRTCMD<< CRTRPGMOD MODULE(&LI/&OB);\n", "RPGLE");
+        SourceHeader header = new SourceHeaderParsers().parse("// BUILD: CRTRPGMOD MODULE(&LI/&OB)\n", "RPGLE");
 
         assertSame(SourceHeader.NONE, header);
         assertFalse(header.isModule());
@@ -204,10 +148,19 @@ public class SourceHeaderTest {
     @Test
     public void testParsers_eachToolHasItsOwnParser() {
 
-        SourceHeaderParsers parsers = new SourceHeaderParsers(new StrPrePrcHeaderParser(), new OtherToolParser());
+        SourceHeaderParsers parsers = new SourceHeaderParsers(new TestHeaderParser(), new OtherToolParser());
 
-        assertEquals("CRTRPGMOD", parsers.parse("// >>CRTCMD<< CRTRPGMOD MODULE(&LI/&OB);\n", "RPGLE").getCreateCommand().getName());
-        assertEquals("CRTBNDRPG", parsers.parse("     * BUILD: CRTBNDRPG PGM(&LI/&OB)\n", "RPGLE").getCreateCommand().getName());
+        assertEquals("CRTRPGMOD", parsers.parse("// BUILD: CRTRPGMOD MODULE(&LI/&OB)\n", "RPGLE").getCreateCommand().getName());
+        assertEquals("CRTBNDRPG", parsers.parse("     * MAKE: CRTBNDRPG PGM(&LI/&OB)\n", "RPGLE").getCreateCommand().getName());
+        assertTrue(parsers.parse("**FREE\ndsply 'Hello';\n", "RPGLE").isEmpty());
+    }
+
+    @Test
+    public void testParsers_aFailingParserIsSkipped() {
+
+        SourceHeaderParsers parsers = new SourceHeaderParsers(new FailingParser(), new TestHeaderParser());
+
+        assertEquals("CRTRPGMOD", parsers.parse("// BUILD: CRTRPGMOD MODULE(&LI/&OB)\n", "RPGLE").getCreateCommand().getName());
     }
 
     private SourceHeader header(String aContent) {
@@ -215,7 +168,8 @@ public class SourceHeaderTest {
     }
 
     /**
-     * Parser of another build tool, which shows, how a plug-in contributes one.
+     * Parser of a second build tool, which shows, how the parser of a source is
+     * selected.
      */
     private static final class OtherToolParser implements ISourceHeaderParser {
 
@@ -223,13 +177,23 @@ public class SourceHeaderTest {
 
             List<CreateCommand> commands = new ArrayList<CreateCommand>();
             for (String line : aContent.split("\n")) {
-                int tag = line.indexOf("BUILD:");
+                int tag = line.indexOf("MAKE:");
                 if (tag >= 0) {
-                    commands.add(CreateCommand.parse(line.substring(tag + "BUILD:".length())));
+                    commands.add(CreateCommand.parse(line.substring(tag + "MAKE:".length())));
                 }
             }
 
             return commands;
+        }
+    }
+
+    /**
+     * Parser of a plug-in with a bug: it must not stop the migration.
+     */
+    private static final class FailingParser implements ISourceHeaderParser {
+
+        public List<CreateCommand> parse(String aContent, String aSourceType) {
+            throw new IllegalStateException("Broken parser");
         }
     }
 }

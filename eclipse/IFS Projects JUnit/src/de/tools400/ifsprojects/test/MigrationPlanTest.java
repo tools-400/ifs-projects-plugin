@@ -30,7 +30,6 @@ import de.tools400.ifsprojects.migration.SourceMember;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.MemberText;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
-import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
 
 public class MigrationPlanTest {
 
@@ -144,12 +143,9 @@ public class MigrationPlanTest {
     @Test
     public void testPlan_sqlIncludeFile_header() {
 
-        // INCFILE of the STRPREPRC header wins over the own source file.
+        // INCFILE of the header of the build tool wins over the own source file.
         add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\n" //
-            + "// >>PRE-COMPILER<<\n" //
-            + "// >>CRTCMD<< CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') +\n" //
-            + "//            INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2);\n" //
-            + "// >>END-PRE-COMPILER<<\n" //
+            + "// BUILD: CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2)\n" //
             + "exec sql include HOSTVARS;\n");
         add("QRPGLESRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
         add("QCPYSRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
@@ -189,7 +185,7 @@ public class MigrationPlanTest {
 
     private MigrationPlan createPlan(boolean anIsMemberText) {
         return new MigrationPlan("jsmith#cl", Arrays.asList("QRPGLESRC", "QCPYSRC", "QCLSRC"), members, contents, readErrors,
-            new MigrationSettings(IncludeStyle.REPLACE, anIsMemberText, 1141), new SourceHeaderParsers(new StrPrePrcHeaderParser()));
+            new MigrationSettings(IncludeStyle.REPLACE, anIsMemberText, 1141), new SourceHeaderParsers(new TestHeaderParser()));
     }
 
     private void add(String aSourceFile, String aName, String aSourceType, String aText, String aContent) {

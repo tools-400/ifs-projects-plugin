@@ -26,7 +26,6 @@ import de.tools400.ifsprojects.migration.MigrationSettings;
 import de.tools400.ifsprojects.migration.SourceFile;
 import de.tools400.ifsprojects.migration.SourceMember;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
-import de.tools400.ifsprojects.strpreprc.StrPrePrcHeaderParser;
 
 public class MigrationFilesTest {
 
@@ -62,7 +61,7 @@ public class MigrationFilesTest {
         add(members, contents, "QCPYSRC", "CONSTS", "RPGLE", "**FREE\n");
 
         return new MigrationPlan("JSMITH#CL", Arrays.asList("QRPGLESRC", "QCPYSRC", "QEMPTY"), members, contents, new HashMap<String, String>(),
-            new MigrationSettings(IncludeStyle.REPLACE, false, 1141), new SourceHeaderParsers(new StrPrePrcHeaderParser()));
+            new MigrationSettings(IncludeStyle.REPLACE, false, 1141), new SourceHeaderParsers(new TestHeaderParser()));
     }
 
     private static void add(List<SourceMember> aMembers, Map<String, String> aContents, String aSourceFile, String aName, String aSourceType,
