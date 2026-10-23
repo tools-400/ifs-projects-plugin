@@ -908,6 +908,8 @@
         <setEntry value="com.jcrcmds.base.rse@default:default"/>
         <setEntry value="com.jcrcmds.base@default:default"/>
         <setEntry value="com.jcrcmds.core@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.buildcmd.plugin@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.buildcmd.junit@default:false"/>
         <setEntry value="de.tools400.ifsprojects.core.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.junit@default:false"/>
         <setEntry value="de.tools400.ifsprojects.strpreprc.plugin@default:default"/>

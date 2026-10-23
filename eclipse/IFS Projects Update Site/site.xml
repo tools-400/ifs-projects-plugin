@@ -6,6 +6,9 @@
    <feature url="features/de.tools400.ifsprojects.strpreprc.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.strpreprc.feature" version="1.0.0.b004">
       <category name="de.tools400.ifsprojects"/>
    </feature>
+   <feature url="features/de.tools400.ifsprojects.buildcmd.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.buildcmd.feature" version="1.0.0.b004">
+      <category name="de.tools400.ifsprojects"/>
+   </feature>
    <category-def name="de.tools400.ifsprojects" label="IFS Projects">
       <description>
          IFS Projects for RDi 9.6, 9.8 and 9.9.

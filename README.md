@@ -36,11 +36,11 @@ In RDi, choose *Help > Install New Software...*, add the update site
 https://tools-400.github.io/ifs-projects/update-site/eclipse/rdi8.0/ and install *IFS Projects*.
 Restart RDi afterwards. Home page: https://tools-400.github.io/ifs-projects/.
 
-The update site also offers *IFS Projects STRPREPRC Headers*, which reads the compile commands of
-the `STRPREPRC` headers of source members, see [Migration to an IFS
-project](#migration-to-an-ifs-project). Install it, if your members have such headers. A build tool
-with another header, e.g. the `BUILD` command of Scott Klement, can be added by a plug-in of its
-own, see [EXTENDING.md](EXTENDING.md).
+The update site also offers the parsers of the headers, that build tools write into source members:
+*IFS Projects STRPREPRC Headers* for `STRPREPRC` and *IFS Projects BUILD Headers* for the `BUILD`
+command of Scott Klement, see [Migration to an IFS project](#migration-to-an-ifs-project). Install
+the one of your build tool, if your members have such headers. A build tool with another header can
+be added by a plug-in of its own, see [EXTENDING.md](EXTENDING.md).
 
 ## Quick start
 

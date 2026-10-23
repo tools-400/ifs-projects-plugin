@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Parser of the header of the BUILD command of Scott Klement. Its marker
+       is two characters only, therefore a lower priority than STRPREPRC.
+     ==========================================================================
+   -->
+
+   <extension point="de.tools400.ifsprojects.core.plugin.sourceHeaderParsers">
+      <parser
+            id="de.tools400.ifsprojects.headers.buildcmd"
+            name="%Parser_BUILD"
+            class="de.tools400.ifsprojects.buildcmd.BuildCommandHeaderParser"
+            priority="90">
+      </parser>
+   </extension>
+
+</plugin>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="de.tools400.ifsprojects.buildcmd.feature"
+      label="IFS Projects BUILD Headers"
+      version="1.0.0.b004"
+      provider-name="Tools/400">
+
+   <description url="">
+      Reads the compile commands of the headers of the &quot;BUILD&quot; command of
+Scott Klement, so that the migration to an IFS project knows the object type and
+the include file of a member. Install it, if your members have such headers.
+   </description>
+
+   <copyright>
+      Copyright (c) 2026 Thomas Raddatz. All rights reserved.
+   </copyright>
+
+   <license url="http://www.eclipse.org/legal/cpl-v10.html">
+      This program and the accompanying materials are made available
+under the terms of the Common Public License v1.0 which accompanies
+this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html.
+   </license>
+
+   <requires>
+      <import feature="de.tools400.ifsprojects.core.feature" version="1.0.0.b004" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="de.tools400.ifsprojects.buildcmd.plugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

@@ -8,11 +8,12 @@ that add a build tool [EXTENDING.md](EXTENDING.md).
 * Clone the repository into the RDi workspace. The target platform is the running platform (RDi).
 * Plug-ins and features: `IFS Projects Core Plugin` with `IFS Projects Core Feature` is the
   product, `IFS Projects STRPREPRC Plugin` with `IFS Projects STRPREPRC Feature` contributes the
-  parser of the `STRPREPRC` headers (package `sources.headers` below). The parser of a build tool
-  is a feature of its own, so that only the build tools, that are used, are installed and the
-  Eclipse Marketplace can offer them as optional. A new project has to be added to
-  `build.projects` of `build/IFS Projects Build/build/build.properties`, to `site.xml` of the
-  update site and to the launch configurations.
+  parser of the `STRPREPRC` headers (package `sources.headers` below). `IFS Projects BUILD Plugin`
+  with `IFS Projects BUILD Feature` contributes the parser of the `BUILD` command of Scott Klement.
+  The parser of a build tool is a feature of its own, so that only the build tools, that are used,
+  are installed and the Eclipse Marketplace can offer them as optional. A new project has to be
+  added to `build.projects` of `build/IFS Projects Build/build/build.properties`, to `site.xml` of
+  the update site and to the launch configurations.
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.
 * Launch configurations for RDi 9.8 and 9.9 (German and English):
   `eclipse/IFS Projects Core Plugin/launches`. VM arguments of the 9.9 configurations:
@@ -25,8 +26,9 @@ that add a build tool [EXTENDING.md](EXTENDING.md).
     editor is opened: `SecurityException: setContextClassLoader`, then `NoClassDefFoundError`,
     and the Java perspective does not open. Auto-start of single bundles is not enough, LSP4E
     loads several of them. RDi itself does not allow the security manager.
-* Unit tests: the fragments `eclipse/IFS Projects JUnit` (core plug-in) and
-  `eclipse/IFS Projects STRPREPRC JUnit` (STRPREPRC plug-in), *Run As > JUnit Test*, with Java 11 or
+* Unit tests: the fragments `eclipse/IFS Projects JUnit` (core plug-in),
+  `eclipse/IFS Projects STRPREPRC JUnit` and `eclipse/IFS Projects BUILD JUnit` (the plug-ins of
+  the build tools), *Run As > JUnit Test*, with Java 11 or
   later. The bundles of RDi 9.8 are Java 11 class files; with Java 8 (e.g. the J9 of RDi 9.6) the
   tests that load Eclipse classes fail with `UnsupportedClassVersionError`.
 * Update site: *Build All* in `eclipse/IFS Projects Update Site/site.xml`.
@@ -55,6 +57,7 @@ Packages below `de.tools400.ifsprojects`:
 | `project.wizards` | `IProjDefaultsGroup` (new `iproj.json`) for all wizards. `AbstractLocalIfsProjectWizard` creates the local IFS project for *New* and *Import* (undoable); both end with `NewLocalIfsProjectWizardPage`. *Import* uses an existing `.project` like *Existing Projects into Workspace*. |
 | `sources` | Members and stream files, independent of the direction of a conversion: `SourceTypes` (extensions of TOBi, copy books `<type>inc`, default source files), `MemberText` (comment block `%METADATA`/`%TEXT` of `makei cvtsrcpf --text`: read and insert), `IncludeConverter` (converts a source line by line) with `RpgLineConverter`/`RpgIncludeDirective` (columns, `**FREE`, compile-time data) and `ClLineConverter` (labels, comments, continuation lines). `RpgSqlStatements`/`RpgSqlIncludeDirective`: the `EXEC SQL INCLUDE` statements, which may span several lines, searched before the conversion; `RpgLineConverter` writes a converted statement as a block with its first line and drops its further lines (a line converter, that returns `null`). |
 | `sources.headers` | The header of a build tool in the first lines of a source, e.g. of `STRPREPRC`. `ISourceHeaderParser` finds the commands of one build tool, `CreateCommand` parses a CL command (name without its library, keyword parameters, nested parentheses and quoted strings), `SourceHeader` answers what the migration needs (`isModule()`, `getIncludeFile()`) from the last command, whose name starts with `CRT`, because a header, that creates modules, binds them afterwards. `SourceHeaderParsers` calls the parsers of the extension point `sourceHeaderParsers` by their priority; the first one, that finds a header, wins. The split follows the fact, that only the markers of a header differ between the build tools (`>>CRTCMD<<` and a semicolon of `STRPREPRC`, `*>` and a trailing `-` of the `BUILD` command of Scott Klement), the CL commands themselves do not. Exported, like `terminal`. `getContributions()` returns all installed parsers with their ID and name (`Contribution`), e.g. for the preference page; `getEnabled()`, which the migration uses, leaves out those of `Preferences.getDisabledSourceHeaderParsers()`. The *disabled* IDs are stored, so that a parser, that is installed later, is used at once instead of being silently inactive. Without a parser a source has no header (`SourceHeader.NONE`) and the migration works as before, it just knows less about the sources. |
+| `buildcmd` | Plug-in `IFS Projects BUILD Plugin`: `BuildCommandHeaderParser` reads the commands behind `*>`, which may stand anywhere in a line, up to the optional `<*` or to the end of the line. A line, that ends with `-`, is continued by the next line, which repeats `*>`; the prefix `IGN:`, with which the build tool ignores a failing command, is removed. The package is not called `build`, because the core plug-in already has one. Its priority is 90, below `STRPREPRC`: the marker is two characters only, so a fixed form `STRPREPRC` header written as `*>>CRTCMD<<` contains it, too, and has to be read by its own parser first (verified). |
 | `strpreprc` | Plug-in `IFS Projects STRPREPRC Plugin`: `StrPrePrcHeaderParser` reads the commands behind the tags `>>CRTCMD<<` of the first 100 lines. A command ends with a semicolon, a line, that ends with `+` or `-`, is continued by the next line of the header, from which the comment characters are removed (`//`, `*` of fixed format, `/*` of CL, `--` of SQL, and the `*/` at the end of a line). A line, that is no comment, that starts with `**` (`**FREE`, compile time data) or that contains another tag ends the command, so that a header without a semicolon does not swallow the source. |
 | `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
