@@ -2,7 +2,7 @@
 <feature
       id="de.tools400.ifsprojects.strpreprc.feature"
       label="IFS Projects STRPREPRC Headers"
-      version="1.0.0.b003"
+      version="1.0.0.b004"
       provider-name="Tools/400">
 
    <description url="">
@@ -22,7 +22,7 @@ this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html
    </license>
 
    <requires>
-      <import feature="de.tools400.ifsprojects.core.feature" version="1.0.0.b003" match="greaterOrEqual"/>
+      <import feature="de.tools400.ifsprojects.core.feature" version="1.0.0.b004" match="greaterOrEqual"/>
    </requires>
 
    <plugin

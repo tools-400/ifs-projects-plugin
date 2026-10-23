@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/de.tools400.ifsprojects.core.feature_1.0.0.b003.jar" id="de.tools400.ifsprojects.core.feature" version="1.0.0.b003">
+   <feature url="features/de.tools400.ifsprojects.core.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.core.feature" version="1.0.0.b004">
       <category name="de.tools400.ifsprojects"/>
    </feature>
-   <feature url="features/de.tools400.ifsprojects.strpreprc.feature_1.0.0.b003.jar" id="de.tools400.ifsprojects.strpreprc.feature" version="1.0.0.b003">
+   <feature url="features/de.tools400.ifsprojects.strpreprc.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.strpreprc.feature" version="1.0.0.b004">
       <category name="de.tools400.ifsprojects"/>
    </feature>
    <category-def name="de.tools400.ifsprojects" label="IFS Projects">
