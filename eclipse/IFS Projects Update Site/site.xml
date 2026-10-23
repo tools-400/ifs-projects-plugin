@@ -12,6 +12,9 @@
    <feature url="features/de.tools400.ifsprojects.compile.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.compile.feature" version="1.0.0.b004">
       <category name="de.tools400.ifsprojects"/>
    </feature>
+   <feature url="features/de.tools400.ifsprojects.cplcas.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.cplcas.feature" version="1.0.0.b004">
+      <category name="de.tools400.ifsprojects"/>
+   </feature>
    <category-def name="de.tools400.ifsprojects" label="IFS Projects">
       <description>
          IFS Projects for RDi 9.6, 9.8 and 9.9.

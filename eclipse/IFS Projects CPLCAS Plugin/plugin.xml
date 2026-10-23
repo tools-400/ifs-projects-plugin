@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Parser of the header of the CPLCAS command of Denis Robitaille. No
+       other header contains its marker, therefore it is asked last.
+     ==========================================================================
+   -->
+
+   <extension point="de.tools400.ifsprojects.core.plugin.sourceHeaderParsers">
+      <parser
+            id="de.tools400.ifsprojects.headers.cplcas"
+            name="%Parser_CPLCAS"
+            class="de.tools400.ifsprojects.cplcas.CplCasHeaderParser"
+            priority="70">
+      </parser>
+   </extension>
+
+</plugin>

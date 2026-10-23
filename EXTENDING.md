@@ -17,7 +17,8 @@ as a feature of its own, so that only the build tools, that are used, are instal
 Both interfaces are in exported packages (`de.tools400.ifsprojects.sources.headers` and
 `de.tools400.ifsprojects.terminal`); the rest of the plug-in is internal. The reference
 implementations of a header parser are the plug-ins `IFS Projects STRPREPRC Plugin`,
-`IFS Projects BUILD Plugin` and `IFS Projects COMPILE Plugin` of this repository.
+`IFS Projects BUILD Plugin`, `IFS Projects COMPILE Plugin` and `IFS Projects CPLCAS Plugin` of this
+repository.
 
 ## A parser for your build tool
 

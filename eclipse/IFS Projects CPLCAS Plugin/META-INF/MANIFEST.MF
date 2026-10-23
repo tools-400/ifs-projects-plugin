@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %Bundle-Name
+Bundle-SymbolicName: de.tools400.ifsprojects.cplcas.plugin;singleton:=true
+Bundle-Version: 1.0.0.b004
+Bundle-Vendor: Tools/400
+Bundle-Localization: plugin
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Require-Bundle: de.tools400.ifsprojects.core.plugin
+Export-Package: de.tools400.ifsprojects.cplcas
