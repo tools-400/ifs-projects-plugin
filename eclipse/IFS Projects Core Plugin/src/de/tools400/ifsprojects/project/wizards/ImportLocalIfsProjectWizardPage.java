@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Text;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -215,7 +216,7 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
         try {
             return ResourcesPlugin.getWorkspace().loadProjectDescription(Path.fromOSString(file.getPath()));
         } catch (CoreException e) {
-            IfsProjectsPlugin.logWarning("Could not read project description: " + file + ": " + e.getLocalizedMessage()); //$NON-NLS-1$ //$NON-NLS-2$
+            IfsProjectsPlugin.logWarning("Could not read project description: " + file + ": " + ExceptionUtils.getLocalizedMessage(e)); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
     }

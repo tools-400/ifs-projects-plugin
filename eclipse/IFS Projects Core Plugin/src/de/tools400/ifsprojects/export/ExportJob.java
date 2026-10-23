@@ -32,6 +32,7 @@ import de.tools400.ifsprojects.dialogs.OverwriteQuery;
 import de.tools400.ifsprojects.dialogs.RememberingOverwriteQuery;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Exports the files of an {@link ExportPlan} into the members of a library in
@@ -135,9 +136,12 @@ public class ExportJob extends Job {
                 aMonitor.worked(1);
             }
 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            isCanceled = true;
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not export project: " + projectName, e); //$NON-NLS-1$
-            String message = Messages.bind(Messages.Error_Could_not_export_A_B, projectName, e.getLocalizedMessage());
+            String message = Messages.bind(Messages.Error_Could_not_export_A_B, projectName, ExceptionUtils.getLocalizedMessage(e));
             CommandsLog.log(host, message);
             errors.add(message);
         } finally {

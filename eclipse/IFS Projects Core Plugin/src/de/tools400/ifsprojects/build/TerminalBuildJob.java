@@ -31,6 +31,7 @@ import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -214,6 +215,10 @@ public class TerminalBuildJob extends Job {
             showEvents(session, startTime);
 
         } catch (InterruptedException e) {
+            // Thrown on a cancel of the job, too, see checkCanceled().
+            if (!aMonitor.isCanceled()) {
+                Thread.currentThread().interrupt();
+            }
             return Status.CANCEL_STATUS;
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not wait for the end of the command in the terminal: " + directory, e); //$NON-NLS-1$
@@ -235,7 +240,8 @@ public class TerminalBuildJob extends Job {
             events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
         } catch (IOException e) {
             IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
-            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A,
+                ExceptionUtils.getLocalizedMessage(e)));
             return;
         }
 

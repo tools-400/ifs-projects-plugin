@@ -23,6 +23,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Property page of the projects of the workspace. Configures a project as
@@ -103,7 +104,7 @@ public class LocalProjectPropertyPage extends AbstractIProjPropertyPage {
         } catch (CoreException e) {
             IfsProjectsPlugin.logError("Could not save the settings of project: " + project.getName(), e); //$NON-NLS-1$
             MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_save_settings_A,
-                e.getLocalizedMessage()));
+                ExceptionUtils.getLocalizedMessage(e)));
             return false;
         }
 

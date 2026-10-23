@@ -12,6 +12,7 @@ import org.eclipse.ui.IMemento;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Saves the terminal request of a session in the memento of the
@@ -99,7 +100,7 @@ public final class TerminalRequestMemento {
             return builder.build();
 
         } catch (IllegalStateException e) {
-            IfsProjectsPlugin.logWarning("Could not restore terminal session: " + e.getLocalizedMessage()); //$NON-NLS-1$
+            IfsProjectsPlugin.logWarning("Could not restore terminal session: " + ExceptionUtils.getLocalizedMessage(e)); //$NON-NLS-1$
             return null;
         }
     }

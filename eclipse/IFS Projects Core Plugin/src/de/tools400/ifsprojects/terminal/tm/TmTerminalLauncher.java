@@ -24,6 +24,7 @@ import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
 import de.tools400.ifsprojects.terminal.ITerminalLauncher;
 import de.tools400.ifsprojects.terminal.TerminalException;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Terminal backend for the TM terminal that is shipped with RDi 9.6, 9.8 and
@@ -72,7 +73,7 @@ public class TmTerminalLauncher implements ITerminalLauncher {
         try {
             view = (TmTerminalView)page.showView(TmTerminalView.ID);
         } catch (PartInitException e) {
-            throw new TerminalException(e.getLocalizedMessage(), e);
+            throw new TerminalException(ExceptionUtils.getLocalizedMessage(e), e);
         }
 
         if (!aRequest.isForceNew()) {

@@ -21,6 +21,7 @@ import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
 import de.tools400.ifsprojects.terminal.TerminalException;
 import de.tools400.ifsprojects.terminal.TerminalLaunchers;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Base class of the handlers that open a terminal.
@@ -60,10 +61,11 @@ public abstract class AbstractTerminalHandler extends AbstractHandler {
             return TerminalLaunchers.getLauncher().launch(aRequest);
         } catch (TerminalException e) {
             IfsProjectsPlugin.logError("Could not open terminal: " + aRequest.getToolTip(), e); //$NON-NLS-1$
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, e.getLocalizedMessage());
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
         } catch (RuntimeException e) {
             IfsProjectsPlugin.logError("Unexpected error opening terminal: " + aRequest.getToolTip(), e); //$NON-NLS-1$
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A,
+                ExceptionUtils.getLocalizedMessage(e)));
         }
 
         return null;

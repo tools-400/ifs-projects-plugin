@@ -59,6 +59,35 @@ public class StrPrePrcHeaderParserTest {
     }
 
     @Test
+    public void testFixedFormRpgWithFormType() {
+
+        // The asterisk in column 7 makes a comment, also behind a form type
+        // and a sequence number.
+        SourceHeader header = header("     H* >>PRE-COMPILER<<\n" //
+            + "     H*   >>CRTCMD<<  CRTRPGMOD MODULE(&LI/&OB) +\n" //
+            + "     H*                         SRCSTMF('&STMF') +\n" //
+            + "00300 *                         DBGVIEW(*LIST);\n" //
+            + "     H* >>END-PRE-COMPILER<<\n" //
+            + "     H NOMAIN\n");
+
+        assertEquals("CRTRPGMOD", header.getCreateCommand().getName());
+        assertEquals("'&STMF'", header.getCreateCommand().getParameter("SRCSTMF"));
+        assertEquals("*LIST", header.getCreateCommand().getParameter("DBGVIEW"));
+        assertTrue(header.isModule());
+    }
+
+    @Test
+    public void testFixedFormRpgEndsAtASpecification() {
+
+        // The command is not terminated, the specification is no comment.
+        SourceHeader header = header("     H*   >>CRTCMD<<  CRTRPGMOD MODULE(&LI/&OB) +\n" //
+            + "     H NOMAIN INCFILE(QOTHER)\n");
+
+        assertEquals("CRTRPGMOD", header.getCreateCommand().getName());
+        assertNull(header.getIncludeFile());
+    }
+
+    @Test
     public void testCl() {
 
         SourceHeader header = header("/* >>PRE-COMPILER<<                                     */\n" //
@@ -117,6 +146,34 @@ public class StrPrePrcHeaderParserTest {
 
         SourceHeader header = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) +\n" //
             + "// >>END-PRE-COMPILER<<\n");
+
+        assertEquals("CRTBNDRPG", header.getCreateCommand().getName());
+        assertEquals("&LI/&OB", header.getCreateCommand().getParameter("PGM"));
+    }
+
+    @Test
+    public void testGreaterThanSignsAreNoTag() {
+
+        // Only a tag of the header ends the command, not '>>' in its text.
+        SourceHeader header = header("// >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB) +\n" //
+            + "//            TEXT('In >> Out') INCFILE(&SL/QCPYSRC);\n");
+
+        assertEquals("'In >> Out'", header.getCreateCommand().getParameter("TEXT"));
+        assertEquals("QCPYSRC", header.getIncludeFile());
+    }
+
+    @Test
+    public void testTagInAnyCase() {
+
+        assertEquals("CRTBNDRPG", header("// >>crtcmd<< crtbndrpg pgm(&li/&ob);\n").getCreateCommand().getName());
+    }
+
+    @Test
+    public void testTagBehindCharactersOfAnotherLengthInUpperCase() {
+
+        // The upper case of 'ß' is "SS", so the tag must be found in the
+        // line itself.
+        SourceHeader header = header("// Maßstäbe, Größe: >>CRTCMD<< CRTBNDRPG PGM(&LI/&OB);\n");
 
         assertEquals("CRTBNDRPG", header.getCreateCommand().getName());
         assertEquals("&LI/&OB", header.getCreateCommand().getParameter("PGM"));

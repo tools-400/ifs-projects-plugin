@@ -23,6 +23,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Reads and writes <code>iproj.json</code> files with IBM Toolbox for Java.
@@ -157,7 +158,7 @@ public final class IProjFileStore {
         } catch (IProjFileException e) {
             throw e;
         } catch (Exception e) {
-            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, path, e.getLocalizedMessage()), e);
+            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, path, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 
@@ -189,7 +190,7 @@ public final class IProjFileStore {
         } catch (IProjFileException e) {
             throw e;
         } catch (Exception e) {
-            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_write_A_B, path, e.getLocalizedMessage()), e);
+            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_write_A_B, path, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 
@@ -209,7 +210,7 @@ public final class IProjFileStore {
         } catch (IProjFileException e) {
             throw e;
         } catch (Exception e) {
-            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, aDirectory, e.getLocalizedMessage()), e);
+            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, aDirectory, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 
@@ -261,9 +262,10 @@ public final class IProjFileStore {
                 throw (IProjFileException)e.getCause();
             }
             IfsProjectsPlugin.logError("Unexpected error accessing iproj.json: " + aDirectory, e.getCause()); //$NON-NLS-1$
-            throw new IProjFileException(Messages.bind(Messages.Error_Unexpected_error_A, e.getCause().getLocalizedMessage()), e.getCause());
+            throw new IProjFileException(Messages.bind(Messages.Error_Unexpected_error_A, ExceptionUtils.getLocalizedMessage(e.getCause())),
+                e.getCause());
         } catch (InterruptedException e) {
-            throw new IProjFileException(e.getLocalizedMessage(), e);
+            throw new IProjFileException(ExceptionUtils.getLocalizedMessage(e), e);
         }
     }
 

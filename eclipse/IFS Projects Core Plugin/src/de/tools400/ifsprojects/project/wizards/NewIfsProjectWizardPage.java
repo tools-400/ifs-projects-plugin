@@ -46,6 +46,7 @@ import de.tools400.ifsprojects.project.IProjFileStore;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.project.IfsProjectFilters;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -200,7 +201,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
             IProjFileStore.connect(host);
         } catch (IProjFileException e) {
             IfsProjectsPlugin.logError("Could not check iproj.json of directory: " + directory, e); //$NON-NLS-1$
-            showNewIProj(e.getLocalizedMessage());
+            showNewIProj(ExceptionUtils.getLocalizedMessage(e));
             return;
         }
 
@@ -269,7 +270,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
             IfsProjectsPlugin.logError("Could not check iproj.json of directory: " + aDirectory, anError); //$NON-NLS-1$
             // Checks the directory again, when the focus leaves the field.
             checkedDirectory = null;
-            showNewIProj(anError.getLocalizedMessage());
+            showNewIProj(ExceptionUtils.getLocalizedMessage(anError));
             return;
         }
 
@@ -281,7 +282,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
         try {
             showExistingIProj(IProjConfig.parse(aFileContent.getContent()), null);
         } catch (IProjParseException e) {
-            showExistingIProj(null, Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, e.getLocalizedMessage()));
+            showExistingIProj(null, Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, ExceptionUtils.getLocalizedMessage(e)));
         }
     }
 
@@ -380,7 +381,7 @@ public class NewIfsProjectWizardPage extends WizardPage {
         try {
             system = IProjFileStore.getConnectedSystem(host);
         } catch (IProjFileException e) {
-            setErrorMessage(e.getLocalizedMessage());
+            setErrorMessage(ExceptionUtils.getLocalizedMessage(e));
             return;
         }
 

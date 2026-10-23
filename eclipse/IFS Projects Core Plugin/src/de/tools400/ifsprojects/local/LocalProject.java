@@ -33,6 +33,7 @@ import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.rse.RseConnections;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -325,7 +326,7 @@ public final class LocalProject {
             }
             return IProjFileContent.existing(path, readText(file), Deployment.getCcsid(file.getCharset()), file.getLocalTimeStamp());
         } catch (Exception e) {
-            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, path, e.getLocalizedMessage()), e);
+            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_read_A_B, path, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 
@@ -360,7 +361,7 @@ public final class LocalProject {
         } catch (IProjFileException e) {
             throw e;
         } catch (Exception e) {
-            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_write_A_B, path, e.getLocalizedMessage()), e);
+            throw new IProjFileException(Messages.bind(Messages.Error_Could_not_write_A_B, path, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 

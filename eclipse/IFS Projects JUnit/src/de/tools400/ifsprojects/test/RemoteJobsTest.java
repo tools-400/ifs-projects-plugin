@@ -13,6 +13,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Locale;
 
 import org.junit.Test;
 
@@ -53,6 +54,19 @@ public class RemoteJobsTest {
         assertEquals("/home/jsmith/.ifsprojects/tmp", RemoteJobs.getTemporaryDirectory("/home/jsmith"));
         assertEquals("/home/jsmith/.ifsprojects/builds", RemoteJobs.getBuildsDirectory("/home/jsmith"));
         assertEquals("/.ifsprojects/tmp", RemoteJobs.getTemporaryDirectory("/"));
+    }
+
+    @Test
+    public void testGetDefaultHomeDirectory() throws Exception {
+
+        Locale locale = Locale.getDefault();
+        try {
+            // In Turkish, the lower case of 'I' is the dotless i.
+            Locale.setDefault(new Locale("tr", "TR"));
+            assertEquals("/home/jsmith", RemoteJobs.getDefaultHomeDirectory("JSMITH"));
+        } finally {
+            Locale.setDefault(locale);
+        }
     }
 
     @Test

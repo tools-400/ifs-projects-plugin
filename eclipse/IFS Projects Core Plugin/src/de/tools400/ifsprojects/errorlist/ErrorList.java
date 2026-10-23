@@ -51,6 +51,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.EventsFileMapper;
 import de.tools400.ifsprojects.local.SourceMapping;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -139,7 +140,8 @@ public final class ErrorList {
                     eventsFile = writeEventsFile(aHost, aSourcePath, events, aCcsid, aMonitor);
                 } catch (CoreException e) {
                     IfsProjectsPlugin.logError("Could not write the events file of: " + aSourcePath, e); //$NON-NLS-1$
-                    PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()));
+                    PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A,
+                        ExceptionUtils.getLocalizedMessage(e)));
                     return Status.OK_STATUS;
                 }
                 showLater(getName(), eventsFile, aHost, aSourcePath, projectName, projectLocations);
@@ -261,7 +263,7 @@ public final class ErrorList {
             QSYSErrorListViewPart view = (QSYSErrorListViewPart)page.showView(QSYSErrorListViewPart.ID);
             view.configure(anEventsFile, aTitle);
         } catch (PartInitException e) {
-            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()), e);
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, ExceptionUtils.getLocalizedMessage(e)), e);
         }
 
         // The project name is set in the same workspace operation, so that the
@@ -289,15 +291,15 @@ public final class ErrorList {
         try {
             workspace.run(runnable, workspace.getRoot(), IWorkspace.AVOID_UPDATE, new NullProgressMonitor());
         } catch (CoreException e) {
-            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, e.getLocalizedMessage()), e);
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, ExceptionUtils.getLocalizedMessage(e)), e);
         }
 
         if (failure[0] instanceof InterruptedException) {
             return;
         }
         if (failure[0] != null) {
-            Throwable cause = failure[0].getCause() != null ? failure[0].getCause() : failure[0];
-            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, cause.getLocalizedMessage()), cause);
+            Throwable cause = ExceptionUtils.getCause(failure[0]);
+            throw error(Messages.bind(Messages.Error_Could_not_show_errors_A, ExceptionUtils.getLocalizedMessage(cause)), cause);
         }
 
         SystemMessage parserError = parser.getException();

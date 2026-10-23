@@ -15,7 +15,7 @@ import java.util.ListResourceBundle;
 import java.util.ResourceBundle;
 
 import org.eclipse.compare.CompareConfiguration;
-import org.eclipse.compare.IStreamContentAccessor;
+import org.eclipse.compare.IEncodedStreamContentAccessor;
 import org.eclipse.compare.ITypedElement;
 import org.eclipse.compare.contentmergeviewer.TextMergeViewer;
 import org.eclipse.compare.structuremergeviewer.DiffNode;
@@ -314,9 +314,11 @@ public final class SourceViewDialog extends Dialog {
     }
 
     /**
-     * Content of the compare viewer.
+     * Content of the compare viewer. It names its encoding, because the viewer
+     * decodes content without an encoding with the encoding of the workspace,
+     * which is not UTF-8 on Windows before Eclipse 4.24.
      */
-    private static final class Content implements ITypedElement, IStreamContentAccessor {
+    private static final class Content implements ITypedElement, IEncodedStreamContentAccessor {
 
         private final String name;
         private final String text;
@@ -340,6 +342,10 @@ public final class SourceViewDialog extends Dialog {
 
         public InputStream getContents() {
             return new ByteArrayInputStream(text.getBytes(UTF_8));
+        }
+
+        public String getCharset() {
+            return UTF_8.name();
         }
     }
 }

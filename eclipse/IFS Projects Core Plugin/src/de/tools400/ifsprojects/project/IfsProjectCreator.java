@@ -21,6 +21,7 @@ import org.eclipse.rse.core.model.IHost;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Creates an IFS project: optionally the project directory and its
@@ -58,7 +59,7 @@ public final class IfsProjectCreator {
         try {
             IProjFileStore.connect(aHost);
         } catch (IProjFileException e) {
-            throw newCoreException(e.getLocalizedMessage(), null);
+            throw newCoreException(ExceptionUtils.getLocalizedMessage(e), null);
         }
 
         try {
@@ -75,17 +76,17 @@ public final class IfsProjectCreator {
                 }
             });
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause();
+            Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not prepare directory of IFS project: " + aDirectory, //$NON-NLS-1$
-                cause.getCause() != null ? cause.getCause() : cause);
-            throw newCoreException(cause.getLocalizedMessage(), cause);
+                ExceptionUtils.getCause(cause));
+            throw newCoreException(ExceptionUtils.getLocalizedMessage(cause), cause);
         }
 
         try {
             return IfsProjectFilters.create(aHost, aName, aDirectory);
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not create IFS project filter: " + aName, e); //$NON-NLS-1$
-            throw newCoreException(Messages.bind(Messages.Error_Could_not_create_project_filter_A, e.getLocalizedMessage()), e);
+            throw newCoreException(Messages.bind(Messages.Error_Could_not_create_project_filter_A, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 

@@ -32,7 +32,6 @@ public final class CreateCommand {
     private static final String CREATE = "CRT"; //$NON-NLS-1$
 
     private static final char LIBRARY_SEPARATOR = '/';
-    private static final char QUOTE = '\'';
     private static final char LEFT = '(';
     private static final char RIGHT = ')';
 
@@ -149,8 +148,8 @@ public final class CreateCommand {
                 continue;
             }
 
-            if (character == QUOTE) {
-                i = skipString(aText, i);
+            if (character == QuotedStrings.QUOTE) {
+                i = QuotedStrings.skip(aText, i);
                 continue;
             }
 
@@ -170,10 +169,10 @@ public final class CreateCommand {
             }
 
             if (end < aText.length() && aText.charAt(end) == LEFT) {
-                int close = skipValue(aText, end);
-                String value = aText.substring(end + 1, Math.max(end + 1, close - 1)).trim();
+                int valueEnd = indexOfValueEnd(aText, end);
+                String value = aText.substring(end + 1, valueEnd).trim();
                 parameters.put(aText.substring(i, end).toUpperCase(Locale.ROOT), value);
-                i = close;
+                i = Math.min(valueEnd + 1, aText.length());
             } else {
                 i = end;
             }
@@ -184,17 +183,27 @@ public final class CreateCommand {
 
     /**
      * Returns the index behind the value, that starts with the parenthesis at
-     * the given index. Nested parentheses, e.g. <code>BNDDIR((*LIBL/MAIN))</code>,
-     * and parentheses in quoted strings are skipped.
+     * the given index.
      */
     private static int skipValue(String aText, int anIndex) {
+        return Math.min(indexOfValueEnd(aText, anIndex) + 1, aText.length());
+    }
+
+    /**
+     * Returns the index of the parenthesis, that closes the value, that starts
+     * with the parenthesis at the given index, or the length of the text, if
+     * the value is not closed. Nested parentheses, e.g.
+     * <code>BNDDIR((*LIBL/MAIN))</code>, and parentheses in quoted strings are
+     * skipped.
+     */
+    private static int indexOfValueEnd(String aText, int anIndex) {
 
         int level = 0;
         int i = anIndex;
         while (i < aText.length()) {
             char character = aText.charAt(i);
-            if (character == QUOTE) {
-                i = skipString(aText, i);
+            if (character == QuotedStrings.QUOTE) {
+                i = QuotedStrings.skip(aText, i);
                 continue;
             }
             if (character == LEFT) {
@@ -202,29 +211,8 @@ public final class CreateCommand {
             } else if (character == RIGHT) {
                 level--;
                 if (level == 0) {
-                    return i + 1;
+                    return i;
                 }
-            }
-            i++;
-        }
-
-        return aText.length();
-    }
-
-    /**
-     * Returns the index behind the quoted string, that starts at the given
-     * index. Two quotes are one quote of the string.
-     */
-    private static int skipString(String aText, int anIndex) {
-
-        int i = anIndex + 1;
-        while (i < aText.length()) {
-            if (aText.charAt(i) == QUOTE) {
-                if (i + 1 < aText.length() && aText.charAt(i + 1) == QUOTE) {
-                    i += 2;
-                    continue;
-                }
-                return i + 1;
             }
             i++;
         }

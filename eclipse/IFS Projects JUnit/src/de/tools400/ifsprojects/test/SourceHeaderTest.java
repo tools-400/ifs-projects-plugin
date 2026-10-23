@@ -84,6 +84,18 @@ public class SourceHeaderTest {
     }
 
     @Test
+    public void testCommand_valueNotClosed() {
+
+        // A header without the closing parenthesis must not lose the last
+        // character of the value.
+        assertEquals("LIB/MOD", CreateCommand.parse("CRTRPGMOD MODULE(LIB/MOD").getParameter("MODULE"));
+        assertEquals("&SL/QCPYSRC", CreateCommand.parse("CRTSQLRPGI OBJ(&LI/&OB) INCFILE(&SL/QCPYSRC").getParameter("INCFILE"));
+        assertEquals("(*LIBL/MAIN)", CreateCommand.parse("CRTPGM PGM(&LI/&OB) BNDDIR((*LIBL/MAIN)").getParameter("BNDDIR"));
+        assertEquals("", CreateCommand.parse("CRTRPGMOD MODULE(").getParameter("MODULE"));
+        assertEquals("&LI/&OB", CreateCommand.parse("CRTRPGMOD MODULE(&LI/&OB)").getParameter("MODULE"));
+    }
+
+    @Test
     public void testCommand_endOfAClComment() {
 
         // The parser of a build tool removes it; what is left is ignored.

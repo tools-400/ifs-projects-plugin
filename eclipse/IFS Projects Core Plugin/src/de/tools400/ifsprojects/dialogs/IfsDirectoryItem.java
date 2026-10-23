@@ -18,6 +18,7 @@ import com.ibm.as400.access.IFSFile;
 import com.ibm.as400.access.IFSFileFilter;
 
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Directory of the IFS, as shown in the {@link SelectIfsDirectoryDialog}. The
@@ -113,7 +114,7 @@ class IfsDirectoryItem {
             }
 
         } catch (Exception e) {
-            items.add(createError(e.getLocalizedMessage()));
+            items.add(createError(ExceptionUtils.getLocalizedMessage(e)));
         }
 
         return items.toArray(new IfsDirectoryItem[items.size()]);

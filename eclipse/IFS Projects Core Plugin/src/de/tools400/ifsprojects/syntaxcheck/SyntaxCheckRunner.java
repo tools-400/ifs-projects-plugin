@@ -21,6 +21,7 @@ import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Executes the commands of a syntax check with IBM Toolbox for Java.
@@ -55,7 +56,7 @@ public final class SyntaxCheckRunner {
         try {
             return RemoteJobs.readText(new IFSFile(aSystem, aPath));
         } catch (Exception e) {
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, aPath, e.getLocalizedMessage()), e);
+            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, aPath, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 
@@ -119,7 +120,7 @@ public final class SyntaxCheckRunner {
             return aSession.readMember(SyntaxCheckCommands.LIBRARY, EventsFiles.EVENTS_FILE, anObjectName);
         } catch (Exception e) {
             String member = ClCommands.getMemberPath(SyntaxCheckCommands.LIBRARY, EventsFiles.EVENTS_FILE, anObjectName);
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, member, e.getLocalizedMessage()), e);
+            throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, member, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 
@@ -128,7 +129,7 @@ public final class SyntaxCheckRunner {
         try {
             return aCommandCall.run(aCommand);
         } catch (Exception e) {
-            throw new SyntaxCheckException(Messages.bind(Messages.Error_Command_A_failed_B, aCommand, e.getLocalizedMessage()), e);
+            throw new SyntaxCheckException(Messages.bind(Messages.Error_Command_A_failed_B, aCommand, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 

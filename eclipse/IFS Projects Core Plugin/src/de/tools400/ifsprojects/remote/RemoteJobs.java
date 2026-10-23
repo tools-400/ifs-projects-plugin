@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -275,17 +276,28 @@ public final class RemoteJobs {
             directory = new User(aSystem, aSystem.getUserId()).getHomeDirectory();
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not retrieve the home directory of: " + aSystem.getUserId(), e); //$NON-NLS-1$
-            return HOME_PARENT + aSystem.getUserId().toLowerCase();
+            return getDefaultHomeDirectory(aSystem.getUserId());
         }
 
         directory = StringUtils.trimToNull(directory);
         if (directory == null) {
-            directory = HOME_PARENT + aSystem.getUserId().toLowerCase();
+            directory = getDefaultHomeDirectory(aSystem.getUserId());
         }
 
         HOME_DIRECTORIES.put(key, directory);
 
         return directory;
+    }
+
+    /**
+     * Returns the home directory of a user profile, that is used, if the home
+     * directory cannot be retrieved or is not set.
+     *
+     * @param aUserId - user profile
+     * @return home directory, e.g. <code>/home/jsmith</code>
+     */
+    public static String getDefaultHomeDirectory(String aUserId) {
+        return HOME_PARENT + aUserId.toLowerCase(Locale.ROOT);
     }
 
     /**

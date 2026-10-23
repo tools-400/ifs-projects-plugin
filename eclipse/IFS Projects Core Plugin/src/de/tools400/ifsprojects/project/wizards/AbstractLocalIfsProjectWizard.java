@@ -10,6 +10,7 @@ package de.tools400.ifsprojects.project.wizards;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -31,6 +32,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Base of the wizards, that create a local IFS project in the workspace, see
@@ -111,22 +113,39 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
                         if (!status.isOK()) {
                             throw new InvocationTargetException(status.getException(), status.getMessage());
                         }
+                    } catch (ExecutionException e) {
+                        throw new InvocationTargetException(e);
+                    }
+                }
+            });
+        } catch (InvocationTargetException e) {
+            IfsProjectsPlugin.logError("Could not create local IFS project: " + project.getName(), ExceptionUtils.getCause(e)); //$NON-NLS-1$
+            MessageDialog.openError(getShell(), title, Messages.bind(Messages.Error_Could_not_create_project_A,
+                ExceptionUtils.getLocalizedMessage(e)));
+            return false;
+        } catch (InterruptedException e) {
+            return false;
+        }
+
+        // The project exists now. If it cannot be configured, it is kept and
+        // the wizard is closed: Finish would fail on the existing project, and
+        // the settings can be completed on the property pages of the project.
+        try {
+            getContainer().run(true, false, new IRunnableWithProgress() {
+                public void run(IProgressMonitor aMonitor) throws InvocationTargetException {
+                    try {
                         configure(project, isUtf8, config, connectionName, deployDirectory, aMonitor);
-                    } catch (InvocationTargetException e) {
-                        throw e;
                     } catch (Exception e) {
                         throw new InvocationTargetException(e);
                     }
                 }
             });
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            String message = cause.getLocalizedMessage() != null ? cause.getLocalizedMessage() : e.getMessage();
-            IfsProjectsPlugin.logError("Could not create local IFS project: " + project.getName(), cause); //$NON-NLS-1$
-            MessageDialog.openError(getShell(), title, Messages.bind(Messages.Error_Could_not_create_project_A, message));
-            return false;
+            IfsProjectsPlugin.logError("Could not configure local IFS project: " + project.getName(), ExceptionUtils.getCause(e)); //$NON-NLS-1$
+            MessageDialog.openWarning(getShell(), title, Messages.bind(Messages.Warning_Project_A_created_but_not_configured_B, project.getName(),
+                ExceptionUtils.getLocalizedMessage(e)));
         } catch (InterruptedException e) {
-            return false;
+            // The configuration cannot be canceled.
         }
 
         workbench.getWorkingSetManager().addToWorkingSets(project, aWorkingSets);

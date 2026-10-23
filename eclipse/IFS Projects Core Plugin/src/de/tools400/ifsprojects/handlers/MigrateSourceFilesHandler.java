@@ -42,6 +42,7 @@ import de.tools400.ifsprojects.migration.SourceFileCatalog;
 import de.tools400.ifsprojects.migration.wizards.MigrateToIfsProjectWizard;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Migrates source files into a new IFS project: all source files of a
@@ -74,10 +75,10 @@ public class MigrateSourceFilesHandler extends AbstractHandler {
         try {
             readSourceFiles(shell, system, library, selectedFiles, sourceFiles, homeDirectory);
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not read the source files of: " + library, cause); //$NON-NLS-1$
-            MessageDialog.openError(shell, Messages.Title_Migrate_to_IFS_project, Messages.bind(Messages.Error_Could_not_read_A_B, library, cause
-                .getLocalizedMessage()));
+            MessageDialog.openError(shell, Messages.Title_Migrate_to_IFS_project, Messages.bind(Messages.Error_Could_not_read_A_B, library,
+                ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;

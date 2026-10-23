@@ -23,6 +23,7 @@ import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Collects the events files of the objects, that have been compiled by a
@@ -91,7 +92,7 @@ public final class BuildEvents {
                 events.add(RemoteJobs.readText(file));
             }
         } catch (Exception e) {
-            throw new IOException(Messages.bind(Messages.Error_Could_not_read_A_B, aDirectory, e.getLocalizedMessage()), e);
+            throw new IOException(Messages.bind(Messages.Error_Could_not_read_A_B, aDirectory, ExceptionUtils.getLocalizedMessage(e)), e);
         }
 
         return events;
@@ -116,7 +117,7 @@ public final class BuildEvents {
                 events.add(content);
             }
         } catch (Exception e) {
-            throw new IOException(Messages.bind(Messages.Error_Could_not_read_A_B, eventsFile, e.getLocalizedMessage()), e);
+            throw new IOException(Messages.bind(Messages.Error_Could_not_read_A_B, eventsFile, ExceptionUtils.getLocalizedMessage(e)), e);
         }
 
         return events;

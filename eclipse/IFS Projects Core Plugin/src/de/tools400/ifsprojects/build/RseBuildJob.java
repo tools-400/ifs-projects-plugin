@@ -29,6 +29,7 @@ import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
@@ -127,10 +128,11 @@ public class RseBuildJob extends Job {
             showEvents(session, startTime);
 
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return Status.CANCEL_STATUS;
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not run command: " + displayCommand, e); //$NON-NLS-1$
-            String message = Messages.bind(Messages.Error_Could_not_run_A_B, displayCommand, e.getLocalizedMessage());
+            String message = Messages.bind(Messages.Error_Could_not_run_A_B, displayCommand, ExceptionUtils.getLocalizedMessage(e));
             CommandsLog.log(host, message);
             PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, message);
         } finally {
@@ -152,7 +154,7 @@ public class RseBuildJob extends Job {
             events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
         } catch (IOException e) {
             IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
-            CommandsLog.log(host, e.getLocalizedMessage());
+            CommandsLog.log(host, ExceptionUtils.getLocalizedMessage(e));
             return;
         }
 

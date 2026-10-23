@@ -25,6 +25,7 @@ import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.project.propertypages.LocalProjectSettingsGroup;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Last page of the wizards 'New Local IFS Project' and 'Import Local IFS
@@ -182,11 +183,13 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
             setMessage(Messages.Info_Existing_iproj_json_is_used, IMessageProvider.INFORMATION);
         } catch (IProjParseException e) {
             iprojGroup.showExisting(null);
-            setMessage(Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, e.getLocalizedMessage()), IMessageProvider.WARNING);
+            setMessage(Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, ExceptionUtils.getLocalizedMessage(e)),
+                IMessageProvider.WARNING);
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not check iproj.json of directory: " + directory, e); //$NON-NLS-1$
             iprojGroup.showExisting(null);
-            setMessage(Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, e.getLocalizedMessage()), IMessageProvider.WARNING);
+            setMessage(Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, ExceptionUtils.getLocalizedMessage(e)),
+                IMessageProvider.WARNING);
         }
     }
 

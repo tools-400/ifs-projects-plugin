@@ -79,6 +79,32 @@ public class IProjConfigTest {
     }
 
     @Test
+    public void testSetString_unchangedValueKeepsItsType() throws Exception {
+
+        // The property page sets all fields, when one of them has changed.
+        IProjConfig config = IProjConfig.parse("{\"version\":1,\"objlib\":null,\"curlib\":\"LIB\",\"description\":\"x\"}");
+        config.setString(IProjConfig.VERSION, config.getString(IProjConfig.VERSION));
+        config.setString(IProjConfig.OBJLIB, "");
+        config.setString(IProjConfig.CURLIB, " LIB ");
+        config.setString(IProjConfig.DESCRIPTION, "new");
+
+        assertEquals("{\"version\":1,\"objlib\":null,\"curlib\":\"LIB\",\"description\":\"new\"}", compact(config.toJson()));
+
+        config.setString(IProjConfig.VERSION, "2");
+        config.setString(IProjConfig.OBJLIB, "OBJ");
+
+        assertEquals("{\"version\":\"2\",\"objlib\":\"OBJ\",\"curlib\":\"LIB\",\"description\":\"new\"}", compact(config.toJson()));
+    }
+
+    @Test
+    public void testNullIsPreserved() throws Exception {
+
+        IProjConfig config = IProjConfig.parse("{\"objlib\":null,\"foo\":{\"bar\":null}}");
+
+        assertEquals("{\"objlib\":null,\"foo\":{\"bar\":null}}", compact(config.toJson()));
+    }
+
+    @Test
     public void testNoHtmlEscaping() throws Exception {
 
         IProjConfig config = new IProjConfig();
@@ -147,5 +173,13 @@ public class IProjConfigTest {
         assertEquals(Arrays.asList("QGPL"), config.getStrings(IProjConfig.CURLIB));
         assertTrue(config.getStrings(IProjConfig.OBJLIB).isEmpty());
         assertTrue(config.getStrings(IProjConfig.PRE_USRLIBL).isEmpty());
+    }
+
+    /**
+     * Returns the JSON text without white space; the values of the tests have
+     * no blanks.
+     */
+    private static String compact(String aJson) {
+        return aJson.replaceAll("\\s", "");
     }
 }

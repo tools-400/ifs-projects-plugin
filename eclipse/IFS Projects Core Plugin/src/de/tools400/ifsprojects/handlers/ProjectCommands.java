@@ -22,6 +22,7 @@ import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjFileStore;
 import de.tools400.ifsprojects.project.IProjParseException;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Common code of the handlers that execute project commands (build, compile,
@@ -49,7 +50,7 @@ final class ProjectCommands {
         try {
             return IProjFileStore.getConnectedSystem(aHost);
         } catch (IProjFileException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, e.getLocalizedMessage());
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
             return null;
         }
     }
@@ -69,14 +70,15 @@ final class ProjectCommands {
         try {
             fileContent = IProjFileStore.read(new ProgressMonitorDialog(aShell), aHost, aDirectory);
         } catch (IProjFileException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, e.getLocalizedMessage());
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
             return null;
         }
 
         try {
             return IProjConfig.parse(fileContent.getContent());
         } catch (IProjParseException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Invalid_iproj_json_A, e.getLocalizedMessage()));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Invalid_iproj_json_A,
+                ExceptionUtils.getLocalizedMessage(e)));
             return null;
         }
     }

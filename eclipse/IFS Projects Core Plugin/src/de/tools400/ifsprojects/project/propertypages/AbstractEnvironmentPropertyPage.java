@@ -34,6 +34,7 @@ import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Base class of the property pages of the environment variables of IFS
@@ -199,7 +200,7 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not save environment variables of project: " + getProjectName(), e); //$NON-NLS-1$
             MessageDialog.openError(getShell(), Messages.Title_IFS_Projects,
-                Messages.bind(Messages.Error_Could_not_save_environment_variables_A, e.getLocalizedMessage()));
+                Messages.bind(Messages.Error_Could_not_save_environment_variables_A, ExceptionUtils.getLocalizedMessage(e)));
             return false;
         }
 
@@ -230,14 +231,14 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
         try {
             config = readConfig();
         } catch (IProjParseException e) {
-            statusLabel.setText(Messages.bind(Messages.Error_Invalid_iproj_json_A, e.getLocalizedMessage()));
+            statusLabel.setText(Messages.bind(Messages.Error_Invalid_iproj_json_A, ExceptionUtils.getLocalizedMessage(e)));
             return;
         } catch (IProjFileException e) {
-            statusLabel.setText(e.getLocalizedMessage());
+            statusLabel.setText(ExceptionUtils.getLocalizedMessage(e));
             return;
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not read iproj.json of project: " + getProjectName(), e); //$NON-NLS-1$
-            statusLabel.setText(Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
+            statusLabel.setText(Messages.bind(Messages.Error_Unexpected_error_A, ExceptionUtils.getLocalizedMessage(e)));
             return;
         }
 

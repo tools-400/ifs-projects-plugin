@@ -483,9 +483,12 @@ public final class Deployment {
 
         createDirectory(aSystem, aRemotePath.substring(0, aRemotePath.lastIndexOf(SEPARATOR)), aDirectories);
 
+        // The CCSID applies to a new file only, so the file is replaced. If it
+        // could not be deleted, it would keep its CCSID, but the manifest would
+        // contain the new one.
         IFSFile remoteFile = new IFSFile(aSystem, aRemotePath);
-        if (remoteFile.exists() && remoteFile.getCCSID() != aCcsid) {
-            remoteFile.delete();
+        if (remoteFile.exists() && remoteFile.getCCSID() != aCcsid && !remoteFile.delete()) {
+            throw new IOException(Messages.bind(Messages.Error_Could_not_delete_A, remoteFile.getAbsolutePath()));
         }
 
         MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);

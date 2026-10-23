@@ -40,6 +40,7 @@ import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.rse.RseSelections;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Common code of the handlers of local IFS projects. Errors are reported to
@@ -282,12 +283,13 @@ final class LocalProjectCommands {
         try {
             return aLocalProject.readConfig();
         } catch (IProjParseException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Invalid_iproj_json_A, e.getLocalizedMessage()));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Invalid_iproj_json_A,
+                ExceptionUtils.getLocalizedMessage(e)));
         } catch (Exception e) {
             String path = aLocalProject.getProject().getFile(IProjConfig.FILE_NAME).getFullPath().toString();
             IfsProjectsPlugin.logError("Could not read iproj.json: " + path, e); //$NON-NLS-1$
             MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_read_A_B, path,
-                e.getLocalizedMessage()));
+                ExceptionUtils.getLocalizedMessage(e)));
         }
 
         return null;
@@ -369,10 +371,10 @@ final class LocalProjectCommands {
                 }
             });
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not upload project: " + aLocalProject.getName(), cause); //$NON-NLS-1$
             MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_upload_A_B, aLocalProject.getName(),
-                cause.getLocalizedMessage()));
+                ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;

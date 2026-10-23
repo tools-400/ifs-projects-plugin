@@ -67,14 +67,51 @@ public class BuildCommandHeaderParserTest {
     }
 
     @Test
+    public void testEndTagInAQuotedString() {
+
+        SourceHeader header = header("      *>  CRTBNDRPG PGM(&O/&ON) TEXT('In <* Out') DBGVIEW(*LIST) <* anything else\n");
+
+        assertEquals("'In <* Out'", header.getCreateCommand().getParameter("TEXT"));
+        assertEquals("*LIST", header.getCreateCommand().getParameter("DBGVIEW"));
+        assertNull(header.getCreateCommand().getParameter("ANYTHING"));
+    }
+
+    @Test
+    public void testEndTagInAQuotedStringOfTwoLines() {
+
+        SourceHeader header = header("      *>  CRTBNDRPG PGM(&O/&ON) TEXT('Orders <* -\n" //
+            + "      *>  invoices') DBGVIEW(*LIST) <* anything else\n");
+
+        String text = header.getCreateCommand().getParameter("TEXT");
+        assertTrue(text, text.startsWith("'Orders <*") && text.endsWith("invoices'"));
+        assertEquals("*LIST", header.getCreateCommand().getParameter("DBGVIEW"));
+        assertNull(header.getCreateCommand().getParameter("ANYTHING"));
+    }
+
+    @Test
+    public void testContinuationBeforeTheEndTag() {
+
+        // In CL, the end tag cuts off the end of the comment of each line.
+        SourceHeader header = header("/* *>  CRTBNDCL PGM(&O/&ON) -                    <* */\n" //
+            + "/* *>           SRCFILE(&L/QCLSRC) DBGVIEW(*LIST) <* */\n" //
+            + "PGM\nENDPGM\n");
+
+        assertEquals("CRTBNDCL", header.getCreateCommand().getName());
+        assertEquals("&L/QCLSRC", header.getCreateCommand().getParameter("SRCFILE"));
+        assertEquals("*LIST", header.getCreateCommand().getParameter("DBGVIEW"));
+    }
+
+    @Test
     public void testIgnorePrefix() {
 
         SourceHeader header = header("      *>  ign: DLTPGM PYUEMPLR4\n" //
-            + "      *>  IGN: DLTMOD MODULE(&O/&ON)\n");
+            + "      *>  IGN: DLTMOD MODULE(&O/&ON)\n" //
+            + "      *>  Ign: DLTSRVPGM SRVPGM(&O/&ON)\n");
 
-        assertEquals(2, header.getCommands().size());
+        assertEquals(3, header.getCommands().size());
         assertEquals("DLTPGM", header.getCommands().get(0).getName());
         assertEquals("DLTMOD", header.getCommands().get(1).getName());
+        assertEquals("DLTSRVPGM", header.getCommands().get(2).getName());
         assertNull(header.getCreateCommand());
     }
 

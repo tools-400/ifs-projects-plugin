@@ -29,6 +29,7 @@ import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjValues;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
@@ -112,15 +113,21 @@ public class SyntaxCheckJob extends Job {
             ErrorList.showEvents(getName(), host, sourcePath, events, result.getCcsid(), sourceMapping);
 
         } catch (InterruptedException e) {
+            // Thrown on a cancel of the job, too, see waitForUpload() and
+            // SyntaxCheckRunner.
+            if (!aMonitor.isCanceled()) {
+                Thread.currentThread().interrupt();
+            }
             return Status.CANCEL_STATUS;
         } catch (SyntaxCheckException e) {
             if (e.getCause() != null) {
                 IfsProjectsPlugin.logError("Syntax check failed: " + sourcePath, e.getCause()); //$NON-NLS-1$
             }
-            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, e.getMessage());
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
         } catch (RuntimeException e) {
             IfsProjectsPlugin.logError("Unexpected error checking the syntax of: " + sourcePath, e); //$NON-NLS-1$
-            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A, e.getLocalizedMessage()));
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A,
+                ExceptionUtils.getLocalizedMessage(e)));
         } finally {
             aMonitor.done();
         }

@@ -174,6 +174,7 @@ public class Messages extends NLS {
     public static String Label_Text_files_in_UTF8;
     public static String Tooltip_Text_files_in_UTF8;
     public static String Error_Could_not_create_project_A;
+    public static String Warning_Project_A_created_but_not_configured_B;
     public static String Tooltip_Deploy_directory;
     public static String Error_Deploy_directory_invalid;
     public static String Error_Could_not_save_settings_A;

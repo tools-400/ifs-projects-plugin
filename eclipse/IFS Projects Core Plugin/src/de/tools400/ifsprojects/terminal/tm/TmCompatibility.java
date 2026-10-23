@@ -19,6 +19,7 @@ import org.eclipse.tm.terminal.model.ITerminalTextData;
 import org.eclipse.tm.terminal.model.TerminalTextDataFactory;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Calls of the TM terminal, that differ between the supported versions (RDi
@@ -90,7 +91,7 @@ final class TmCompatibility {
         } catch (NoSuchFieldException e) {
             // RDi 9.6: the display updates are never stopped
         } catch (Exception e) {
-            IfsProjectsPlugin.logWarning("Could not restart the display updates of the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
+            IfsProjectsPlugin.logWarning("Could not restart the display updates of the terminal: " + ExceptionUtils.getLocalizedMessage(e)); //$NON-NLS-1$
         }
     }
 
@@ -118,7 +119,7 @@ final class TmCompatibility {
             emulatorField.setAccessible(true);
             emulator = (IVT100EmulatorBackend)emulatorField.get(terminalText);
         } catch (Exception e) {
-            IfsProjectsPlugin.logWarning("Could not keep the prompt, when clearing the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
+            IfsProjectsPlugin.logWarning("Could not keep the prompt, when clearing the terminal: " + ExceptionUtils.getLocalizedMessage(e)); //$NON-NLS-1$
             aControl.clearTerminal();
             return;
         }
@@ -152,7 +153,7 @@ final class TmCompatibility {
             field.setAccessible(true);
             ((ITextCanvasModel)field.get(aControl.getControl())).setSelection(-1, -1, -1, -1);
         } catch (Exception e) {
-            IfsProjectsPlugin.logWarning("Could not clear the selection of the terminal: " + e.getLocalizedMessage()); //$NON-NLS-1$
+            IfsProjectsPlugin.logWarning("Could not clear the selection of the terminal: " + ExceptionUtils.getLocalizedMessage(e)); //$NON-NLS-1$
         }
     }
 }

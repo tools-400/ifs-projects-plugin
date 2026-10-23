@@ -10,10 +10,13 @@ package de.tools400.ifsprojects.strpreprc;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.tools400.ifsprojects.sources.headers.CreateCommand;
+import de.tools400.ifsprojects.sources.headers.HeaderLines;
 import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
+import de.tools400.ifsprojects.sources.headers.QuotedStrings;
 
 /**
  * Reads the create commands of the <code>STRPREPRC</code> header in the first
@@ -30,7 +33,9 @@ import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
  * with a semicolon. A line, that ends with <code>+</code> or <code>-</code>, is
  * continued by the next line of the header, from which the comment characters
  * of the source are removed: <code>//</code> of free form RPG, <code>*</code>
- * of fixed form RPG, the start of a comment of CL and <code>--</code> of SQL. A
+ * of fixed form RPG, also in column 7 behind a form type, e.g.
+ * <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H*</code>, the start of a comment of CL
+ * and <code>--</code> of SQL. A
  * line, that is no comment or that contains another tag, ends the command, so
  * that a header without a semicolon does not swallow the source.
  * <p>
@@ -42,17 +47,31 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     /** Tag of a create command. */
     private static final String CREATE_COMMAND_TAG = ">>CRTCMD<<"; //$NON-NLS-1$
 
-    /** Start of the tags of the header, e.g. of >>END-PRE-COMPILER<<. */
-    private static final String TAG = ">>"; //$NON-NLS-1$
+    /**
+     * Tag of a create command in any case. The tag is searched in the line
+     * itself, because upper case can change the length of a line, e.g.
+     * <code>&szlig;</code> becomes <code>SS</code>.
+     */
+    private static final Pattern CREATE_COMMAND_TAG_PATTERN = Pattern.compile(Pattern.quote(CREATE_COMMAND_TAG), Pattern.CASE_INSENSITIVE);
 
-    /** Number of lines, in which the header is searched. */
-    private static final int HEADER_LINES = 100;
+    /**
+     * A tag of the header, e.g. <code>&gt;&gt;END-PRE-COMPILER&lt;&lt;</code>.
+     * Other text with <code>&gt;&gt;</code>, e.g.
+     * <code>TEXT('a &gt;&gt; b')</code>, is no tag.
+     */
+    private static final Pattern TAG_PATTERN = Pattern.compile(">>[A-Z0-9_-]+<<", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
     private static final String RPG_COMMENT = "//"; //$NON-NLS-1$
     private static final String CL_COMMENT = "/*"; //$NON-NLS-1$
     private static final String SQL_COMMENT = "--"; //$NON-NLS-1$
     private static final String CL_COMMENT_END = "*/"; //$NON-NLS-1$
     private static final char FIXED_FORM_COMMENT = '*';
+
+    /** Index of column 6 of fixed form RPG, the form type, e.g. H or C. */
+    private static final int FORM_TYPE_INDEX = 5;
+
+    /** Index of column 7 of fixed form RPG, the asterisk of a comment. */
+    private static final int FIXED_FORM_COMMENT_INDEX = 6;
 
     /** Start of **FREE and of the compile time data, which are no comments. */
     private static final String DOUBLE_ASTERISK = "**"; //$NON-NLS-1$
@@ -64,15 +83,11 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     private static final char CONTINUATION = '-';
 
     private static final char END_OF_COMMAND = ';';
-    private static final char QUOTE = '\'';
-    private static final char LF = '\n';
-    private static final char CR = '\r';
-    private static final char TABULATOR = '\t';
     private static final char BLANK = ' ';
 
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<String> lines = getHeaderLines(aContent);
+        List<String> lines = HeaderLines.read(aContent);
 
         List<CreateCommand> commands = new ArrayList<CreateCommand>();
         for (int i = 0; i < lines.size(); i++) {
@@ -104,7 +119,7 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
                 text.append(line.substring(0, line.length() - 1));
 
                 String next = i + 1 < lines.size() ? removeCommentCharacters(lines.get(i + 1)) : null;
-                if (next == null || next.contains(TAG)) {
+                if (next == null || TAG_PATTERN.matcher(next).find()) {
                     break;
                 }
 
@@ -126,31 +141,13 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     }
 
     /**
-     * Returns the first lines of a source, in which the header stands.
-     */
-    private static List<String> getHeaderLines(String aContent) {
-
-        List<String> lines = new ArrayList<String>();
-
-        int start = 0;
-        while (lines.size() < HEADER_LINES && start <= aContent.length()) {
-            int end = aContent.indexOf(LF, start);
-            if (end < 0) {
-                lines.add(trimRight(aContent.substring(start)));
-                break;
-            }
-            lines.add(trimRight(aContent.substring(start, end)));
-            start = end + 1;
-        }
-
-        return lines;
-    }
-
-    /**
      * Returns the index of the tag of a create command or <code>-1</code>.
      */
     private static int indexOfTag(String aLine) {
-        return aLine.toUpperCase(Locale.ROOT).indexOf(CREATE_COMMAND_TAG);
+
+        Matcher matcher = CREATE_COMMAND_TAG_PATTERN.matcher(aLine);
+
+        return matcher.find() ? matcher.start() : -1;
     }
 
     /**
@@ -159,9 +156,9 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
      */
     private static String removeCommentEnd(String aLine) {
 
-        String line = trimRight(aLine);
+        String line = HeaderLines.trimRight(aLine);
         if (line.endsWith(CL_COMMENT_END)) {
-            line = trimRight(line.substring(0, line.length() - CL_COMMENT_END.length()));
+            line = HeaderLines.trimRight(line.substring(0, line.length() - CL_COMMENT_END.length()));
         }
 
         return line;
@@ -186,6 +183,10 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
             return aLine.substring(i + 2);
         }
 
+        if (isFixedFormComment(aLine)) {
+            return aLine.substring(FIXED_FORM_COMMENT_INDEX + 1);
+        }
+
         if (aLine.startsWith(DOUBLE_ASTERISK, i)) {
             return null;
         }
@@ -195,6 +196,23 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
         }
 
         return null;
+    }
+
+    /**
+     * Returns <code>true</code>, if the line is a comment of fixed form RPG: an
+     * asterisk in column 7 behind a form type or a blank in column 6, e.g.
+     * <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H*</code>. Columns 1 - 5 may contain
+     * a sequence number or a change mark.
+     */
+    private static boolean isFixedFormComment(String aLine) {
+
+        if (aLine.length() <= FIXED_FORM_COMMENT_INDEX || aLine.charAt(FIXED_FORM_COMMENT_INDEX) != FIXED_FORM_COMMENT) {
+            return false;
+        }
+
+        char formType = aLine.charAt(FORM_TYPE_INDEX);
+
+        return formType == BLANK || Character.isLetter(formType);
     }
 
     /**
@@ -221,8 +239,8 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
         int i = 0;
         while (i < aLine.length()) {
             char character = aLine.charAt(i);
-            if (character == QUOTE) {
-                i = skipString(aLine, i);
+            if (character == QuotedStrings.QUOTE) {
+                i = QuotedStrings.skip(aLine, i);
                 continue;
             }
             if (character == END_OF_COMMAND) {
@@ -232,36 +250,5 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
         }
 
         return -1;
-    }
-
-    /**
-     * Returns the index behind the quoted string, that starts at the given
-     * index. Two quotes are one quote of the string.
-     */
-    private static int skipString(String aText, int anIndex) {
-
-        int i = anIndex + 1;
-        while (i < aText.length()) {
-            if (aText.charAt(i) == QUOTE) {
-                if (i + 1 < aText.length() && aText.charAt(i + 1) == QUOTE) {
-                    i += 2;
-                    continue;
-                }
-                return i + 1;
-            }
-            i++;
-        }
-
-        return aText.length();
-    }
-
-    private static String trimRight(String aText) {
-
-        int end = aText.length();
-        while (end > 0 && (aText.charAt(end - 1) == BLANK || aText.charAt(end - 1) == TABULATOR || aText.charAt(end - 1) == CR)) {
-            end--;
-        }
-
-        return aText.substring(0, end);
     }
 }

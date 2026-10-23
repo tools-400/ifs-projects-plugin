@@ -85,28 +85,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.tools400.ifsprojects.sources.headers.CreateCommand;
+import de.tools400.ifsprojects.sources.headers.HeaderLines;
 import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
 
 public final class MyBuildToolHeaderParser implements ISourceHeaderParser {
 
     private static final String TAG = "*>";
-    private static final int HEADER_LINES = 100;
 
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
         List<CreateCommand> commands = new ArrayList<CreateCommand>();
 
-        String[] lines = aContent.split("\n");
-        for (int i = 0; i < lines.length && i < HEADER_LINES; i++) {
+        List<String> lines = HeaderLines.read(aContent);
+        for (int i = 0; i < lines.size(); i++) {
 
-            int tag = lines[i].indexOf(TAG);
+            int tag = lines.get(i).indexOf(TAG);
             if (tag < 0) {
                 continue;
             }
 
-            String text = lines[i].substring(tag + TAG.length()).trim();
-            while (text.endsWith("-") && i + 1 < lines.length) {
-                String next = lines[++i];
+            String text = lines.get(i).substring(tag + TAG.length()).trim();
+            while (text.endsWith("-") && i + 1 < lines.size()) {
+                String next = lines.get(++i);
                 int tagOfNext = next.indexOf(TAG);
                 text = text.substring(0, text.length() - 1) + ' '
                     + (tagOfNext < 0 ? next : next.substring(tagOfNext + TAG.length())).trim();
@@ -125,6 +125,11 @@ public final class MyBuildToolHeaderParser implements ISourceHeaderParser {
 
 `aContent` is the source with the line separator `\n`, `aSourceType` its source type, e.g.
 `RPGLE`, or `null`.
+
+`HeaderLines.read()` of the same package returns the first lines of the source, in which a header
+is searched, without trailing blanks. To search a marker of your build tool outside of quoted
+strings, e.g. an end marker, skip the strings with `QuotedStrings.skip()`, as the parsers of this
+repository do.
 
 ### 4. What the core does with the commands
 

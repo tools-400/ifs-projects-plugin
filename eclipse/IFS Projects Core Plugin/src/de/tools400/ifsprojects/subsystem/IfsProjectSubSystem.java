@@ -27,6 +27,7 @@ import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * The 'IFS Projects' subsystem of an IBM i connection. Each filter is an IFS
@@ -56,7 +57,7 @@ public class IfsProjectSubSystem extends SubSystem implements IToolboxSubSystem 
             throw e;
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not list the contents of IFS project: " + aFilterString, e); //$NON-NLS-1$
-            return createErrorMessage(e.getLocalizedMessage());
+            return createErrorMessage(ExceptionUtils.getLocalizedMessage(e));
         }
     }
 

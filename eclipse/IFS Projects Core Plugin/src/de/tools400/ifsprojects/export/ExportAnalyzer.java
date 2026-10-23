@@ -19,6 +19,7 @@ import com.ibm.as400.access.AS400;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.project.IProjValues;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Reads a project and a library and computes the plan of an export, see
@@ -106,7 +107,7 @@ public final class ExportAnalyzer {
                 fileContents.put(path, source.readFile(aSystem, path));
             } catch (Exception e) {
                 IfsProjectsPlugin.logError("Could not read the file for the export: " + path, e); //$NON-NLS-1$
-                errors.put(path, e.getLocalizedMessage());
+                errors.put(path, ExceptionUtils.getLocalizedMessage(e));
             }
         }
 

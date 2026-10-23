@@ -10,10 +10,11 @@ package de.tools400.ifsprojects.buildcmd;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import de.tools400.ifsprojects.sources.headers.CreateCommand;
+import de.tools400.ifsprojects.sources.headers.HeaderLines;
 import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
+import de.tools400.ifsprojects.sources.headers.QuotedStrings;
 
 /**
  * Reads the compile commands of the <code>BUILD</code> command of Scott
@@ -29,7 +30,8 @@ import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
  * </pre>
  *
  * A command starts behind <code>*&gt;</code>, which may stand anywhere in a
- * line, and ends at the optional <code>&lt;*</code> or at the end of the line.
+ * line, and ends at the optional <code>&lt;*</code> outside of a quoted string
+ * or at the end of the line.
  * A line, that ends with <code>-</code>, is continued by the next line, which
  * repeats <code>*&gt;</code>; a line without the marker ends the command, so
  * that an unterminated one does not swallow the source. The prefix
@@ -58,18 +60,12 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
     /** Prefix of a command, whose failure the build tool ignores. */
     private static final String IGNORE_PREFIX = "IGN:"; //$NON-NLS-1$
 
-    /** Number of lines, in which the header is searched. */
-    private static final int HEADER_LINES = 100;
-
     private static final char CONTINUATION = '-';
-    private static final char LF = '\n';
-    private static final char CR = '\r';
-    private static final char TABULATOR = '\t';
     private static final char BLANK = ' ';
 
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<String> lines = getHeaderLines(aContent);
+        List<String> lines = HeaderLines.read(aContent);
 
         List<CreateCommand> commands = new ArrayList<CreateCommand>();
         for (int i = 0; i < lines.size(); i++) {
@@ -84,7 +80,7 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
 
             while (true) {
 
-                line = removeEndTag(line);
+                line = removeEndTag(text, line);
 
                 if (!isContinued(line)) {
                     text.append(line);
@@ -112,35 +108,30 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
     }
 
     /**
-     * Returns the first lines of a source, in which the header stands.
+     * Returns the text of a line before the end of the command and without
+     * trailing blanks. An end tag in a quoted string is part of the command,
+     * e.g. in <code>TEXT('a &lt;* b')</code>; the string can start on a
+     * previous line of the command.
+     *
+     * @param aPreviousLines - text of the previous lines of the command
+     * @param aLine - line behind the start tag
      */
-    private static List<String> getHeaderLines(String aContent) {
+    private static String removeEndTag(CharSequence aPreviousLines, String aLine) {
 
-        List<String> lines = new ArrayList<String>();
-
-        int start = 0;
-        while (lines.size() < HEADER_LINES && start <= aContent.length()) {
-            int end = aContent.indexOf(LF, start);
-            if (end < 0) {
-                lines.add(trimRight(aContent.substring(start)));
-                break;
+        String text = aPreviousLines + aLine;
+        int i = 0;
+        while (i < text.length()) {
+            if (text.charAt(i) == QuotedStrings.QUOTE) {
+                i = QuotedStrings.skip(text, i);
+                continue;
             }
-            lines.add(trimRight(aContent.substring(start, end)));
-            start = end + 1;
+            if (i >= aPreviousLines.length() && text.startsWith(END_TAG, i)) {
+                return HeaderLines.trimRight(aLine.substring(0, i - aPreviousLines.length()));
+            }
+            i++;
         }
 
-        return lines;
-    }
-
-    /**
-     * Returns the text before the end of the command and without trailing
-     * blanks.
-     */
-    private static String removeEndTag(String aLine) {
-
-        int end = aLine.indexOf(END_TAG);
-
-        return trimRight(end < 0 ? aLine : aLine.substring(0, end));
+        return HeaderLines.trimRight(aLine);
     }
 
     /**
@@ -156,21 +147,12 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
      */
     private static String removeIgnorePrefix(String aText) {
 
+        // Not toUpperCase().startsWith(), which can change the length.
         String text = aText.trim();
-        if (text.toUpperCase(Locale.ROOT).startsWith(IGNORE_PREFIX)) {
+        if (text.regionMatches(true, 0, IGNORE_PREFIX, 0, IGNORE_PREFIX.length())) {
             return text.substring(IGNORE_PREFIX.length());
         }
 
         return text;
-    }
-
-    private static String trimRight(String aText) {
-
-        int end = aText.length();
-        while (end > 0 && (aText.charAt(end - 1) == BLANK || aText.charAt(end - 1) == TABULATOR || aText.charAt(end - 1) == CR)) {
-            end--;
-        }
-
-        return aText.substring(0, end);
     }
 }

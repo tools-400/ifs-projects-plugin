@@ -28,6 +28,7 @@ import de.tools400.ifsprojects.dialogs.RememberingOverwriteQuery;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Writes the files of a migration, see {@link MigrationFiles}, into the
@@ -97,7 +98,7 @@ public class MigrationJob extends Job {
 
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not migrate source files of library: " + library, e); //$NON-NLS-1$
-            errors.add(Messages.bind(Messages.Error_Could_not_migrate_A_B, library, e.getLocalizedMessage()));
+            errors.add(Messages.bind(Messages.Error_Could_not_migrate_A_B, library, ExceptionUtils.getLocalizedMessage(e)));
         } finally {
             aMonitor.done();
             showSummary(isCanceled);
@@ -126,10 +127,18 @@ public class MigrationJob extends Job {
                     skipped++;
                     return true;
                 }
+                // A replaced file would keep its CCSID, see RemoteJobs.writeText().
+                if (file.getCCSID() != RemoteJobs.CCSID_UTF8 && !file.delete()) {
+                    errors.add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_delete_A, path)));
+                    return true;
+                }
             } else {
+                // mkdirs() fails, if someone else creates the directory at the
+                // same time.
                 IFSFile parent = new IFSFile(aSystem, file.getParent());
-                if (!parent.exists() && !parent.mkdirs()) {
-                    errors.add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_create_file_A, file.getParent())));
+                if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
+                    errors.add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_create_directory_A,
+                        file.getParent())));
                     return true;
                 }
             }
@@ -143,7 +152,7 @@ public class MigrationJob extends Job {
 
         } catch (Exception e) {
             IfsProjectsPlugin.logError("Could not write file: " + path, e); //$NON-NLS-1$
-            errors.add(Messages.bind(Messages.Error_A_B, aPath, e.getLocalizedMessage()));
+            errors.add(Messages.bind(Messages.Error_A_B, aPath, ExceptionUtils.getLocalizedMessage(e)));
         }
 
         return true;

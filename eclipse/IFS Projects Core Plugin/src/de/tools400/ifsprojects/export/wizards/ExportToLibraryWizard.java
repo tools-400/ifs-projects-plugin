@@ -29,6 +29,7 @@ import de.tools400.ifsprojects.export.ExportSource;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Exports the source files of a project into members of a library, see
@@ -123,9 +124,10 @@ public class ExportToLibraryWizard extends Wizard {
                 }
             });
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not read the project for the export: " + source.getName(), cause); //$NON-NLS-1$
-            settingsPage.setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, source.getName(), cause.getLocalizedMessage()));
+            settingsPage.setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, source.getName(),
+                ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;

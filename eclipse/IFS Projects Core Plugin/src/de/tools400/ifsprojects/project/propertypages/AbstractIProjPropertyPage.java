@@ -31,6 +31,7 @@ import de.tools400.ifsprojects.project.IProjFileContent;
 import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.swt.ToolTips;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -195,7 +196,7 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
             writeFile(content, fileContent);
         } catch (IProjFileException e) {
             if (!e.isConflict()) {
-                MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, e.getLocalizedMessage());
+                MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
                 return false;
             }
             if (!MessageDialog.openQuestion(getShell(), Messages.Title_IFS_Projects, Messages.bind(Messages.Question_File_A_changed_overwrite,
@@ -205,7 +206,7 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
             try {
                 writeFile(content, null);
             } catch (IProjFileException e2) {
-                MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, e2.getLocalizedMessage());
+                MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e2));
                 return false;
             }
         }
@@ -260,14 +261,14 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
         try {
             fileContent = readFile();
         } catch (IProjFileException e) {
-            setReadOnly(e.getLocalizedMessage());
+            setReadOnly(ExceptionUtils.getLocalizedMessage(e));
             return;
         }
 
         try {
             config = IProjConfig.parse(fileContent.getContent());
         } catch (IProjParseException e) {
-            setReadOnly(Messages.bind(Messages.Error_Invalid_iproj_json_A, e.getLocalizedMessage()));
+            setReadOnly(Messages.bind(Messages.Error_Invalid_iproj_json_A, ExceptionUtils.getLocalizedMessage(e)));
             return;
         }
 

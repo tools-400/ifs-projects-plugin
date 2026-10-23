@@ -42,6 +42,7 @@ import de.tools400.ifsprojects.terminal.ITerminalCommandLine;
 import de.tools400.ifsprojects.terminal.ShellCommands;
 import de.tools400.ifsprojects.terminal.TerminalException;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
@@ -159,7 +160,7 @@ class TerminalSession {
         try {
             connector = TmConnectorFactory.createSshConnector();
         } catch (TerminalException e) {
-            showError(e.getLocalizedMessage(), e);
+            showError(ExceptionUtils.getLocalizedMessage(e), e);
             return false;
         }
 
@@ -231,12 +232,12 @@ class TerminalSession {
         } catch (InvocationTargetException e) {
             pendingCommandLine = null;
             closeCount++;
-            IfsProjectsPlugin.logError(Messages.bind(Messages.Error_Could_not_connect_terminal_A, e.getCause().getLocalizedMessage()),
+            IfsProjectsPlugin.logError(Messages.bind(Messages.Error_Could_not_connect_terminal_A, ExceptionUtils.getLocalizedMessage(e.getCause())),
                 e.getCause());
         } catch (Exception e) {
             pendingCommandLine = null;
             closeCount++;
-            IfsProjectsPlugin.logError(Messages.bind(Messages.Error_Could_not_connect_terminal_A, e.getLocalizedMessage()), e);
+            IfsProjectsPlugin.logError(Messages.bind(Messages.Error_Could_not_connect_terminal_A, ExceptionUtils.getLocalizedMessage(e)), e);
         }
 
         return commandLine;

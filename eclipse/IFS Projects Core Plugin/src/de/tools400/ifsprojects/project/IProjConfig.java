@@ -19,6 +19,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -91,7 +92,7 @@ public final class IProjConfig {
             }
             return new IProjConfig(element.getAsJsonObject());
         } catch (JsonParseException e) {
-            throw new IProjParseException(e.getLocalizedMessage(), e);
+            throw new IProjParseException(ExceptionUtils.getLocalizedMessage(e), e);
         }
     }
 
@@ -114,7 +115,9 @@ public final class IProjConfig {
 
     /**
      * Sets the value of a string attribute. An empty value removes the
-     * attribute.
+     * attribute. An unchanged value is kept as it is, so that a number, e.g.
+     * <code>"version": 1</code>, does not become a string and
+     * <code>null</code> is not removed, when the other attributes are saved.
      *
      * @param aKey - attribute name
      * @param aValue - value
@@ -122,11 +125,28 @@ public final class IProjConfig {
     public void setString(String aKey, String aValue) {
 
         String value = StringUtils.trimToNull(aValue);
+        if (isUnchanged(json.get(aKey), value)) {
+            return;
+        }
+
         if (value == null) {
             json.remove(aKey);
         } else {
             json.add(aKey, new JsonPrimitive(value));
         }
+    }
+
+    private static boolean isUnchanged(JsonElement anElement, String aValue) {
+
+        if (anElement == null) {
+            return aValue == null;
+        }
+
+        if (anElement.isJsonNull()) {
+            return aValue == null;
+        }
+
+        return anElement.isJsonPrimitive() && anElement.getAsString().equals(aValue);
     }
 
     /**
@@ -273,6 +293,6 @@ public final class IProjConfig {
      * @return pretty printed JSON, terminated by a line feed
      */
     public String toJson() {
-        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(json) + LINE_FEED;
+        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create().toJson(json) + LINE_FEED;
     }
 }

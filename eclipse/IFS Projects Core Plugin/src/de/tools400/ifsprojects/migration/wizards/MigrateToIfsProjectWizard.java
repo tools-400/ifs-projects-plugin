@@ -35,6 +35,7 @@ import de.tools400.ifsprojects.project.BuildTool;
 import de.tools400.ifsprojects.project.IfsProjectCreator;
 import de.tools400.ifsprojects.project.wizards.NewIfsProjectWizardPage;
 import de.tools400.ifsprojects.remote.RemoteSession;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Migrates the members of source files into a new IFS project:
@@ -144,9 +145,9 @@ public class MigrateToIfsProjectWizard extends Wizard {
                 }
             });
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not read the source files of: " + library, cause); //$NON-NLS-1$
-            sourceFilesPage.setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, library, cause.getLocalizedMessage()));
+            sourceFilesPage.setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, library, ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;
