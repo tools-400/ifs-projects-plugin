@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/de.tools400.ifsprojects.core.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.core.feature" version="1.0.0.b004">
+   <feature url="features/de.tools400.ifsprojects.core.feature_1.0.0.b005.jar" id="de.tools400.ifsprojects.core.feature" version="1.0.0.b005">
       <category name="de.tools400.ifsprojects"/>
    </feature>
-   <feature url="features/de.tools400.ifsprojects.strpreprc.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.strpreprc.feature" version="1.0.0.b004">
+   <feature url="features/de.tools400.ifsprojects.strpreprc.feature_1.0.0.b005.jar" id="de.tools400.ifsprojects.strpreprc.feature" version="1.0.0.b005">
       <category name="de.tools400.ifsprojects"/>
    </feature>
-   <feature url="features/de.tools400.ifsprojects.buildcmd.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.buildcmd.feature" version="1.0.0.b004">
+   <feature url="features/de.tools400.ifsprojects.buildcmd.feature_1.0.0.b005.jar" id="de.tools400.ifsprojects.buildcmd.feature" version="1.0.0.b005">
       <category name="de.tools400.ifsprojects"/>
    </feature>
-   <feature url="features/de.tools400.ifsprojects.compile.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.compile.feature" version="1.0.0.b004">
+   <feature url="features/de.tools400.ifsprojects.compile.feature_1.0.0.b005.jar" id="de.tools400.ifsprojects.compile.feature" version="1.0.0.b005">
       <category name="de.tools400.ifsprojects"/>
    </feature>
-   <feature url="features/de.tools400.ifsprojects.cplcas.feature_1.0.0.b004.jar" id="de.tools400.ifsprojects.cplcas.feature" version="1.0.0.b004">
+   <feature url="features/de.tools400.ifsprojects.cplcas.feature_1.0.0.b005.jar" id="de.tools400.ifsprojects.cplcas.feature" version="1.0.0.b005">
       <category name="de.tools400.ifsprojects"/>
    </feature>
    <category-def name="de.tools400.ifsprojects" label="IFS Projects">

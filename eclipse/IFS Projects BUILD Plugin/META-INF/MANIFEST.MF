@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: de.tools400.ifsprojects.buildcmd.plugin;singleton:=true
-Bundle-Version: 1.0.0.b004
+Bundle-Version: 1.0.0.b005
 Bundle-Vendor: Tools/400
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
