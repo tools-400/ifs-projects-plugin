@@ -5,14 +5,14 @@
       version="1.0.0.b004"
       provider-name="Tools/400">
 
-   <description url="">
+   <description url="https://tools-400.github.io/ifs-projects/">
       Reads the compile commands of the headers of the &quot;CPLCAS&quot; command of
 Denis Robitaille, so that the migration to an IFS project knows the object type
 and the include file of a member. Install it, if your members have such headers.
    </description>
 
-   <copyright>
-      Copyright (c) 2026 Thomas Raddatz. All rights reserved.
+   <copyright url="https://tools-400.github.io/ifs-projects/">
+      Copyright (c) 2026 Tools/400. All rights reserved.
    </copyright>
 
    <license url="http://www.eclipse.org/legal/cpl-v10.html">
