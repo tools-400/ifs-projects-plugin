@@ -73,8 +73,8 @@ class TerminalSession {
 
     /**
      * Terminal type exported in the shell, if the SSH connector requests
-     * <code>ansi</code>, see {@link TmConnectorFactory#isAnsiTerminalType}.
-     * It is the terminal type of the SSH connector of RDi 9.8.
+     * <code>ansi</code>, see {@link TmConnectorFactory#isAnsiTerminalType}. It
+     * is the terminal type of the SSH connector of RDi 9.8.
      */
     private static final String TERMINAL_TYPE = "xterm"; //$NON-NLS-1$
 
@@ -181,7 +181,8 @@ class TerminalSession {
 
         isAnsiTerminalType = TmConnectorFactory.isAnsiTerminalType(connector);
 
-        // Observe the output of the shell, see sendPendingCommandLineWhenReady().
+        // Observe the output of the shell, see
+        // sendPendingCommandLineWhenReady().
         outputMonitor = new TerminalOutputMonitor();
         ITerminalConnector observedConnector = outputMonitor.observe(connector);
 
@@ -207,9 +208,8 @@ class TerminalSession {
 
     /**
      * Connects the terminal. The command line is sent to the shell, once it is
-     * ready. If the SSH connector requests the terminal type
-     * <code>ansi</code>, the command line exports {@link #TERMINAL_TYPE}
-     * before.
+     * ready. If the SSH connector requests the terminal type <code>ansi</code>,
+     * the command line exports {@link #TERMINAL_TYPE} before.
      *
      * @param aCommandLine - command line or <code>null</code>
      * @return command line passed to the session
@@ -316,8 +316,8 @@ class TerminalSession {
     }
 
     /**
-     * Returns the number of the session among the sessions with the same
-     * title, starting at 1.
+     * Returns the number of the session among the sessions with the same title,
+     * starting at 1.
      */
     int getInstanceNumber() {
         return instanceNumber;

@@ -32,8 +32,7 @@ import de.tools400.ifsprojects.ibmi.ClCommands;
  * }
  * </pre>
  *
- * The methods access the remote system and must not be called on the UI
- * thread.
+ * The methods access the remote system and must not be called on the UI thread.
  */
 public final class RemoteSession implements AutoCloseable {
 
@@ -53,7 +52,7 @@ public final class RemoteSession implements AutoCloseable {
      */
     public RemoteSession(AS400 aRseSystem) {
         this.system = RemoteJobs.copySystem(aRseSystem);
-        this.temporaryFiles = new ArrayList<IFSFile>();
+        this.temporaryFiles = new ArrayList<>();
     }
 
     /**
@@ -131,9 +130,9 @@ public final class RemoteSession implements AutoCloseable {
     }
 
     /**
-     * Reads a member as text: copies it in the remote command server job of
-     * the session to a temporary stream file with CCSID 1208 (UTF-8) and reads
-     * the stream file.
+     * Reads a member as text: copies it in the remote command server job of the
+     * session to a temporary stream file with CCSID 1208 (UTF-8) and reads the
+     * stream file.
      *
      * @param aLibrary - library
      * @param aFile - file
@@ -155,8 +154,7 @@ public final class RemoteSession implements AutoCloseable {
      * @param aLibrary - library
      * @param aFile - file
      * @param aMember - member
-     * @param aDataCcsid - CCSID of the data or
-     *        {@link ClCommands#CCSID_OF_FILE}
+     * @param aDataCcsid - CCSID of the data or {@link ClCommands#CCSID_OF_FILE}
      * @return content or <code>null</code>, if the member could not be copied,
      *         see the messages of {@link #getCommandCall()}
      * @throws Exception if the command could not be run or the stream file

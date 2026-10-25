@@ -20,8 +20,8 @@ import java.util.Map;
  * Only the extensions, that TOBi knows, are source types.</li>
  * <li>A copy book has the extension of its source type followed by
  * <code>inc</code>, e.g. <code>consts.rpgleinc</code> is of type
- * <code>RPGLE</code>. The extension <code>clinc</code> of Code for IBM i is
- * of type <code>CLLE</code>.</li>
+ * <code>RPGLE</code>. The extension <code>clinc</code> of Code for IBM i is of
+ * type <code>CLLE</code>.</li>
  * </ul>
  */
 public final class SourceTypes {
@@ -42,10 +42,10 @@ public final class SourceTypes {
     private static final char EXTENSION_SEPARATOR = '.';
 
     /** Source types by extension (lowercase). */
-    private static final Map<String, String> SOURCE_TYPES = new HashMap<String, String>();
+    private static final Map<String, String> SOURCE_TYPES = new HashMap<>();
 
     /** Default source files by source type. */
-    private static final Map<String, String> SOURCE_FILES = new HashMap<String, String>();
+    private static final Map<String, String> SOURCE_FILES = new HashMap<>();
 
     static {
         // Extensions of TOBi (FILE_TARGET_MAPPING of makei/const.py)
@@ -104,8 +104,8 @@ public final class SourceTypes {
     }
 
     /**
-     * Returns <code>true</code>, if TOBi knows a source type. A copy book of
-     * a known source type has the extension of the source type followed by
+     * Returns <code>true</code>, if TOBi knows a source type. A copy book of a
+     * known source type has the extension of the source type followed by
      * <code>inc</code>.
      *
      * @param aSourceType - source type, e.g. <code>RPGLE</code>
@@ -116,9 +116,9 @@ public final class SourceTypes {
     }
 
     /**
-     * Returns the default source file of a source type, which is the default
-     * of the IBM commands that compile the source, e.g. <code>QRPGLESRC</code>
-     * for <code>RPGLE</code>.
+     * Returns the default source file of a source type, which is the default of
+     * the IBM commands that compile the source, e.g. <code>QRPGLESRC</code> for
+     * <code>RPGLE</code>.
      *
      * @param aSourceType - source type, see {@link #getSourceType(String)}
      * @return source file, {@link #OTHER_SOURCE_FILE} for unknown types

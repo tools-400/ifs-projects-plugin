@@ -137,7 +137,7 @@ public final class CreateCommand {
      */
     private static Map<String, String> getParameters(String aText, int aStart) {
 
-        Map<String, String> parameters = new LinkedHashMap<String, String>();
+        Map<String, String> parameters = new LinkedHashMap<>();
 
         int i = aStart;
         while (i < aText.length()) {

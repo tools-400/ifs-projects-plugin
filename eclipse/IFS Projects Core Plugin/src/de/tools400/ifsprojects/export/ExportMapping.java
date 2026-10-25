@@ -32,8 +32,8 @@ import de.tools400.ifsprojects.sources.SourceTypes;
  * with a source type are exported.</li>
  * <li>Source file: see {@link SourceFileRule}.</li>
  * </ul>
- * Files, whose member name is not valid, and files, that would be exported
- * into the same member, are not exported, see {@link Status}.
+ * Files, whose member name is not valid, and files, that would be exported into
+ * the same member, are not exported, see {@link Status}.
  */
 public final class ExportMapping {
 
@@ -103,8 +103,8 @@ public final class ExportMapping {
      */
     public List<Entry> map(Collection<String> aPaths) {
 
-        List<Entry> entries = new ArrayList<Entry>();
-        Map<String, List<Entry>> targets = new HashMap<String, List<Entry>>();
+        List<Entry> entries = new ArrayList<>();
+        Map<String, List<Entry>> targets = new HashMap<>();
 
         for (String path : aPaths) {
 
@@ -126,7 +126,7 @@ public final class ExportMapping {
             String target = entry.getTarget();
             List<Entry> sameTarget = targets.get(target);
             if (sameTarget == null) {
-                sameTarget = new ArrayList<Entry>();
+                sameTarget = new ArrayList<>();
                 targets.put(target, sameTarget);
             }
             sameTarget.add(entry);

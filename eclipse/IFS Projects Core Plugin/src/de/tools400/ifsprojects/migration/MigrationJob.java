@@ -31,10 +31,10 @@ import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Writes the files of a migration, see {@link MigrationFiles}, into the
- * project directory as stream files with CCSID 1208 (UTF-8). Missing
- * directories are created. Before an existing file is replaced, the user is
- * asked, see {@link OverwriteQuery}. At the end, a summary is shown.
+ * Writes the files of a migration, see {@link MigrationFiles}, into the project
+ * directory as stream files with CCSID 1208 (UTF-8). Missing directories are
+ * created. Before an existing file is replaced, the user is asked, see
+ * {@link OverwriteQuery}. At the end, a summary is shown.
  */
 public class MigrationJob extends Job {
 
@@ -68,7 +68,7 @@ public class MigrationJob extends Job {
         this.directory = aDirectory;
         this.files = aFiles;
         this.overwriteQuery = new RememberingOverwriteQuery(anOverwriteQuery);
-        this.errors = new ArrayList<String>();
+        this.errors = new ArrayList<>();
     }
 
     @Override
@@ -127,7 +127,8 @@ public class MigrationJob extends Job {
                     skipped++;
                     return true;
                 }
-                // A replaced file would keep its CCSID, see RemoteJobs.writeText().
+                // A replaced file would keep its CCSID, see
+                // RemoteJobs.writeText().
                 if (file.getCCSID() != RemoteJobs.CCSID_UTF8 && !file.delete()) {
                     errors.add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_delete_A, path)));
                     return true;
@@ -137,8 +138,8 @@ public class MigrationJob extends Job {
                 // same time.
                 IFSFile parent = new IFSFile(aSystem, file.getParent());
                 if (!parent.exists() && !parent.mkdirs() && !parent.exists()) {
-                    errors.add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_create_directory_A,
-                        file.getParent())));
+                    errors
+                        .add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_create_directory_A, file.getParent())));
                     return true;
                 }
             }
@@ -160,8 +161,8 @@ public class MigrationJob extends Job {
 
     private void showSummary(boolean anIsCanceled) {
 
-        String message = Messages.bind(Messages.Info_Migration_of_A_to_B_created_C_replaced_D_skipped_E, new Object[] { library, directory,
-            Integer.toString(created), Integer.toString(replaced), Integer.toString(skipped) });
+        String message = Messages.bind(Messages.Info_Migration_of_A_to_B_created_C_replaced_D_skipped_E,
+            new Object[] { library, directory, Integer.toString(created), Integer.toString(replaced), Integer.toString(skipped) });
         if (anIsCanceled) {
             message += '\n' + Messages.Log_Canceled;
         }

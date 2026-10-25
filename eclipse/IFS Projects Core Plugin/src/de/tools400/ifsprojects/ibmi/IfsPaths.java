@@ -69,8 +69,8 @@ public final class IfsPaths {
      *
      * @param aPath - absolute path, e.g. <code>/home/jsmith/src</code>
      * @return parent directory, e.g. <code>/home/jsmith</code>, or
-     *         <code>null</code> for the root directory and for paths, that
-     *         are not absolute, see {@link #normalizeDirectory(String)}
+     *         <code>null</code> for the root directory and for paths, that are
+     *         not absolute, see {@link #normalizeDirectory(String)}
      */
     public static String getParent(String aPath) {
 
@@ -116,8 +116,7 @@ public final class IfsPaths {
 
     /**
      * Returns the path of a file relative to the directory of another file.
-     * Both paths are relative to the same directory, e.g. a project
-     * directory.
+     * Both paths are relative to the same directory, e.g. a project directory.
      *
      * @param aFromFile - file, from whose directory the path starts, e.g.
      *        <code>qclsrc/start.clle</code>

@@ -15,8 +15,8 @@ package de.tools400.ifsprojects.export;
 public enum SourceFileRule {
 
     /**
-     * Name of the directory of the stream file, e.g. <code>QRPGLESRC</code>
-     * for <code>qrpglesrc/hello.pgm.rpgle</code>. Stream files in the project
+     * Name of the directory of the stream file, e.g. <code>QRPGLESRC</code> for
+     * <code>qrpglesrc/hello.pgm.rpgle</code>. Stream files in the project
      * directory and in directories, whose names are not valid source file
      * names, are exported by {@link #SOURCE_TYPE}.
      */

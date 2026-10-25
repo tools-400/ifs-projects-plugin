@@ -32,11 +32,11 @@ import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
  * Plan of a migration: the stream files of the members of source files, their
  * converted contents and the problems. The plan is computed in three passes:
  * the first pass determines the source file of the <code>EXEC SQL
- * INCLUDE</code> statements of each member, see
- * {@link #getSqlIncludeFiles()}; the second pass finds the copy books, i.e.
- * the members included by other members, which get the extension of copy
- * books, see {@link MigrationMapping}; the third pass converts the include
- * directives to these paths and inserts the member text.
+ * INCLUDE</code> statements of each member, see {@link #getSqlIncludeFiles()};
+ * the second pass finds the copy books, i.e. the members included by other
+ * members, which get the extension of copy books, see {@link MigrationMapping};
+ * the third pass converts the include directives to these paths and inserts the
+ * member text.
  * <p>
  * The contents must have the line separator <code>\n</code>, which the plan
  * uses for the lines it inserts.
@@ -68,13 +68,13 @@ public final class MigrationPlan {
         Map<String, String> aReadErrors, MigrationSettings aSettings, SourceHeaderParsers aParsers) {
 
         this.library = aLibrary.toUpperCase(Locale.ROOT);
-        this.sourceFiles = new HashSet<String>();
+        this.sourceFiles = new HashSet<>();
         for (String sourceFile : aSourceFiles) {
             sourceFiles.add(sourceFile.toUpperCase(Locale.ROOT));
         }
         this.settings = aSettings;
 
-        this.items = new ArrayList<Item>();
+        this.items = new ArrayList<>();
         for (SourceMember member : aMembers) {
             String content = aContents.get(member.getKey());
             content = content == null ? null : content.replace(CRLF, LF);
@@ -103,7 +103,7 @@ public final class MigrationPlan {
      */
     public List<Item> getMigratedItems() {
 
-        List<Item> migrated = new ArrayList<Item>();
+        List<Item> migrated = new ArrayList<>();
         for (Item item : items) {
             if (item.isMigrated()) {
                 migrated.add(item);
@@ -143,8 +143,8 @@ public final class MigrationPlan {
      * {@link SourceHeader#getIncludeFile()}.</li>
      * <li>Otherwise the source file, that contains the members of all
      * statements: the own source file, which is the default of the compiler,
-     * otherwise the only one of the other migrated source files. That all
-     * names have to be in one source file resolves most ambiguities.</li>
+     * otherwise the only one of the other migrated source files. That all names
+     * have to be in one source file resolves most ambiguities.</li>
      * </ol>
      * If no or several source files contain them, the value is
      * <code>null</code> and the converter reports the statements, see
@@ -152,18 +152,18 @@ public final class MigrationPlan {
      */
     private Map<String, String> getSqlIncludeFiles() {
 
-        Map<String, Set<String>> sourceFilesOfMembers = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> sourceFilesOfMembers = new HashMap<>();
         for (Item item : items) {
             String name = item.member.getName().toUpperCase(Locale.ROOT);
             Set<String> files = sourceFilesOfMembers.get(name);
             if (files == null) {
-                files = new HashSet<String>();
+                files = new HashSet<>();
                 sourceFilesOfMembers.put(name, files);
             }
             files.add(item.member.getSourceFile().toUpperCase(Locale.ROOT));
         }
 
-        Map<String, String> includeFiles = new HashMap<String, String>();
+        Map<String, String> includeFiles = new HashMap<>();
         for (Item item : items) {
 
             if (item.content == null || item.member.getSourceType() == null) {
@@ -194,7 +194,7 @@ public final class MigrationPlan {
      */
     private static List<String> getSqlIncludeNames(String aContent) {
 
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         for (RpgSqlIncludeDirective directive : RpgSqlStatements.find(aContent)) {
             if (directive.getName() != null && !directive.isQuoted()) {
                 names.add(directive.getName().toUpperCase(Locale.ROOT));
@@ -218,7 +218,7 @@ public final class MigrationPlan {
                 return null;
             }
             if (candidates == null) {
-                candidates = new HashSet<String>(sourceFiles);
+                candidates = new HashSet<>(sourceFiles);
             } else {
                 candidates.retainAll(sourceFiles);
             }
@@ -248,7 +248,7 @@ public final class MigrationPlan {
 
         Map<String, String> paths = getPaths(Collections.<String> emptySet());
 
-        Set<String> copyBooks = new HashSet<String>();
+        Set<String> copyBooks = new HashSet<>();
         for (Item item : items) {
             if (item.content != null && item.member.getSourceType() != null) {
                 MemberIncludeConverter converter = MemberIncludeConverter.create(item.member.getSourceType(), library, paths, sourceFiles,
@@ -269,7 +269,7 @@ public final class MigrationPlan {
      */
     private Map<String, String> getPaths(Set<String> aCopyBooks) {
 
-        Map<String, String> paths = new HashMap<String, String>();
+        Map<String, String> paths = new HashMap<>();
         for (Item item : items) {
             String key = item.member.getKey();
             String path = item.content == null ? null : MigrationMapping.getPath(item.member, aCopyBooks.contains(key));
@@ -310,7 +310,7 @@ public final class MigrationPlan {
         if (converter != null) {
             anItem.includes = converter.convert(anItem.member.getKey(), content);
             content = anItem.includes.getContent();
-            for (String key : new TreeSet<String>(converter.getIncludedMembers())) {
+            for (String key : new TreeSet<>(converter.getIncludedMembers())) {
                 anItem.includedPaths.add(aPaths.get(key));
             }
             for (IncludeConverter.Include include : anItem.includes.getIncludes()) {
@@ -333,19 +333,19 @@ public final class MigrationPlan {
     public enum ProblemType {
 
         /** The member could not be read. */
-        NOT_READ(true),
+        NOT_READ (true),
 
         /** The member has no source type and therefore no file extension. */
-        NO_SOURCE_TYPE(true),
+        NO_SOURCE_TYPE (true),
 
         /** TOBi does not know the source type of the member. */
-        UNKNOWN_SOURCE_TYPE(false),
+        UNKNOWN_SOURCE_TYPE (false),
 
         /** The name contains characters, that make interprets in Rules.mk. */
-        MAKE_CHARACTERS(false),
+        MAKE_CHARACTERS (false),
 
         /** An include directive could not be converted. */
-        INCLUDE(false);
+        INCLUDE (false);
 
         private final boolean isError;
 
@@ -435,8 +435,8 @@ public final class MigrationPlan {
             this.content = aContent;
             this.readError = aReadError;
             this.header = aHeader;
-            this.problems = new ArrayList<Problem>();
-            this.includedPaths = new ArrayList<String>();
+            this.problems = new ArrayList<>();
+            this.includedPaths = new ArrayList<>();
         }
 
         public SourceMember getMember() {
@@ -455,33 +455,33 @@ public final class MigrationPlan {
         }
 
         /**
-         * Returns the path of the stream file relative to the project
-         * directory or <code>null</code>, if the member is not migrated.
+         * Returns the path of the stream file relative to the project directory
+         * or <code>null</code>, if the member is not migrated.
          */
         public String getPath() {
             return path;
         }
 
         /**
-         * Returns the content of the stream file: converted includes and
-         * member text.
+         * Returns the content of the stream file: converted includes and member
+         * text.
          */
         public String getContent() {
             return migratedContent;
         }
 
         /**
-         * Returns the content of the member, as it has been read, with the
-         * line separator <code>\n</code>, or <code>null</code>, if it could
-         * not be read.
+         * Returns the content of the member, as it has been read, with the line
+         * separator <code>\n</code>, or <code>null</code>, if it could not be
+         * read.
          */
         public String getOriginalContent() {
             return content;
         }
 
         /**
-         * Returns the include directives of the member or <code>null</code>,
-         * if its source type has none.
+         * Returns the include directives of the member or <code>null</code>, if
+         * its source type has none.
          */
         public IncludeConverter.Result getIncludes() {
             return includes;

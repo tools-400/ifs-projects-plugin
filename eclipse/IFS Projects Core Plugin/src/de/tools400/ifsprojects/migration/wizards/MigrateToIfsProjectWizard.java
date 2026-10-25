@@ -40,8 +40,8 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 /**
  * Migrates the members of source files into a new IFS project:
  * <ol>
- * <li>{@link SourceFilesWizardPage}: source files and options; leaving the
- * page reads the members and computes the {@link MigrationPlan}.</li>
+ * <li>{@link SourceFilesWizardPage}: source files and options; leaving the page
+ * reads the members and computes the {@link MigrationPlan}.</li>
  * <li>{@link MigrationPreviewWizardPage}: the stream files and the
  * problems.</li>
  * <li>{@link NewIfsProjectWizardPage}: the new IFS project. Finish creates it
@@ -100,8 +100,8 @@ public class MigrateToIfsProjectWizard extends Wizard {
     public boolean performFinish() {
 
         try {
-            IfsProjectCreator.create(getContainer(), host, projectPage.getProjectName(), projectPage.getDirectory(), projectPage
-                .isCreateDirectory(), projectPage.isCreateIProj() ? projectPage.createConfig() : null);
+            IfsProjectCreator.create(getContainer(), host, projectPage.getProjectName(), projectPage.getDirectory(), projectPage.isCreateDirectory(),
+                projectPage.isCreateIProj() ? projectPage.createConfig() : null);
         } catch (CoreException e) {
             projectPage.setErrorMessage(e.getStatus().getMessage());
             return false;
@@ -112,8 +112,8 @@ public class MigrateToIfsProjectWizard extends Wizard {
         boolean isTobi = projectPage.getBuildTool() == BuildTool.TOBI;
         Map<String, String> files = MigrationFiles.getFiles(previewPage.getPlan(), sourceFilesPage.getSelectedSourceFiles(), isTobi);
 
-        new MigrationJob(rseSystem, library, projectPage.getDirectory(), files, new OverwriteQueryDialog(Messages.Title_Migrate_to_IFS_project,
-            Messages.Question_Replace_file_A)).schedule();
+        new MigrationJob(rseSystem, library, projectPage.getDirectory(), files,
+            new OverwriteQueryDialog(Messages.Title_Migrate_to_IFS_project, Messages.Question_Replace_file_A)).schedule();
 
         return true;
     }

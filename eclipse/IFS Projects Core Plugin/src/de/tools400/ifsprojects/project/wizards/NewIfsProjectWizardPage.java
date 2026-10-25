@@ -186,9 +186,9 @@ public class NewIfsProjectWizardPage extends WizardPage {
      * existing file is shown read-only and is used as it is.
      * <p>
      * The file is read in a job, so that the wizard stays responsive, if the
-     * connection hangs, and a click, that has moved the focus, is not lost.
-     * The connection is established before on the UI thread, because RSE may
-     * prompt for the password.
+     * connection hangs, and a click, that has moved the focus, is not lost. The
+     * connection is established before on the UI thread, because RSE may prompt
+     * for the password.
      */
     private void checkIProjFile() {
 
@@ -238,12 +238,12 @@ public class NewIfsProjectWizardPage extends WizardPage {
 
     /**
      * Forgets the check of the previous directory, when the directory is
-     * changed: the attributes of a new iproj.json file are shown again, and
-     * the result of a check, that is still running, is ignored. Otherwise
-     * Finish, e.g. with the Enter key or before the result of the new
-     * directory is shown, would use the existing iproj.json file of the
-     * previous directory and create the project without iproj.json. Finish
-     * creates a new file only, if the directory does not contain one.
+     * changed: the attributes of a new iproj.json file are shown again, and the
+     * result of a check, that is still running, is ignored. Otherwise Finish,
+     * e.g. with the Enter key or before the result of the new directory is
+     * shown, would use the existing iproj.json file of the previous directory
+     * and create the project without iproj.json. Finish creates a new file
+     * only, if the directory does not contain one.
      */
     private void forgetIProjCheck() {
 

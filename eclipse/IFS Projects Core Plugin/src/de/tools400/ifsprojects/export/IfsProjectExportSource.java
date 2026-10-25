@@ -27,10 +27,10 @@ import de.tools400.ifsprojects.project.ProjectFiles;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 
 /**
- * IFS project, that is exported. Its files are read from the project
- * directory. Like the upload of local projects, the export skips the files of
- * git, Eclipse, the plug-in and the output directories of TOBi and the files
- * of <code>.deployignore</code> or <code>.gitignore</code>, see
+ * IFS project, that is exported. Its files are read from the project directory.
+ * Like the upload of local projects, the export skips the files of git,
+ * Eclipse, the plug-in and the output directories of TOBi and the files of
+ * <code>.deployignore</code> or <code>.gitignore</code>, see
  * {@link ProjectFiles}.
  * <p>
  * The settings are saved as a property set of the filter of the project, like
@@ -90,7 +90,7 @@ public final class IfsProjectExportSource implements ExportSource {
 
         IgnoreRules ignoreRules = readIgnoreRules(aSystem);
 
-        List<String> files = new ArrayList<String>();
+        List<String> files = new ArrayList<>();
         listFiles(new IFSFile(aSystem, directory), "", ignoreRules, files); //$NON-NLS-1$
 
         return files;
@@ -107,7 +107,7 @@ public final class IfsProjectExportSource implements ExportSource {
             return aDefaults;
         }
 
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         for (String key : propertySet.getPropertyKeys()) {
             values.put(key, propertySet.getPropertyValue(key));
         }

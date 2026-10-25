@@ -28,14 +28,13 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 /**
  * Reads and writes <code>iproj.json</code> files with IBM Toolbox for Java.
  * <p>
- * The methods of this class access the remote system and must not be called
- * on the UI thread. The connection must have been established before, see
+ * The methods of this class access the remote system and must not be called on
+ * the UI thread. The connection must have been established before, see
  * {@link #connect(IHost)}. Exceptions are the methods with an
  * {@link IRunnableContext}: they must be called on the UI thread, connect and
  * access the remote system in the context, which shows the progress.
  */
 public final class IProjFileStore {
-
 
     private IProjFileStore() {
         // Utility class
@@ -67,8 +66,8 @@ public final class IProjFileStore {
     }
 
     /**
-     * Connects the RSE connection, if it is not connected, and returns its
-     * IBM Toolbox for Java system object. Must be called on the UI thread.
+     * Connects the RSE connection, if it is not connected, and returns its IBM
+     * Toolbox for Java system object. Must be called on the UI thread.
      *
      * @param aHost - RSE connection
      * @return connected system, owned by RSE (do not disconnect)
@@ -113,8 +112,9 @@ public final class IProjFileStore {
      * @param aHost - RSE connection
      * @param aDirectory - project directory
      * @param aContent - new content
-     * @param aPrevious - content that has been read before or <code>null</code>,
-     *        see {@link #write(IHost, String, String, IProjFileContent)}
+     * @param aPrevious - content that has been read before or
+     *        <code>null</code>, see
+     *        {@link #write(IHost, String, String, IProjFileContent)}
      * @throws IProjFileException if the file could not be written or has been
      *         changed by someone else ({@link IProjFileException#isConflict()})
      */

@@ -18,14 +18,13 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 /**
- * Files of a local project, that have been uploaded to a deploy directory,
- * see {@link Deployment}. A file is uploaded again, if it has changed since.
- * Only files of the manifest are deleted in the deploy directory.
+ * Files of a local project, that have been uploaded to a deploy directory, see
+ * {@link Deployment}. A file is uploaded again, if it has changed since. Only
+ * files of the manifest are deleted in the deploy directory.
  * <p>
  * The token of the manifest is also written to the deploy directory. If the
- * tokens differ, e.g. because another workspace or another tool has changed
- * the deploy directory, the manifest is not trusted and all files are
- * uploaded.
+ * tokens differ, e.g. because another workspace or another tool has changed the
+ * deploy directory, the manifest is not trusted and all files are uploaded.
  * <p>
  * The size and modification time of the stream files after the upload show,
  * whether a file has been changed in the IFS since, see
@@ -39,7 +38,7 @@ public final class DeployManifest {
     private static final String COMMENT = "IFS Projects: files uploaded to the deploy directory"; //$NON-NLS-1$
 
     private String token;
-    private final Map<String, Entry> entries = new TreeMap<String, Entry>();
+    private final Map<String, Entry> entries = new TreeMap<>();
 
     /**
      * Reads a manifest. Invalid entries are skipped.
@@ -88,8 +87,8 @@ public final class DeployManifest {
     }
 
     /**
-     * Returns the token, that has been written to the deploy directory with
-     * the last upload, or <code>null</code>.
+     * Returns the token, that has been written to the deploy directory with the
+     * last upload, or <code>null</code>.
      */
     public String getToken() {
         return token;
@@ -125,7 +124,7 @@ public final class DeployManifest {
      * Returns the paths of the uploaded files, sorted.
      */
     public List<String> getPaths() {
-        return new ArrayList<String>(entries.keySet());
+        return new ArrayList<>(entries.keySet());
     }
 
     /**
@@ -139,7 +138,7 @@ public final class DeployManifest {
      */
     public List<String> getChangedRemoteFiles(Map<String, RemoteFile> aRemoteFiles) {
 
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         for (Map.Entry<String, Entry> entry : entries.entrySet()) {
             RemoteFile remoteFile = aRemoteFiles.get(entry.getKey());
             if (remoteFile != null && entry.getValue().hasRemoteFile() && !entry.getValue().isRemoteUnchanged(remoteFile)) {
@@ -159,7 +158,7 @@ public final class DeployManifest {
      */
     public List<String> getMissingRemoteFiles(Map<String, RemoteFile> aRemoteFiles) {
 
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         for (String path : entries.keySet()) {
             if (!aRemoteFiles.containsKey(path)) {
                 paths.add(path);

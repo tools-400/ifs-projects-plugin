@@ -44,8 +44,8 @@ final class ExportProblems {
             return Messages.bind(Messages.Problem_A_is_not_a_source_file, aProblem.getText());
 
         case LINE_TOO_LONG:
-            return Messages.bind(Messages.Problem_Line_A_too_long_B_C, new Object[] { lineNumber, Integer.toString(aProblem.getLength()),
-                Integer.toString(aProblem.getLimit()) });
+            return Messages.bind(Messages.Problem_Line_A_too_long_B_C,
+                new Object[] { lineNumber, Integer.toString(aProblem.getLength()), Integer.toString(aProblem.getLimit()) });
 
         case UNMAPPABLE_CHARACTER:
             return Messages.bind(Messages.Problem_Line_A_unmappable_B, lineNumber, Integer.toString(aProblem.getLimit()));

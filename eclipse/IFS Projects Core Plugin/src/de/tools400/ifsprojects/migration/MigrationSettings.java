@@ -21,10 +21,10 @@ public final class MigrationSettings {
      * Creates the settings.
      *
      * @param anIncludeStyle - style of the converted RPG directives
-     * @param anIsMemberText - <code>true</code>, if the member text is
-     *        inserted as comment
-     * @param aHexCcsid - CCSID of the members of source files with CCSID
-     *        65535, see {@link SourceFile#isHex()}
+     * @param anIsMemberText - <code>true</code>, if the member text is inserted
+     *        as comment
+     * @param aHexCcsid - CCSID of the members of source files with CCSID 65535,
+     *        see {@link SourceFile#isHex()}
      */
     public MigrationSettings(IncludeStyle anIncludeStyle, boolean anIsMemberText, int aHexCcsid) {
         this.includeStyle = anIncludeStyle;
@@ -37,8 +37,8 @@ public final class MigrationSettings {
     }
 
     /**
-     * Returns <code>true</code>, if the member text is inserted as comment,
-     * see {@link de.tools400.ifsprojects.sources.MemberText}.
+     * Returns <code>true</code>, if the member text is inserted as comment, see
+     * {@link de.tools400.ifsprojects.sources.MemberText}.
      */
     public boolean isMemberText() {
         return isMemberText;

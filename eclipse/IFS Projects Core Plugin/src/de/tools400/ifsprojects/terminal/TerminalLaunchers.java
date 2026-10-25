@@ -74,7 +74,7 @@ public final class TerminalLaunchers {
 
         IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(EXTENSION_POINT_ID);
 
-        List<IConfigurationElement> launchers = new ArrayList<IConfigurationElement>();
+        List<IConfigurationElement> launchers = new ArrayList<>();
         for (IConfigurationElement element : elements) {
             if (ELEMENT_LAUNCHER.equals(element.getName())) {
                 launchers.add(element);

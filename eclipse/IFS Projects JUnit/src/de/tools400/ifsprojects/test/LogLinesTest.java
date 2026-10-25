@@ -45,7 +45,8 @@ public class LogLinesTest {
 
         LogLines logLines = new LogLines();
 
-        assertEquals(Arrays.asList("Ausdruck enth\u00e4lt einen Operanden"), logLines.add("Ausdruck enth\u00e4lt einen Operanden\n".getBytes("ISO-8859-1")));
+        assertEquals(Arrays.asList("Ausdruck enth\u00e4lt einen Operanden"),
+            logLines.add("Ausdruck enth\u00e4lt einen Operanden\n".getBytes("ISO-8859-1")));
     }
 
     @Test

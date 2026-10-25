@@ -15,18 +15,16 @@ import de.tools400.ifsprojects.ibmi.PaseCommands;
 /**
  * Commands of a build, that runs in the SSH terminal of the project.
  * <p>
- * The plug-in passes the command line to the interactive shell of the
- * terminal and does not learn, when the command ends. Therefore the command is
- * wrapped in a subshell, that sources a script of the plug-in and writes
- * marker files:
+ * The plug-in passes the command line to the interactive shell of the terminal
+ * and does not learn, when the command ends. Therefore the command is wrapped
+ * in a subshell, that sources a script of the plug-in and writes marker files:
  *
  * <pre>
  * ( _ifsp=&lt;id&gt;; . '&lt;directory&gt;/ifsprojects.sh'; makei build; _ifsp_end $? )
  * </pre>
  * <ul>
- * <li>The start file contains the process ID of the subshell. Its
- * modification time is the start time of the command (time of the
- * server).</li>
+ * <li>The start file contains the process ID of the subshell. Its modification
+ * time is the start time of the command (time of the server).</li>
  * <li>The exit code file contains the exit code of the command or 129, if the
  * terminal has been closed or the connection has been lost (SIGHUP), 130 for
  * Ctrl+C (SIGINT) and 143 for SIGTERM.</li>
@@ -34,20 +32,20 @@ import de.tools400.ifsprojects.ibmi.PaseCommands;
  * The command is parsed by the shell of the terminal, so that its aliases,
  * functions and variables are available. The exit code is written by traps,
  * because bash skips a command after the build command (<code>; echo $? &gt;
- * file</code>), when the build command is interrupted with Ctrl+C. An EXIT
- * trap cannot be used: bsh does not run it in a subshell, bash and ksh run it
- * with exit code 0 after a signal. Nothing is written, if the subshell is
- * killed (SIGKILL), therefore the job checks, whether the subshell still
- * exists, see {@link #getCheckScript(int, String)}.
+ * file</code>), when the build command is interrupted with Ctrl+C. An EXIT trap
+ * cannot be used: bsh does not run it in a subshell, bash and ksh run it with
+ * exit code 0 after a signal. Nothing is written, if the subshell is killed
+ * (SIGKILL), therefore the job checks, whether the subshell still exists, see
+ * {@link #getCheckScript(int, String)}.
  * <p>
  * Verified with bash, ksh and bsh of the IBM i.
  */
 public final class TerminalBuildCommands {
 
     /**
-     * Name of the script in the directory of temporary files. It does not
-     * start with the prefix of the temporary files, because it is used by all
-     * builds and kept.
+     * Name of the script in the directory of temporary files. It does not start
+     * with the prefix of the temporary files, because it is used by all builds
+     * and kept.
      */
     public static final String SCRIPT_FILE_NAME = "ifsprojects.sh"; //$NON-NLS-1$
 
@@ -70,7 +68,10 @@ public final class TerminalBuildCommands {
     /** Comment: '#' at the beginning of a word. */
     private static final Pattern COMMENT = Pattern.compile("(^|\\s)#"); //$NON-NLS-1$
 
-    /** Operator at the end, that requires another command or runs the command in the background. */
+    /**
+     * Operator at the end, that requires another command or runs the command in
+     * the background.
+     */
     private static final Pattern OPERATOR_AT_END = Pattern.compile("[&|\\\\]$"); //$NON-NLS-1$
 
     private static final Pattern SEMICOLONS_AT_END = Pattern.compile("[;\\s]+$"); //$NON-NLS-1$
@@ -96,8 +97,8 @@ public final class TerminalBuildCommands {
      * defines the function, that writes the exit code and ends the subshell,
      * and writes the start file.
      *
-     * @param aTemporaryFilePrefix - beginning of the paths of the marker
-     *        files, e.g. <code>/home/jsmith/.ifsprojects/tmp/ifsprojects_</code>
+     * @param aTemporaryFilePrefix - beginning of the paths of the marker files,
+     *        e.g. <code>/home/jsmith/.ifsprojects/tmp/ifsprojects_</code>
      * @return script
      */
     public static String getScript(String aTemporaryFilePrefix) {
@@ -151,11 +152,11 @@ public final class TerminalBuildCommands {
     }
 
     /**
-     * Returns the shell script, that writes the gone file, if the subshell of
-     * a command does not exist any more. <code>ps</code> is used instead of
-     * <code>kill -0</code>, because it also finds the processes of other
-     * users. The gone file is not written, if <code>ps</code> does not find
-     * its own process.
+     * Returns the shell script, that writes the gone file, if the subshell of a
+     * command does not exist any more. <code>ps</code> is used instead of
+     * <code>kill -0</code>, because it also finds the processes of other users.
+     * The gone file is not written, if <code>ps</code> does not find its own
+     * process.
      *
      * @param aProcessId - process ID of the subshell, see the start file
      * @param aGoneFile - path of the gone file

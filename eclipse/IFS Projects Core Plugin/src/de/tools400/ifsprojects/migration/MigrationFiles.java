@@ -39,7 +39,7 @@ public final class MigrationFiles {
      */
     public static Map<String, String> getFiles(MigrationPlan aPlan, List<SourceFile> aSourceFiles, boolean anIsTobi) {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         for (MigrationPlan.Item item : aPlan.getMigratedItems()) {
             files.put(item.getPath(), item.getContent());
         }
@@ -48,7 +48,7 @@ public final class MigrationFiles {
             return files;
         }
 
-        List<String> directories = new ArrayList<String>();
+        List<String> directories = new ArrayList<>();
         for (SourceFile sourceFile : aSourceFiles) {
             List<MigrationPlan.Item> items = getItems(aPlan, sourceFile);
             if (items.isEmpty()) {
@@ -56,8 +56,8 @@ public final class MigrationFiles {
             }
             String directory = MigrationMapping.getDirectory(sourceFile.getName());
             directories.add(directory);
-            files.put(directory + SEPARATOR + TobiBuildFiles.IBMI_JSON_FILE, TobiBuildFiles.getIbmiJson(sourceFile, aPlan.getSettings()
-                .getHexCcsid()));
+            files.put(directory + SEPARATOR + TobiBuildFiles.IBMI_JSON_FILE,
+                TobiBuildFiles.getIbmiJson(sourceFile, aPlan.getSettings().getHexCcsid()));
             files.put(directory + SEPARATOR + TobiBuildFiles.RULES_FILE, TobiBuildFiles.getDirectoryRules(sourceFile, items));
         }
 
@@ -70,7 +70,7 @@ public final class MigrationFiles {
 
     private static List<MigrationPlan.Item> getItems(MigrationPlan aPlan, SourceFile aSourceFile) {
 
-        List<MigrationPlan.Item> items = new ArrayList<MigrationPlan.Item>();
+        List<MigrationPlan.Item> items = new ArrayList<>();
         for (MigrationPlan.Item item : aPlan.getMigratedItems()) {
             if (item.getMember().getSourceFile().equals(aSourceFile.getName())) {
                 items.add(item);

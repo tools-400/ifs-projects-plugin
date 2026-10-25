@@ -41,8 +41,7 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * <code>&lt;home&gt;/.ifsprojects</code> of the user profile: temporary files
  * in <code>tmp</code>, the copies of local projects in <code>builds</code>.
  * <p>
- * The methods access the remote system and must not be called on the UI
- * thread.
+ * The methods access the remote system and must not be called on the UI thread.
  */
 public final class RemoteJobs {
 
@@ -59,7 +58,7 @@ public final class RemoteJobs {
     private static final String BUILDS_DIRECTORY = "builds"; //$NON-NLS-1$
 
     /** Home directories by system name and user profile. */
-    private static final Map<String, String> HOME_DIRECTORIES = new ConcurrentHashMap<String, String>();
+    private static final Map<String, String> HOME_DIRECTORIES = new ConcurrentHashMap<>();
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
     private static final char SEPARATOR = '/';
 
@@ -200,7 +199,8 @@ public final class RemoteJobs {
      *
      * @param aDirectory - directory of temporary files, see
      *        {@link #getTemporaryDirectory(AS400)}
-     * @return prefix, e.g. <code>/home/jsmith/.ifsprojects/tmp/ifsprojects_</code>
+     * @return prefix, e.g.
+     *         <code>/home/jsmith/.ifsprojects/tmp/ifsprojects_</code>
      */
     public static String getTemporaryFilePrefix(String aDirectory) {
         return aDirectory + SEPARATOR + TEMPORARY_FILE_PREFIX;
@@ -445,8 +445,8 @@ public final class RemoteJobs {
     }
 
     /**
-     * Lists the files of a directory, also the files, whose names start with
-     * a period. By default, IBM Toolbox for Java uses POSIX pattern matching,
+     * Lists the files of a directory, also the files, whose names start with a
+     * period. By default, IBM Toolbox for Java uses POSIX pattern matching,
      * which skips them.
      *
      * @param aDirectory - directory

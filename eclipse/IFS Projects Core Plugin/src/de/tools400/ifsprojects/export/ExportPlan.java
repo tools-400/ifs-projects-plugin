@@ -29,10 +29,10 @@ import de.tools400.ifsprojects.sources.MemberText;
  * exported, their converted content and the problems, that have been found
  * before the export.
  * <ul>
- * <li>Errors: the member name is not valid, several files are exported into
- * the same member, the file could not be read, the source file exists, but is
- * not a source file, or a line is longer than the record length of an
- * existing source file. Such files are not exported.</li>
+ * <li>Errors: the member name is not valid, several files are exported into the
+ * same member, the file could not be read, the source file exists, but is not a
+ * source file, or a line is longer than the record length of an existing source
+ * file. Such files are not exported.</li>
  * <li>Warnings: characters, that do not exist in the CCSID of the source file,
  * and include directives, that could not be converted.</li>
  * </ul>
@@ -68,8 +68,8 @@ public final class ExportPlan {
         this.settings = aSettings;
         this.resolver = aResolver;
         this.library = aLibrary;
-        this.items = new ArrayList<Item>();
-        this.newSourceFiles = new LinkedHashMap<String, Integer>();
+        this.items = new ArrayList<>();
+        this.newSourceFiles = new LinkedHashMap<>();
 
         ExportMapping mapping = new ExportMapping(aSettings.getSourceFileRule(), aSettings.getSourceFile());
         for (ExportMapping.Entry entry : mapping.map(aFiles)) {
@@ -81,8 +81,7 @@ public final class ExportPlan {
     }
 
     /**
-     * Returns the files with an exported source type in the order of the
-     * paths.
+     * Returns the files with an exported source type in the order of the paths.
      */
     public List<Item> getItems() {
         return Collections.unmodifiableList(items);
@@ -93,7 +92,7 @@ public final class ExportPlan {
      */
     public List<Item> getExportedItems() {
 
-        List<Item> exportedItems = new ArrayList<Item>();
+        List<Item> exportedItems = new ArrayList<>();
         for (Item item : items) {
             if (item.isExported()) {
                 exportedItems.add(item);
@@ -167,7 +166,7 @@ public final class ExportPlan {
      */
     private void compute() {
 
-        Set<String> failedPaths = new HashSet<String>();
+        Set<String> failedPaths = new HashSet<>();
         for (Item item : items) {
             item.reset();
             addStaticProblems(item);
@@ -192,7 +191,7 @@ public final class ExportPlan {
             }
         }
 
-        Map<Integer, CharConverter> converters = new HashMap<Integer, CharConverter>();
+        Map<Integer, CharConverter> converters = new HashMap<>();
         newSourceFiles.clear();
         for (Item item : items) {
             if (item.isSelected && item.content != null && !item.hasErrors()) {
@@ -216,7 +215,7 @@ public final class ExportPlan {
      */
     private Map<String, ExportMapping.Entry> getMembers(Set<String> aFailedPaths) {
 
-        Map<String, ExportMapping.Entry> members = new HashMap<String, ExportMapping.Entry>();
+        Map<String, ExportMapping.Entry> members = new HashMap<>();
         for (Item item : items) {
             if (item.isSelected && !aFailedPaths.contains(item.getPath())) {
                 members.put(item.getPath(), item.entry);
@@ -271,8 +270,8 @@ public final class ExportPlan {
 
         LibraryInfo.File file = library.getFile(anItem.getSourceFile());
         if (file != null && anItem.longestLine.getLength() > file.getDataLength()) {
-            anItem.problems.add(new Problem(ProblemType.LINE_TOO_LONG, anItem.longestLine.getNumber(), null, anItem.longestLine.getLength(),
-                file.getDataLength()));
+            anItem.problems.add(
+                new Problem(ProblemType.LINE_TOO_LONG, anItem.longestLine.getNumber(), null, anItem.longestLine.getLength(), file.getDataLength()));
             return;
         }
 
@@ -328,25 +327,30 @@ public final class ExportPlan {
     public enum ProblemType {
 
         /** The file name is not a valid member name. */
-        INVALID_MEMBER_NAME(true),
+        INVALID_MEMBER_NAME (true),
 
         /** Several files are exported into the same member. */
-        DUPLICATE(true),
+        DUPLICATE (true),
 
         /** The file could not be read, see {@link Problem#getText()}. */
-        NOT_READ(true),
+        NOT_READ (true),
 
-        /** The file of the member is not a source file, see {@link Problem#getText()}. */
-        NOT_A_SOURCE_FILE(true),
+        /**
+         * The file of the member is not a source file, see
+         * {@link Problem#getText()}.
+         */
+        NOT_A_SOURCE_FILE (true),
 
-        /** A line is longer than the record length of the existing source file. */
-        LINE_TOO_LONG(true),
+        /**
+         * A line is longer than the record length of the existing source file.
+         */
+        LINE_TOO_LONG (true),
 
         /** A line contains characters, that do not exist in the CCSID. */
-        UNMAPPABLE_CHARACTER(false),
+        UNMAPPABLE_CHARACTER (false),
 
         /** An include directive has not been converted. */
-        INCLUDE(false);
+        INCLUDE (false);
 
         private final boolean isError;
 
@@ -459,7 +463,7 @@ public final class ExportPlan {
             this.entry = anEntry;
             this.rawContent = aRawContent;
             this.readError = aReadError;
-            this.problems = new ArrayList<Problem>();
+            this.problems = new ArrayList<>();
             this.isSelected = true;
         }
 
@@ -500,8 +504,8 @@ public final class ExportPlan {
         }
 
         /**
-         * Returns <code>true</code>, if the file is exported: it is selected and
-         * has no errors.
+         * Returns <code>true</code>, if the file is exported: it is selected
+         * and has no errors.
          */
         public boolean isExported() {
             return isSelected && content != null && !hasErrors();
@@ -526,7 +530,7 @@ public final class ExportPlan {
          */
         public List<Problem> getProblems() {
 
-            List<Problem> sortedProblems = new ArrayList<Problem>();
+            List<Problem> sortedProblems = new ArrayList<>();
             for (Problem problem : problems) {
                 if (problem.isError()) {
                     sortedProblems.add(problem);

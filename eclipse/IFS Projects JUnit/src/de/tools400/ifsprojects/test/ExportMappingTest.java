@@ -54,8 +54,8 @@ public class ExportMappingTest {
     @Test
     public void testMap_sourceType() {
 
-        List<Entry> entries = new ExportMapping(SourceFileRule.SOURCE_TYPE, "IGNORED").map(Arrays.asList("qprotosrc/consts.rpgleinc",
-            "src/hello.clle"));
+        List<Entry> entries = new ExportMapping(SourceFileRule.SOURCE_TYPE, "IGNORED")
+            .map(Arrays.asList("qprotosrc/consts.rpgleinc", "src/hello.clle"));
 
         assertEntry(entries.get(0), "qprotosrc/consts.rpgleinc", "QRPGLESRC", "CONSTS", "RPGLE", Status.OK);
         assertEntry(entries.get(1), "src/hello.clle", "QCLSRC", "HELLO", "CLLE", Status.OK);
@@ -64,8 +64,8 @@ public class ExportMappingTest {
     @Test
     public void testMap_singleFile() {
 
-        List<Entry> entries = new ExportMapping(SourceFileRule.SINGLE_FILE, " qsource ").map(Arrays.asList("qrpglesrc/hello.pgm.rpgle",
-            "hellod.dspf"));
+        List<Entry> entries = new ExportMapping(SourceFileRule.SINGLE_FILE, " qsource ")
+            .map(Arrays.asList("qrpglesrc/hello.pgm.rpgle", "hellod.dspf"));
 
         assertEntry(entries.get(0), "qrpglesrc/hello.pgm.rpgle", "QSOURCE", "HELLO", "RPGLE", Status.OK);
         assertEntry(entries.get(1), "hellod.dspf", "QSOURCE", "HELLOD", "DSPF", Status.OK);
@@ -90,8 +90,8 @@ public class ExportMappingTest {
     @Test
     public void testMap_invalidMemberName() {
 
-        List<Entry> entries = new ExportMapping(SourceFileRule.DIRECTORY, null).map(Arrays.asList("qrpglesrc/toolongname1.rpgle",
-            "qrpglesrc/toolongname1.rpgleinc", "qrpglesrc/hello.rpgle"));
+        List<Entry> entries = new ExportMapping(SourceFileRule.DIRECTORY, null)
+            .map(Arrays.asList("qrpglesrc/toolongname1.rpgle", "qrpglesrc/toolongname1.rpgleinc", "qrpglesrc/hello.rpgle"));
 
         assertEntry(entries.get(0), "qrpglesrc/toolongname1.rpgle", "QRPGLESRC", null, "RPGLE", Status.INVALID_MEMBER_NAME);
         assertEquals(Status.INVALID_MEMBER_NAME, entries.get(1).getStatus());

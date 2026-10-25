@@ -29,8 +29,8 @@ import org.eclipse.swt.widgets.TableColumn;
 import de.tools400.ifsprojects.Messages;
 
 /**
- * Table with a checkbox per row and the buttons 'Select All' and 'Deselect
- * All' to the right of the table. New elements are checked.
+ * Table with a checkbox per row and the buttons 'Select All' and 'Deselect All'
+ * to the right of the table. New elements are checked.
  *
  * @param <T> - type of the elements
  */
@@ -38,7 +38,7 @@ public class CheckboxTableGroup<T> {
 
     private final Composite composite;
     private final CheckboxTableViewer viewer;
-    private final List<Runnable> listeners = new ArrayList<Runnable>();
+    private final List<Runnable> listeners = new ArrayList<>();
 
     /**
      * Creates the group.
@@ -126,7 +126,7 @@ public class CheckboxTableGroup<T> {
     @SuppressWarnings("unchecked")
     public List<T> getCheckedElements() {
 
-        List<T> elements = new ArrayList<T>();
+        List<T> elements = new ArrayList<>();
         for (Object element : viewer.getCheckedElements()) {
             elements.add((T)element);
         }

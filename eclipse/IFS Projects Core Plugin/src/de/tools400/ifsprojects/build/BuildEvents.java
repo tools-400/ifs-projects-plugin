@@ -26,8 +26,7 @@ import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Collects the events files of the objects, that have been compiled by a
- * build:
+ * Collects the events files of the objects, that have been compiled by a build:
  * <ol>
  * <li>the files of directory <code>.evfevent</code> of the project, which TOBi
  * writes, e.g. <code>HELLO.PGM.evfevent</code>,</li>
@@ -35,11 +34,10 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
  * gmake build.</li>
  * </ol>
  * Only events files changed since the start of the build are collected. The
- * compilers replace the member of an object, therefore its modification time
- * is the time of the last compile.
+ * compilers replace the member of an object, therefore its modification time is
+ * the time of the last compile.
  * <p>
- * The methods access the remote system and must not be called on the UI
- * thread.
+ * The methods access the remote system and must not be called on the UI thread.
  */
 public final class BuildEvents {
 
@@ -58,8 +56,8 @@ public final class BuildEvents {
      * @param aProjectDirectory - project directory
      * @param anObjectLibrary - object library or <code>null</code>
      * @param aStartTime - start time of the build (time of the server)
-     * @return events, one events file after the other, or <code>null</code>,
-     *         if no events files have been found
+     * @return events, one events file after the other, or <code>null</code>, if
+     *         no events files have been found
      * @throws IOException if the events files could not be read
      */
     public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime) throws IOException {
@@ -86,7 +84,7 @@ public final class BuildEvents {
 
     private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime) throws IOException {
 
-        List<String> events = new ArrayList<String>();
+        List<String> events = new ArrayList<>();
         try {
             for (IFSFile file : getChangedFiles(new IFSFile(aSystem, aDirectory), aStartTime)) {
                 events.add(RemoteJobs.readText(file));
@@ -100,7 +98,7 @@ public final class BuildEvents {
 
     private static List<String> collectMembers(RemoteSession aSession, String aLibrary, long aStartTime) throws IOException {
 
-        List<String> events = new ArrayList<String>();
+        List<String> events = new ArrayList<>();
         String eventsFile = ClCommands.getFilePath(aLibrary, EventsFiles.EVENTS_FILE);
         try {
             for (IFSFile member : getChangedFiles(new IFSFile(aSession.getSystem(), eventsFile), aStartTime)) {
@@ -129,7 +127,7 @@ public final class BuildEvents {
      */
     private static List<IFSFile> getChangedFiles(IFSFile aDirectory, long aStartTime) throws Exception {
 
-        List<IFSFile> files = new ArrayList<IFSFile>();
+        List<IFSFile> files = new ArrayList<>();
         if (!aDirectory.exists() || !aDirectory.isDirectory()) {
             return files;
         }

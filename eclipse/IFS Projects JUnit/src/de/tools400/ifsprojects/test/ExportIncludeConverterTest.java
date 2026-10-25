@@ -89,9 +89,10 @@ public class ExportIncludeConverterTest {
     @Test
     public void testRpg_problems() {
 
-        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n/copy '/QIBM/include/qusec.rpgleinc'\n/copy missing.rpgleinc\n"
-            + "/copy toolongname1\nexec sql include 'inc/missing.sqlrpgleinc';\nexec sql include 'qrpglesrc/toolongname1.rpgleinc';\n"
-            + "exec sql include sqlca;\nexec sql include\n");
+        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle",
+            "**FREE\n/copy '/QIBM/include/qusec.rpgleinc'\n/copy missing.rpgleinc\n"
+                + "/copy toolongname1\nexec sql include 'inc/missing.sqlrpgleinc';\nexec sql include 'qrpglesrc/toolongname1.rpgleinc';\n"
+                + "exec sql include sqlca;\nexec sql include\n");
 
         assertEquals("**FREE\n/copy '/QIBM/include/qusec.rpgleinc'\n/copy missing.rpgleinc\n/copy toolongname1\n"
             + "exec sql include 'inc/missing.sqlrpgleinc';\nexec sql include 'qrpglesrc/toolongname1.rpgleinc';\n"
@@ -135,10 +136,13 @@ public class ExportIncludeConverterTest {
         // the source, but neither the include directories nor other
         // extensions (verified with CRTSQLRPGI).
         Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n" //
-            + "exec sql include 'inc/sqlvars.sqlrpgleinc';\n" // project directory
-            + "exec sql include 'sqlvars.sqlrpgleinc';\n" // directory of the source
+            + "exec sql include 'inc/sqlvars.sqlrpgleinc';\n" // project
+                                                              // directory
+            + "exec sql include 'sqlvars.sqlrpgleinc';\n" // directory of the
+                                                          // source
             + "exec sql include 'sqlvars';\n" // no extension is added
-            + "exec sql include 'consts.rpgleinc';\n"); // include directory inc is not searched
+            + "exec sql include 'consts.rpgleinc';\n"); // include directory inc
+                                                        // is not searched
 
         assertEquals("**FREE\n" //
             + "exec sql include sqlvars;\n" //
@@ -208,8 +212,8 @@ public class ExportIncludeConverterTest {
 
     @Test
     public void testRpg_lineSeparators() {
-        assertEquals("\uFEFF**FREE\r\n/copy inc,consts\r\ndsply 'x';", convert("RPGLE", "qrpglesrc/hello.pgm.rpgle",
-            "\uFEFF**FREE\r\n/copy 'inc/consts.rpgleinc'\r\ndsply 'x';").getContent());
+        assertEquals("\uFEFF**FREE\r\n/copy inc,consts\r\ndsply 'x';",
+            convert("RPGLE", "qrpglesrc/hello.pgm.rpgle", "\uFEFF**FREE\r\n/copy 'inc/consts.rpgleinc'\r\ndsply 'x';").getContent());
         assertEquals("", convert("RPGLE", "qrpglesrc/hello.pgm.rpgle", "").getContent());
         assertEquals("\n\n", convert("RPGLE", "qrpglesrc/hello.pgm.rpgle", "\n\n").getContent());
     }
@@ -286,7 +290,7 @@ public class ExportIncludeConverterTest {
 
     private ExportIncludeConverter create(String aSourceType) {
 
-        Map<String, ExportMapping.Entry> members = new HashMap<String, ExportMapping.Entry>();
+        Map<String, ExportMapping.Entry> members = new HashMap<>();
         for (ExportMapping.Entry entry : new ExportMapping(SourceFileRule.DIRECTORY, null).map(FILES)) {
             if (entry.getStatus() == ExportMapping.Status.OK) {
                 members.put(entry.getPath(), entry);

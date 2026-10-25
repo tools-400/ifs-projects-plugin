@@ -54,8 +54,8 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
     private static final int LIST_FIELD_LINES = 3;
     private static final int WRAP_WIDTH_CHARS = 60;
 
-    private final Map<String, Text> textFields = new LinkedHashMap<String, Text>();
-    private final Map<String, Text> listFields = new LinkedHashMap<String, Text>();
+    private final Map<String, Text> textFields = new LinkedHashMap<>();
+    private final Map<String, Text> listFields = new LinkedHashMap<>();
 
     private boolean isInitialized;
     private IProjFileContent fileContent;
@@ -94,14 +94,13 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
     protected abstract IProjFileContent readFile() throws IProjFileException;
 
     /**
-     * Writes the <code>iproj.json</code> file. Must be called on the UI
-     * thread.
+     * Writes the <code>iproj.json</code> file. Must be called on the UI thread.
      *
      * @param aContent - text of the file
-     * @param aPrevious - content read before or <code>null</code> to
-     *        overwrite the file without checking for changes
-     * @throws IProjFileException if the file could not be written or has
-     *         been changed since it was read
+     * @param aPrevious - content read before or <code>null</code> to overwrite
+     *        the file without checking for changes
+     * @throws IProjFileException if the file could not be written or has been
+     *         changed since it was read
      */
     protected abstract void writeFile(String aContent, IProjFileContent aPrevious) throws IProjFileException;
 
@@ -199,8 +198,8 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
                 MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
                 return false;
             }
-            if (!MessageDialog.openQuestion(getShell(), Messages.Title_IFS_Projects, Messages.bind(Messages.Question_File_A_changed_overwrite,
-                fileContent.getPath()))) {
+            if (!MessageDialog.openQuestion(getShell(), Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Question_File_A_changed_overwrite, fileContent.getPath()))) {
                 return false;
             }
             try {
@@ -247,8 +246,8 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
     }
 
     /**
-     * Returns the layout data of a wrapping label, that spans both columns.
-     * The width hint keeps a long text from widening the dialog.
+     * Returns the layout data of a wrapping label, that spans both columns. The
+     * width hint keeps a long text from widening the dialog.
      */
     protected GridData createWrapGridData() {
         GridData gridData = createSpanningGridData();
@@ -340,7 +339,7 @@ public abstract class AbstractIProjPropertyPage extends PropertyPage {
 
     private List<String> splitLines(String aText) {
 
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         for (String line : aText.split(LINE_SEPARATOR_PATTERN)) {
             String trimmedLine = StringUtils.trimToNull(line);
             if (trimmedLine != null) {

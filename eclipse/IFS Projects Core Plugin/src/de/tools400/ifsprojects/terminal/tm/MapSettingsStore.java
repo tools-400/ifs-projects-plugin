@@ -20,7 +20,7 @@ import org.eclipse.tm.internal.terminal.provisional.api.ISettingsStore;
 @SuppressWarnings("restriction")
 class MapSettingsStore implements ISettingsStore {
 
-    private final Map<String, String> values = new HashMap<String, String>();
+    private final Map<String, String> values = new HashMap<>();
 
     public String get(String aKey) {
         return values.get(aKey);

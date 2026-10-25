@@ -62,8 +62,8 @@ public class LocalProjectSettingsGroup {
      * Creates the controls.
      *
      * @param aParent - parent with a grid layout of two columns
-     * @param aProject - project, whose settings are shown, or
-     *        <code>null</code> for a new project, which is built on an IBM i
+     * @param aProject - project, whose settings are shown, or <code>null</code>
+     *        for a new project, which is built on an IBM i
      * @param aListener - notified, when the user changes the settings
      */
     public LocalProjectSettingsGroup(Composite aParent, IProject aProject, final IChangeListener aListener) {
@@ -87,7 +87,8 @@ public class LocalProjectSettingsGroup {
 
         // The combo shows the IBM i connections and a 'New...' button. The
         // constructor without label cannot be used: it filters the connections
-        // by subsystem category 'com.ibm.etools.iseries.subsystems.qsys.objects',
+        // by subsystem category
+        // 'com.ibm.etools.iseries.subsystems.qsys.objects',
         // but the category of the QSYS subsystem is 'nativefiles' (RDi 9.8), so
         // that the combo is empty.
         connectionCombo = new IBMiConnectionCombo(aParent, SWT.NONE, host, true);
@@ -133,8 +134,8 @@ public class LocalProjectSettingsGroup {
     }
 
     /**
-     * Shows the default deploy directory of a project name, e.g. while the
-     * name of a new project is entered.
+     * Shows the default deploy directory of a project name, e.g. while the name
+     * of a new project is entered.
      *
      * @param aProjectName - name of the project
      */
@@ -178,8 +179,8 @@ public class LocalProjectSettingsGroup {
     /**
      * Returns the name of the selected connection.
      *
-     * @return name or <code>null</code>, if the project is not built on an
-     *         IBM i or no connection is selected
+     * @return name or <code>null</code>, if the project is not built on an IBM
+     *         i or no connection is selected
      */
     public String getConnectionName() {
 

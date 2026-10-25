@@ -100,8 +100,8 @@ public final class ClCommands {
     }
 
     /**
-     * Returns the command that copies a member to a stream file with CCSID
-     * 1208 (UTF-8). An existing stream file is replaced.
+     * Returns the command that copies a member to a stream file with CCSID 1208
+     * (UTF-8). An existing stream file is replaced.
      *
      * @param aMemberPath - path of the member, see {@link #getMemberPath}
      * @param aStreamFile - absolute path of the stream file
@@ -112,10 +112,10 @@ public final class ClCommands {
     }
 
     /**
-     * Returns the command that copies a member to a stream file with CCSID
-     * 1208 (UTF-8), with the specified CCSID of the data of the member. It is
-     * needed for files with CCSID 65535, which <code>CPYTOSTMF</code> does not
-     * convert otherwise (CPDA08C, verified on the IBM i).
+     * Returns the command that copies a member to a stream file with CCSID 1208
+     * (UTF-8), with the specified CCSID of the data of the member. It is needed
+     * for files with CCSID 65535, which <code>CPYTOSTMF</code> does not convert
+     * otherwise (CPDA08C, verified on the IBM i).
      *
      * @param aMemberPath - path of the member, see {@link #getMemberPath}
      * @param aStreamFile - absolute path of the stream file

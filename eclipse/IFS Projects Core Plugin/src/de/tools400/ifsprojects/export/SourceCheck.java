@@ -17,8 +17,8 @@ import com.ibm.as400.access.CharConverter;
  * no characters are lost. The lines are measured like <code>CPYFRMSTMF</code>
  * does, verified on the IBM i:
  * <ul>
- * <li>Characters are counted, not bytes, e.g. one for an umlaut in UTF-8 or
- * for a character outside of the BMP.</li>
+ * <li>Characters are counted, not bytes, e.g. one for an umlaut in UTF-8 or for
+ * a character outside of the BMP.</li>
  * <li>A tab moves to the next tab stop (columns 1, 9, 17, ...).</li>
  * <li>Trailing blanks are not counted. <code>CPYFRMSTMF</code> reports them as
  * truncated (CPIA083), but only blanks are lost.</li>
@@ -49,8 +49,8 @@ public final class SourceCheck {
      * CCSIDs with double-byte characters, e.g. 930, are not supported.
      *
      * @param aCcsid - CCSID
-     * @return <code>true</code> for single-byte EBCDIC CCSIDs, that IBM
-     *         Toolbox for Java can convert
+     * @return <code>true</code> for single-byte EBCDIC CCSIDs, that IBM Toolbox
+     *         for Java can convert
      */
     public static boolean isSingleByteEbcdic(int aCcsid) {
 

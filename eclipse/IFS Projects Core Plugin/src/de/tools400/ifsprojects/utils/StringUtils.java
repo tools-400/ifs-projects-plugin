@@ -18,8 +18,8 @@ public final class StringUtils {
     }
 
     /**
-     * Returns the trimmed string or <code>null</code>, if the trimmed string
-     * is empty.
+     * Returns the trimmed string or <code>null</code>, if the trimmed string is
+     * empty.
      *
      * @param aValue - string to trim or <code>null</code>
      * @return trimmed string or <code>null</code>, if the string is
@@ -40,8 +40,8 @@ public final class StringUtils {
     }
 
     /**
-     * Returns <code>true</code>, if the string is <code>null</code> or
-     * consists of blanks only.
+     * Returns <code>true</code>, if the string is <code>null</code> or consists
+     * of blanks only.
      *
      * @param aValue - string or <code>null</code>
      * @return <code>true</code>, if the string is <code>null</code>, empty or
@@ -68,8 +68,8 @@ public final class StringUtils {
     }
 
     /**
-     * Returns <code>true</code>, if the string contains a carriage return or
-     * a line feed.
+     * Returns <code>true</code>, if the string contains a carriage return or a
+     * line feed.
      *
      * @param aValue - string
      * @return <code>true</code>, if the string contains a line break

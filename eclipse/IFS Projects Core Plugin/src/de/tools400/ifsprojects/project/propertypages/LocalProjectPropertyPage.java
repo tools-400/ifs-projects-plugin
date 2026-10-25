@@ -26,11 +26,11 @@ import de.tools400.ifsprojects.project.IProjFileException;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Property page of the projects of the workspace. Configures a project as
- * local IFS project, see {@link LocalProjectSettingsGroup}. These settings
- * are stored in the workspace, not in the files of the project. Like the
- * property page of IFS projects, it edits the <code>iproj.json</code> file of
- * the project, see {@link AbstractIProjPropertyPage}.
+ * Property page of the projects of the workspace. Configures a project as local
+ * IFS project, see {@link LocalProjectSettingsGroup}. These settings are stored
+ * in the workspace, not in the files of the project. Like the property page of
+ * IFS projects, it edits the <code>iproj.json</code> file of the project, see
+ * {@link AbstractIProjPropertyPage}.
  */
 public class LocalProjectPropertyPage extends AbstractIProjPropertyPage {
 
@@ -103,8 +103,8 @@ public class LocalProjectPropertyPage extends AbstractIProjPropertyPage {
             LocalProject.configure(project, connectionName, directory);
         } catch (CoreException e) {
             IfsProjectsPlugin.logError("Could not save the settings of project: " + project.getName(), e); //$NON-NLS-1$
-            MessageDialog.openError(getShell(), Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_save_settings_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openError(getShell(), Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Could_not_save_settings_A, ExceptionUtils.getLocalizedMessage(e)));
             return false;
         }
 
@@ -112,8 +112,8 @@ public class LocalProjectPropertyPage extends AbstractIProjPropertyPage {
     }
 
     /**
-     * Validates the settings. A message, why <code>iproj.json</code> cannot
-     * be edited, is shown, as long as the settings are valid.
+     * Validates the settings. A message, why <code>iproj.json</code> cannot be
+     * edited, is shown, as long as the settings are valid.
      */
     private void validate() {
 

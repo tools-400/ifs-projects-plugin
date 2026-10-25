@@ -82,10 +82,10 @@ public class RememberingOverwriteQueryTest {
     private static class ScriptedQuery implements OverwriteQuery {
 
         private final LinkedList<Answer> answers;
-        private final List<String> objects = new ArrayList<String>();
+        private final List<String> objects = new ArrayList<>();
 
         ScriptedQuery(Answer... anAnswers) {
-            this.answers = new LinkedList<Answer>(Arrays.asList(anAnswers));
+            this.answers = new LinkedList<>(Arrays.asList(anAnswers));
         }
 
         public Answer ask(String anObject) {

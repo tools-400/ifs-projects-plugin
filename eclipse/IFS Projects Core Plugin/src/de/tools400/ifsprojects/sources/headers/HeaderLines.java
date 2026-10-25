@@ -13,12 +13,15 @@ import java.util.List;
 
 /**
  * The first lines of a source, in which the parsers of the build tools search
- * the header, see {@link ISourceHeaderParser}. A tag further down in the
- * source is no header, e.g. in a comment of the code.
+ * the header, see {@link ISourceHeaderParser}. A tag further down in the source
+ * is no header, e.g. in a comment of the code.
  */
 public final class HeaderLines {
 
-    /** Number of lines at the start of a source, in which the header is searched. */
+    /**
+     * Number of lines at the start of a source, in which the header is
+     * searched.
+     */
     public static final int MAX_LINES = 100;
 
     private static final char LF = '\n';
@@ -40,7 +43,7 @@ public final class HeaderLines {
      */
     public static List<String> read(String aContent) {
 
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
 
         int start = 0;
         while (lines.size() < MAX_LINES && start <= aContent.length()) {

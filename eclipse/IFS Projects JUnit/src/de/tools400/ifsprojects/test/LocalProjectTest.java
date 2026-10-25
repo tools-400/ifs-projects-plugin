@@ -9,9 +9,7 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -24,7 +22,8 @@ public class LocalProjectTest {
     public void testGetDefaultDeployDirectory() {
 
         assertEquals("/home/jsmith/.ifsprojects/builds/ifsptest", LocalProject.getDefaultDeployDirectory("/home/jsmith", "ifsptest"));
-        assertEquals("/home/jsmith/.ifsprojects/builds/my_project_1.0-a", LocalProject.getDefaultDeployDirectory("/home/jsmith/", "my project#1.0-a"));
+        assertEquals("/home/jsmith/.ifsprojects/builds/my_project_1.0-a",
+            LocalProject.getDefaultDeployDirectory("/home/jsmith/", "my project#1.0-a"));
     }
 
     @Test
@@ -37,7 +36,6 @@ public class LocalProjectTest {
         assertNull(LocalProject.normalizeDeployDirectory("builds/demo"));
         assertNull(LocalProject.normalizeDeployDirectory("/home/jsmith/*"));
     }
-
 
     @Test
     public void testGetCcsid() {

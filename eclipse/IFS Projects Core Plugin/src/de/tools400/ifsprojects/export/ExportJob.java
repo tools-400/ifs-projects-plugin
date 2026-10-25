@@ -35,11 +35,10 @@ import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Exports the files of an {@link ExportPlan} into the members of a library in
- * a remote command server job of its own:
+ * Exports the files of an {@link ExportPlan} into the members of a library in a
+ * remote command server job of its own:
  * <ol>
- * <li>Creates the library, if it does not exist, and the new source
- * files.</li>
+ * <li>Creates the library, if it does not exist, and the new source files.</li>
  * <li>Writes the content of each file into a temporary stream file with CCSID
  * 1208, from which <code>CPYFRMSTMF</code> copies it into the member. Its
  * content may differ from the file of the project, because the include
@@ -96,7 +95,7 @@ public class ExportJob extends Job {
         this.ccsid = aPlan.getSettings().getCcsid();
         this.items = aPlan.getExportedItems();
         this.overwriteQuery = new RememberingOverwriteQuery(anOverwriteQuery);
-        this.errors = new ArrayList<String>();
+        this.errors = new ArrayList<>();
     }
 
     @Override
@@ -159,7 +158,7 @@ public class ExportJob extends Job {
      */
     private Set<String> createSourceFiles(CommandCall aCommandCall) throws Exception {
 
-        Set<String> failedSourceFiles = new HashSet<String>();
+        Set<String> failedSourceFiles = new HashSet<>();
         for (Map.Entry<String, Integer> sourceFile : newSourceFiles.entrySet()) {
             String command = ExportCommands.getCreateSourceFileCommand(library, sourceFile.getKey(), sourceFile.getValue().intValue(), ccsid);
             if (!run(aCommandCall, command, sourceFile.getKey())) {
@@ -180,8 +179,8 @@ public class ExportJob extends Job {
         throws Exception {
 
         if (aFailedSourceFiles.contains(anItem.getSourceFile())) {
-            errors.add(Messages.bind(Messages.Error_A_B, anItem.getPath(), Messages.bind(Messages.Error_Source_file_A_not_created,
-                anItem.getSourceFile())));
+            errors.add(
+                Messages.bind(Messages.Error_A_B, anItem.getPath(), Messages.bind(Messages.Error_Source_file_A_not_created, anItem.getSourceFile())));
             return true;
         }
 
@@ -276,8 +275,8 @@ public class ExportJob extends Job {
     private void showSummary(boolean anIsCanceled) {
 
         StringBuilder message = new StringBuilder();
-        message.append(Messages.bind(Messages.Info_Export_of_A_to_B_created_C_replaced_D_skipped_E, new Object[] { projectName, library,
-            Integer.toString(created), Integer.toString(replaced), Integer.toString(skipped) }));
+        message.append(Messages.bind(Messages.Info_Export_of_A_to_B_created_C_replaced_D_skipped_E,
+            new Object[] { projectName, library, Integer.toString(created), Integer.toString(replaced), Integer.toString(skipped) }));
         if (anIsCanceled) {
             message.append(LINE_SEPARATOR).append(Messages.Log_Canceled);
         }

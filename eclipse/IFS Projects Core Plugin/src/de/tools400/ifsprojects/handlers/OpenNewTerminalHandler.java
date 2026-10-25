@@ -9,8 +9,8 @@
 package de.tools400.ifsprojects.handlers;
 
 /**
- * Opens an additional SSH terminal for the selected IBM i connection, even if
- * a terminal of the connection is already open.
+ * Opens an additional SSH terminal for the selected IBM i connection, even if a
+ * terminal of the connection is already open.
  */
 public class OpenNewTerminalHandler extends OpenTerminalHandler {
 

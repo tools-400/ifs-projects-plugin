@@ -63,8 +63,9 @@ final class TmCompatibility {
      *
      * @param aControl - terminal control
      * @throws ReflectiveOperationException if the terminal could not be
-     *         connected, e.g. an {@link java.lang.reflect.InvocationTargetException}
-     *         with the exception of the terminal
+     *         connected, e.g. an
+     *         {@link java.lang.reflect.InvocationTargetException} with the
+     *         exception of the terminal
      */
     static void connectTerminal(ITerminalViewControl aControl) throws ReflectiveOperationException {
         Method method = ITerminalViewControl.class.getMethod(METHOD_CONNECT_TERMINAL);
@@ -99,10 +100,10 @@ final class TmCompatibility {
      * Clears the terminal, but keeps the line of the cursor, usually the
      * prompt, as first line, like the terminal of VS Code does.
      * <code>ITerminalViewControl.clearTerminal()</code> clears all lines, so
-     * that the terminal is empty until the shell writes again. Lines before
-     * the cursor line, into which a long command line wraps, are not kept. If
-     * the text model or the emulator of the terminal cannot be accessed, the
-     * error is logged and the terminal is cleared completely.
+     * that the terminal is empty until the shell writes again. Lines before the
+     * cursor line, into which a long command line wraps, are not kept. If the
+     * text model or the emulator of the terminal cannot be accessed, the error
+     * is logged and the terminal is cleared completely.
      *
      * @param aControl - terminal control
      */

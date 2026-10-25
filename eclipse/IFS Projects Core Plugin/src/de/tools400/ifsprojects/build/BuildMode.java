@@ -17,13 +17,13 @@ public enum BuildMode {
      * In the SSH terminal of the project. Afterwards the errors are shown in
      * the 'Error List' view, see {@link TerminalBuildJob}.
      */
-    TERMINAL("terminal"), //$NON-NLS-1$
+    TERMINAL ("terminal"), //$NON-NLS-1$
 
     /**
-     * In a job of the RSE connection. The output is shown in the 'Commands
-     * Log' view, the errors in the 'Error List' view.
+     * In a job of the RSE connection. The output is shown in the 'Commands Log'
+     * view, the errors in the 'Error List' view.
      */
-    RSE("rse"); //$NON-NLS-1$
+    RSE ("rse"); //$NON-NLS-1$
 
     private final String value;
 

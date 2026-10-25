@@ -71,8 +71,8 @@ final class TmConnectorFactory {
 
     /**
      * Returns <code>true</code>, if the SSH connector requests the terminal
-     * type <code>ansi</code> for the shell, like the SSH connector of the old TM
-     * terminal does. IBM i PASE does not know it, so that e.g.
+     * type <code>ansi</code> for the shell, like the SSH connector of the old
+     * TM terminal does. IBM i PASE does not know it, so that e.g.
      * <code>clear</code> does nothing. The SSH connector of the new TM terminal
      * requests <code>xterm</code>.
      *

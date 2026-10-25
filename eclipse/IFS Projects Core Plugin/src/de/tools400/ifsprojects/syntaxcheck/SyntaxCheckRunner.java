@@ -27,12 +27,12 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
  * Executes the commands of a syntax check with IBM Toolbox for Java.
  * <p>
  * The commands run in a remote command server job of their own, because they
- * change the current directory and the library list and use
- * <code>QTEMP</code>, see {@link RemoteSession}. The events file is copied to
- * a temporary stream file in the same job and read with the file server.
+ * change the current directory and the library list and use <code>QTEMP</code>,
+ * see {@link RemoteSession}. The events file is copied to a temporary stream
+ * file in the same job and read with the file server.
  * <p>
- * The methods of this class access the remote system and must not be called
- * on the UI thread.
+ * The methods of this class access the remote system and must not be called on
+ * the UI thread.
  */
 public final class SyntaxCheckRunner {
 

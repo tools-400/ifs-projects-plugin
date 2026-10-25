@@ -18,8 +18,8 @@ import de.tools400.ifsprojects.subsystem.IfsProjectSubSystem;
 import de.tools400.ifsprojects.subsystem.IfsProjects;
 
 /**
- * Creates the RSE filters of IFS projects in the 'IFS Projects' subsystem.
- * Must be called on the UI thread.
+ * Creates the RSE filters of IFS projects in the 'IFS Projects' subsystem. Must
+ * be called on the UI thread.
  */
 public final class IfsProjectFilters {
 
@@ -28,8 +28,8 @@ public final class IfsProjectFilters {
     }
 
     /**
-     * Returns <code>true</code>, if a project with the specified name exists
-     * in the filter pool that is used for new IFS projects.
+     * Returns <code>true</code>, if a project with the specified name exists in
+     * the filter pool that is used for new IFS projects.
      *
      * @param aHost - RSE connection
      * @param aName - project name

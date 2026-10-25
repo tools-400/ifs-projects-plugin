@@ -30,8 +30,8 @@ import de.tools400.ifsprojects.Messages;
  * active session, the view menu contains actions for all sessions, the context
  * menu of the session list actions for the selected sessions.
  * <p>
- * The toolbar actions and their icons are the same as in the 'Terminal' view
- * of RDi 9.8. Connect and disconnect share one button.
+ * The toolbar actions and their icons are the same as in the 'Terminal' view of
+ * RDi 9.8. Connect and disconnect share one button.
  */
 class TerminalActionGroup extends ActionGroup {
 
@@ -258,8 +258,8 @@ class TerminalActionGroup extends ActionGroup {
     }
 
     /**
-     * Enables the actions for the active session, all sessions and the
-     * selected sessions.
+     * Enables the actions for the active session, all sessions and the selected
+     * sessions.
      */
     @Override
     public void updateActionBars() {

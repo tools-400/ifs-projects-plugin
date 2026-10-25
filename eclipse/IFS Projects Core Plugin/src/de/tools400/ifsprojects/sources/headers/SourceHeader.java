@@ -18,22 +18,24 @@ import java.util.Locale;
  * object of the source, e.g. of a <code>STRPREPRC</code> header:
  *
  * <pre>
- *  //&gt;&gt;PRE-COMPILER&lt;&lt;
- *  //&gt;&gt;CRTCMD&lt;&lt; CRTSQLRPGI OBJ(&amp;LI/&amp;OB) SRCSTMF(...)
- *  //            INCFILE(&amp;SL/QCPYSRC) RPGPPOPT(*LVL2)
- *  //&gt;&gt;END-PRE-COMPILER&lt;&lt;
+ * // &gt;&gt;PRE-COMPILER&lt;&lt;
+ * // &gt;&gt;CRTCMD&lt;&lt; CRTSQLRPGI OBJ(&amp;LI/&amp;OB) SRCSTMF(...)
+ * // INCFILE(&amp;SL/QCPYSRC) RPGPPOPT(*LVL2)
+ * // &gt;&gt;END-PRE-COMPILER&lt;&lt;
  * </pre>
  *
  * The commands are found by the parser of the build tool, see
- * {@link ISourceHeaderParser}; this class knows the CL commands, that all
- * build tools have in common.
+ * {@link ISourceHeaderParser}; this class knows the CL commands, that all build
+ * tools have in common.
  */
 public final class SourceHeader {
 
     /** Header of a source, that has none. */
     public static final SourceHeader NONE = new SourceHeader(Collections.<CreateCommand> emptyList());
 
-    /** Suffix of the commands, that create modules, e.g. <code>CRTRPGMOD</code>. */
+    /**
+     * Suffix of the commands, that create modules, e.g. <code>CRTRPGMOD</code>.
+     */
     private static final String MODULE_COMMAND_SUFFIX = "MOD"; //$NON-NLS-1$
 
     private static final String OBJECT_TYPE = "OBJTYPE"; //$NON-NLS-1$
@@ -55,7 +57,7 @@ public final class SourceHeader {
      * @param aCommands - commands in the order of the source
      */
     public SourceHeader(List<CreateCommand> aCommands) {
-        this.commands = Collections.unmodifiableList(new ArrayList<CreateCommand>(aCommands));
+        this.commands = Collections.unmodifiableList(new ArrayList<>(aCommands));
         this.createCommand = findCreateCommand(this.commands);
     }
 
@@ -97,8 +99,8 @@ public final class SourceHeader {
             return false;
         }
 
-        return createCommand.getName().endsWith(MODULE_COMMAND_SUFFIX) || MODULE_OBJECT_TYPE.equalsIgnoreCase(createCommand
-            .getParameter(OBJECT_TYPE));
+        return createCommand.getName().endsWith(MODULE_COMMAND_SUFFIX)
+            || MODULE_OBJECT_TYPE.equalsIgnoreCase(createCommand.getParameter(OBJECT_TYPE));
     }
 
     /**

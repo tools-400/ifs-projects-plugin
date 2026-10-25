@@ -26,7 +26,7 @@ public class IProjValuesTest {
     @Test
     public void testGetObjectLibrary() throws Exception {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("LIB", "dspsrc");
 
         assertEquals("JSMITH#CL", IProjValues.getObjectLibrary(IProjConfig.parse("{\"objlib\": \"JSMITH#CL\", \"curlib\": \"QGPL\"}"), variables));
@@ -42,13 +42,13 @@ public class IProjValuesTest {
 
         IProjConfig config = IProjConfig.parse("{\"includePath\": [\"qprotsrc\", \"/QIBM/include\", \"&INCDIR\", \"\"]}");
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("INCDIR", "/home/jsmith/inc");
 
         assertEquals(Arrays.asList("/home/jsmith/git/dspsrc/qprotsrc", "/QIBM/include", "/home/jsmith/inc"),
             IProjValues.getIncludeDirectories("/home/jsmith/git/dspsrc", config, variables));
-        assertEquals(Arrays.asList("/qprotsrc"), IProjValues.getIncludeDirectories("/", IProjConfig.parse("{\"includePath\": \"qprotsrc\"}"),
-            new LinkedHashMap<String, String>()));
+        assertEquals(Arrays.asList("/qprotsrc"),
+            IProjValues.getIncludeDirectories("/", IProjConfig.parse("{\"includePath\": \"qprotsrc\"}"), new LinkedHashMap<String, String>()));
         assertTrue(IProjValues.getIncludeDirectories("/p", IProjConfig.parse("{}"), new LinkedHashMap<String, String>()).isEmpty());
     }
 }

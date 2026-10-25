@@ -9,8 +9,8 @@
 package de.tools400.ifsprojects.dialogs;
 
 /**
- * Passes the questions to another query, until the user answers 'Yes To All'
- * or 'No To All'. Afterwards it returns this answer without asking.
+ * Passes the questions to another query, until the user answers 'Yes To All' or
+ * 'No To All'. Afterwards it returns this answer without asking.
  */
 public final class RememberingOverwriteQuery implements OverwriteQuery {
 

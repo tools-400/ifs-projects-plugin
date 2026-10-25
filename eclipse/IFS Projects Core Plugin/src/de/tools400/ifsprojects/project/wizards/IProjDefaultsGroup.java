@@ -102,8 +102,8 @@ public class IProjDefaultsGroup {
     }
 
     /**
-     * Returns <code>true</code>, if a new <code>iproj.json</code> file shall
-     * be created. An existing file is never replaced.
+     * Returns <code>true</code>, if a new <code>iproj.json</code> file shall be
+     * created. An existing file is never replaced.
      */
     public boolean isCreateIProj() {
         return !hasExistingIProj && createIProjButton.getSelection();
@@ -145,8 +145,8 @@ public class IProjDefaultsGroup {
      * Shows the attributes of an existing <code>iproj.json</code> file
      * read-only.
      *
-     * @param aConfig - content of the file or <code>null</code>, if the file
-     *        is invalid
+     * @param aConfig - content of the file or <code>null</code>, if the file is
+     *        invalid
      */
     public void showExisting(IProjConfig aConfig) {
 
@@ -204,8 +204,8 @@ public class IProjDefaultsGroup {
     }
 
     /**
-     * Selects the button of the build tool, whose build and compile command
-     * are entered. No button is selected for other commands.
+     * Selects the button of the build tool, whose build and compile command are
+     * entered. No button is selected for other commands.
      */
     private void updateBuildToolButtons() {
 

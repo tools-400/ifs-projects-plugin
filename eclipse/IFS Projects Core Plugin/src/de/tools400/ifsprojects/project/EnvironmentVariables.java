@@ -34,9 +34,11 @@ import de.tools400.ifsprojects.utils.StringUtils;
  */
 public final class EnvironmentVariables {
 
-    /** Attributes of <code>iproj.json</code>, in which TOBi resolves variables. */
-    public static final String[] IPROJ_VARIABLE_KEYS = { IProjConfig.OBJLIB, IProjConfig.CURLIB, IProjConfig.PRE_USRLIBL,
-        IProjConfig.POST_USRLIBL, IProjConfig.INCLUDE_PATH, IProjConfig.SET_IBMI_ENV_CMD };
+    /**
+     * Attributes of <code>iproj.json</code>, in which TOBi resolves variables.
+     */
+    public static final String[] IPROJ_VARIABLE_KEYS = { IProjConfig.OBJLIB, IProjConfig.CURLIB, IProjConfig.PRE_USRLIBL, IProjConfig.POST_USRLIBL,
+        IProjConfig.INCLUDE_PATH, IProjConfig.SET_IBMI_ENV_CMD };
 
     private static final String LINE_SEPARATOR_PATTERN = "\\r?\\n"; //$NON-NLS-1$
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
@@ -68,7 +70,7 @@ public final class EnvironmentVariables {
      */
     public static int findInvalidLine(String aText) {
 
-        Set<String> names = new HashSet<String>();
+        Set<String> names = new HashSet<>();
 
         String[] lines = splitLines(aText);
         for (int i = 0; i < lines.length; i++) {
@@ -106,7 +108,7 @@ public final class EnvironmentVariables {
             throw new IllegalArgumentException("Invalid environment variable in line " + invalidLine); //$NON-NLS-1$
         }
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         for (String line : splitLines(aText)) {
             if (isIgnored(line)) {
                 continue;
@@ -149,7 +151,7 @@ public final class EnvironmentVariables {
      */
     public static Map<String, String> merge(Map<String, String> aDefaults, Map<String, String> aVariables) {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         if (aDefaults != null) {
             variables.putAll(aDefaults);
         }
@@ -164,15 +166,15 @@ public final class EnvironmentVariables {
     /**
      * Returns the names of the variables, that are used in the attributes of
      * <code>iproj.json</code>, in which TOBi resolves variables. Like TOBi, a
-     * variable is a word starting with <code>&amp;</code>, that is separated
-     * by blanks or slashes, e.g. <code>CALL &amp;LIB/SETUP</code>.
+     * variable is a word starting with <code>&amp;</code>, that is separated by
+     * blanks or slashes, e.g. <code>CALL &amp;LIB/SETUP</code>.
      *
      * @param aConfig - content of <code>iproj.json</code>
      * @return names of the variables in the order of their first usage
      */
     public static Set<String> findReferences(IProjConfig aConfig) {
 
-        Set<String> names = new LinkedHashSet<String>();
+        Set<String> names = new LinkedHashSet<>();
 
         for (String key : IPROJ_VARIABLE_KEYS) {
             for (String value : aConfig.getStrings(key)) {

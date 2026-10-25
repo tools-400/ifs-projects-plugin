@@ -39,7 +39,7 @@ public final class RpgSqlIncludeDirective {
 
     RpgSqlIncludeDirective(List<String> aLines, int aLineNumber, String aText, String anIndentation, String aKeyword, String aName,
         boolean anIsQuoted, int aNameLine, int aNameStart, int aNameEnd, int aMaxLength) {
-        this.lines = Collections.unmodifiableList(new ArrayList<String>(aLines));
+        this.lines = Collections.unmodifiableList(new ArrayList<>(aLines));
         this.lineNumber = aLineNumber;
         this.text = aText;
         this.indentation = anIndentation;
@@ -53,8 +53,8 @@ public final class RpgSqlIncludeDirective {
     }
 
     /**
-     * Returns the line number of the first line of the statement, starting
-     * at 1.
+     * Returns the line number of the first line of the statement, starting at
+     * 1.
      */
     public int getFirstLineNumber() {
         return lineNumber;
@@ -102,8 +102,8 @@ public final class RpgSqlIncludeDirective {
     /**
      * Returns the name without quotes, e.g. <code>HOSTVARS</code> or
      * <code>qcpysrc/hostvars.sqlrpgleinc</code>, or <code>null</code>, if the
-     * statement has no name, that can be replaced, e.g. because it is
-     * continued in the middle of the name.
+     * statement has no name, that can be replaced, e.g. because it is continued
+     * in the middle of the name.
      */
     public String getName() {
         return name;
@@ -152,7 +152,7 @@ public final class RpgSqlIncludeDirective {
             converted = StringUtils.padRight(converted, maxLength) + comment;
         }
 
-        List<String> replaced = new ArrayList<String>(lines);
+        List<String> replaced = new ArrayList<>(lines);
         replaced.set(nameLine, converted);
 
         return join(replaced);

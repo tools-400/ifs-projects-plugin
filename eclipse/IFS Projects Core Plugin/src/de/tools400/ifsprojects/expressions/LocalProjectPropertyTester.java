@@ -33,7 +33,10 @@ public class LocalProjectPropertyTester extends PropertyTester {
     /** The resource is part of a local IFS project. */
     public static final String PROPERTY_IS_IN_LOCAL_IFS_PROJECT = "isInLocalIfsProject"; //$NON-NLS-1$
 
-    /** The resource is a file of a local IFS project and its syntax can be checked. */
+    /**
+     * The resource is a file of a local IFS project and its syntax can be
+     * checked.
+     */
     public static final String PROPERTY_CAN_CHECK_SYNTAX = "canCheckSyntax"; //$NON-NLS-1$
 
     public boolean test(Object aReceiver, String aProperty, Object[] anArgs, Object anExpectedValue) {

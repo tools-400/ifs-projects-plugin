@@ -32,8 +32,8 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * the including file, without the extensions. The SQL precompiler searches
  * neither the include directories nor other extensions.</li>
  * </ul>
- * Absolute paths are found, if they are in the project directory. Like the
- * IFS, the search ignores the case.
+ * Absolute paths are found, if they are in the project directory. Like the IFS,
+ * the search ignores the case.
  */
 public final class IncludeResolver {
 
@@ -65,7 +65,7 @@ public final class IncludeResolver {
 
         this.projectDirectory = aProjectDirectory == null ? null : normalize(null, aProjectDirectory);
 
-        this.includeDirectories = new ArrayList<String>();
+        this.includeDirectories = new ArrayList<>();
         if (anIncludeDirectories != null) {
             for (String directory : anIncludeDirectories) {
                 String relativeDirectory = toRelativePath(directory);
@@ -75,7 +75,7 @@ public final class IncludeResolver {
             }
         }
 
-        this.files = new HashMap<String, String>();
+        this.files = new HashMap<>();
         for (String path : aProjectFiles) {
             files.put(path.toLowerCase(Locale.ROOT), path);
         }
@@ -87,14 +87,15 @@ public final class IncludeResolver {
      *
      * @param anIncludingFile - path of the including file relative to the
      *        project directory
-     * @param aName - path of the directive, e.g. <code>inc/consts.rpgleinc</code>
+     * @param aName - path of the directive, e.g.
+     *        <code>inc/consts.rpgleinc</code>
      * @return path of the file relative to the project directory, as passed to
      *         the constructor, or <code>null</code>, if it is not a file of the
      *         project
      */
     public String resolveRpgInclude(String anIncludingFile, String aName) {
 
-        List<String> directories = new ArrayList<String>();
+        List<String> directories = new ArrayList<>();
         directories.add(ROOT);
         directories.addAll(includeDirectories);
         directories.add(getDirectory(anIncludingFile));
@@ -105,8 +106,8 @@ public final class IncludeResolver {
     /**
      * Returns the file of an <code>EXEC SQL INCLUDE</code> statement of RPG:
      * the current directory, which is the project directory for TOBi, and the
-     * directory of the including file. The include directories are not
-     * searched and the name is not completed with an extension (verified with
+     * directory of the including file. The include directories are not searched
+     * and the name is not completed with an extension (verified with
      * <code>CRTSQLRPGI</code>: both end with
      * <code>SQL8021 Source stream file could not be opened</code>).
      *
@@ -120,7 +121,7 @@ public final class IncludeResolver {
      */
     public String resolveSqlInclude(String anIncludingFile, String aName) {
 
-        List<String> directories = new ArrayList<String>();
+        List<String> directories = new ArrayList<>();
         directories.add(ROOT);
         directories.add(getDirectory(anIncludingFile));
 
@@ -139,7 +140,7 @@ public final class IncludeResolver {
      */
     public String resolveClInclude(String anIncludingFile, String aName) {
 
-        List<String> directories = new ArrayList<String>();
+        List<String> directories = new ArrayList<>();
         directories.add(getDirectory(anIncludingFile));
         directories.addAll(includeDirectories);
 
@@ -234,7 +235,7 @@ public final class IncludeResolver {
      */
     private static String normalize(String aDirectory, String aPath) {
 
-        List<String> segments = new ArrayList<String>();
+        List<String> segments = new ArrayList<>();
         String path = aDirectory == null || aDirectory.length() == 0 ? aPath : aDirectory + SEPARATOR + aPath;
 
         for (String segment : path.split(String.valueOf(SEPARATOR))) {

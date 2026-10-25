@@ -76,8 +76,9 @@ public class SyntaxCheckCommandsTest {
 
     @Test
     public void testGetCompileCommand_rpgleProgram() {
-        assertEquals("CRTBNDRPG PGM(QTEMP/HELLO) SRCSTMF('/home/jsmith/proj/qrpglesrc/hello.pgm.rpgle') OPTION(*NOGEN *EVENTF) OUTPUT(*NONE)"
-            + " DFTACTGRP(*NO) TGTCCSID(*JOB) INCDIR('/home/jsmith/proj/qprotsrc')",
+        assertEquals(
+            "CRTBNDRPG PGM(QTEMP/HELLO) SRCSTMF('/home/jsmith/proj/qrpglesrc/hello.pgm.rpgle') OPTION(*NOGEN *EVENTF) OUTPUT(*NONE)"
+                + " DFTACTGRP(*NO) TGTCCSID(*JOB) INCDIR('/home/jsmith/proj/qprotsrc')",
             SyntaxCheckCommands.getCompileCommand(SourceType.RPGLE, "HELLO", "/home/jsmith/proj/qrpglesrc/hello.pgm.rpgle",
                 Arrays.asList("/home/jsmith/proj/qprotsrc"), false));
     }
@@ -90,12 +91,14 @@ public class SyntaxCheckCommandsTest {
 
     @Test
     public void testGetCompileCommand_sqlrpgle() {
-        assertEquals("CRTSQLRPGI OBJ(QTEMP/SQLPGM) SRCSTMF('/p/sqlpgm.pgm.sqlrpgle') OBJTYPE(*MODULE) OPTION(*EVENTF) OUTPUT(*NONE)"
-            + " CVTCCSID(*JOB) RPGPPOPT(*LVL2) COMPILEOPT('OUTPUT(*NONE) TGTCCSID(*JOB) INCDIR(''/p/inc'' ''/p/it''''s'')')",
+        assertEquals(
+            "CRTSQLRPGI OBJ(QTEMP/SQLPGM) SRCSTMF('/p/sqlpgm.pgm.sqlrpgle') OBJTYPE(*MODULE) OPTION(*EVENTF) OUTPUT(*NONE)"
+                + " CVTCCSID(*JOB) RPGPPOPT(*LVL2) COMPILEOPT('OUTPUT(*NONE) TGTCCSID(*JOB) INCDIR(''/p/inc'' ''/p/it''''s'')')",
             SyntaxCheckCommands.getCompileCommand(SourceType.SQLRPGLE, "SQLPGM", "/p/sqlpgm.pgm.sqlrpgle", Arrays.asList("/p/inc", "/p/it's"),
                 false));
-        assertEquals("CRTSQLRPGI OBJ(QTEMP/SQLPGM) SRCSTMF('/p/sqlpgm.sqlrpgle') OBJTYPE(*MODULE) OPTION(*EVENTF) OUTPUT(*NONE)"
-            + " CVTCCSID(*JOB) RPGPPOPT(*LVL2) COMPILEOPT('OUTPUT(*NONE) TGTCCSID(*JOB)')",
+        assertEquals(
+            "CRTSQLRPGI OBJ(QTEMP/SQLPGM) SRCSTMF('/p/sqlpgm.sqlrpgle') OBJTYPE(*MODULE) OPTION(*EVENTF) OUTPUT(*NONE)"
+                + " CVTCCSID(*JOB) RPGPPOPT(*LVL2) COMPILEOPT('OUTPUT(*NONE) TGTCCSID(*JOB)')",
             SyntaxCheckCommands.getCompileCommand(SourceType.SQLRPGLE, "SQLPGM", "/p/sqlpgm.sqlrpgle", null, true));
     }
 
@@ -113,7 +116,7 @@ public class SyntaxCheckCommandsTest {
         IProjConfig config = IProjConfig.parse("{\"curlib\": \"&LIB\", \"preUsrlibl\": [\"LIB1\", \"LIB2\"], \"postUsrlibl\": [\"QGPL\"],"
             + " \"setIBMiEnvCmd\": [\"&ENVCMD\", \"CALL &LIB/SETUP\"]}");
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("LIB", "DSPSRC");
         variables.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
 
@@ -133,14 +136,14 @@ public class SyntaxCheckCommandsTest {
 
         IProjConfig config = IProjConfig.parse("{\"preUsrlibl\": \"&ACCOUNTING ACMEUTIL\", \"postUsrlibl\": [\"QGPL\", \"qgpl\", \"  \"]}");
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("ACCOUNTING", "ACCLIB1 ACCLIB2");
 
-        assertEquals(Arrays.asList("CHGCURDIR DIR('/p')", "ADDLIBLE LIB(ACMEUTIL) POSITION(*FIRST)", "ADDLIBLE LIB(ACCLIB2) POSITION(*FIRST)",
-            "ADDLIBLE LIB(ACCLIB1) POSITION(*FIRST)", "ADDLIBLE LIB(QGPL) POSITION(*LAST)"),
+        assertEquals(
+            Arrays.asList("CHGCURDIR DIR('/p')", "ADDLIBLE LIB(ACMEUTIL) POSITION(*FIRST)", "ADDLIBLE LIB(ACCLIB2) POSITION(*FIRST)",
+                "ADDLIBLE LIB(ACCLIB1) POSITION(*FIRST)", "ADDLIBLE LIB(QGPL) POSITION(*LAST)"),
             SyntaxCheckCommands.getSetupCommands("/p", config, variables));
     }
-
 
     @Test
     public void testEventsMemberCommands() {

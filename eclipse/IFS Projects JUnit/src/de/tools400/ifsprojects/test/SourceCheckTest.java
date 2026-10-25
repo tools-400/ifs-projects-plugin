@@ -19,8 +19,8 @@ import com.ibm.as400.access.CharConverter;
 import de.tools400.ifsprojects.export.SourceCheck;
 
 /**
- * The lengths are those of CPYFRMSTMF, verified on the IBM i with a source
- * file with 10 characters per line.
+ * The lengths are those of CPYFRMSTMF, verified on the IBM i with a source file
+ * with 10 characters per line.
  */
 public class SourceCheckTest {
 

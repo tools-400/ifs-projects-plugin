@@ -26,10 +26,10 @@ import de.tools400.ifsprojects.sources.IncludeConverter.Problem;
 import de.tools400.ifsprojects.sources.IncludeConverter.Result;
 
 /**
- * The converted forms have been verified on the IBM i: RPG
- * <code>/copy</code> relative to the current directory (also nested and in
- * fixed format), CL <code>INCLUDE SRCSTMF()</code> relative to the including
- * file and <code>INCLUDE SRCMBR()</code> without <code>SRCFILE</code>.
+ * The converted forms have been verified on the IBM i: RPG <code>/copy</code>
+ * relative to the current directory (also nested and in fixed format), CL
+ * <code>INCLUDE SRCSTMF()</code> relative to the including file and
+ * <code>INCLUDE SRCMBR()</code> without <code>SRCFILE</code>.
  */
 public class MemberIncludeConverterTest {
 
@@ -310,7 +310,7 @@ public class MemberIncludeConverterTest {
         converter.convert("QRPGLESRC(HELLO)", "**FREE\n/copy QCPYSRC,CONSTS\n/copy QCPYSRC,MISSING\nexec sql include HOSTVARS;\n");
         converter.convert("QRPGLESRC(LOCAL)", "**FREE\n/copy LOCAL\n");
 
-        assertEquals(new HashSet<String>(Arrays.asList("QCPYSRC(CONSTS)", "QCPYSRC(HOSTVARS)", "QRPGLESRC(LOCAL)")), converter.getIncludedMembers());
+        assertEquals(new HashSet<>(Arrays.asList("QCPYSRC(CONSTS)", "QCPYSRC(HOSTVARS)", "QRPGLESRC(LOCAL)")), converter.getIncludedMembers());
     }
 
     private static Result convert(String aSourceType, String aKey, IncludeStyle aStyle, String aContent) {
@@ -323,7 +323,7 @@ public class MemberIncludeConverterTest {
 
     private static Map<String, String> getPaths() {
 
-        Map<String, String> paths = new HashMap<String, String>();
+        Map<String, String> paths = new HashMap<>();
         paths.put("QRPGLESRC(HELLO)", "qrpglesrc/hello.rpgle");
         paths.put("QRPGLESRC(LOCAL)", "qrpglesrc/local.rpgleinc");
         paths.put("QRPGLESRC(NOTYPE)", null);
@@ -338,7 +338,7 @@ public class MemberIncludeConverterTest {
     }
 
     private static Set<String> getSourceFiles() {
-        return new HashSet<String>(Arrays.asList("QRPGLESRC", "QCPYSRC", "QCLSRC"));
+        return new HashSet<>(Arrays.asList("QRPGLESRC", "QCPYSRC", "QCLSRC"));
     }
 
     private static void assertInclude(Include anInclude, int aLineNumber, String aName, String aTarget, Problem aProblem) {

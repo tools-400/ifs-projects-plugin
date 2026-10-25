@@ -18,8 +18,8 @@ import de.tools400.ifsprojects.sources.headers.HeaderLines;
 import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
 
 /**
- * Reads the compile commands of the <code>COMPILE</code> command of Alan
- * Campin in the first lines of a source, e.g.
+ * Reads the compile commands of the <code>COMPILE</code> command of Alan Campin
+ * in the first lines of a source, e.g.
  *
  * <pre>
  *       *_&gt; CNLLSTSPLF SRCFILE(&#64;2/&#64;1) SRCMBR(&#64;3)
@@ -30,8 +30,8 @@ import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
  * </pre>
  *
  * A command starts behind <code>*_&gt;</code>, which may stand anywhere in a
- * line, and ends at the end of the line. In CL and SQL sources, the header is
- * a comment: the <code>*&#47;</code> at the end of a line is removed. A line,
+ * line, and ends at the end of the line. In CL and SQL sources, the header is a
+ * comment: the <code>*&#47;</code> at the end of a line is removed. A line,
  * that ends with <code>+</code> or <code>-</code>, is continued by the next
  * line, which repeats <code>*_&gt;</code>; like in CL, <code>+</code> skips the
  * leading blanks of the next line, <code>-</code> keeps them. A line without
@@ -70,7 +70,7 @@ public final class CompileHeaderParser implements ISourceHeaderParser {
     @Override
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<CreateCommand> commands = new ArrayList<CreateCommand>();
+        List<CreateCommand> commands = new ArrayList<>();
 
         ListIterator<String> lines = HeaderLines.read(aContent).listIterator();
         while (lines.hasNext()) {

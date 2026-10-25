@@ -22,10 +22,10 @@ public final class ExceptionUtils {
     }
 
     /**
-     * Returns the localized message of an exception for a message to the
-     * user. An exception without a message, e.g. a
-     * <code>NullPointerException</code>, would show <code>null</code>.
-     * Therefore the message of its cause is returned, e.g. of the target of an
+     * Returns the localized message of an exception for a message to the user.
+     * An exception without a message, e.g. a <code>NullPointerException</code>,
+     * would show <code>null</code>. Therefore the message of its cause is
+     * returned, e.g. of the target of an
      * <code>InvocationTargetException</code>, or, if no exception of the chain
      * has a message, the class name of the last one.
      *

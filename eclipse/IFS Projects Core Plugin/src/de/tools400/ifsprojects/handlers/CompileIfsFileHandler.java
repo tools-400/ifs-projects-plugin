@@ -58,8 +58,8 @@ public class CompileIfsFileHandler extends AbstractTerminalHandler {
             return null;
         }
 
-        launcher.launch(Messages.bind(Messages.Task_Compiling_A, file.getName()), project.getDirectory(), config,
-            project.getEnvironmentVariables(), launcher.getCompileCommand(config, file.getName()), null);
+        launcher.launch(Messages.bind(Messages.Task_Compiling_A, file.getName()), project.getDirectory(), config, project.getEnvironmentVariables(),
+            launcher.getCompileCommand(config, file.getName()), null);
 
         return null;
     }

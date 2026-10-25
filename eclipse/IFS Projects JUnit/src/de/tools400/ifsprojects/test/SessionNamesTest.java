@@ -51,7 +51,7 @@ public class SessionNamesTest {
         // "X (3)" has been renamed to "aaa" and precedes "X" and "X (2)" in
         // the session list and in the memento. Restored in this order, the
         // sessions keep their numbers.
-        List<Integer> restored = new ArrayList<Integer>();
+        List<Integer> restored = new ArrayList<>();
         for (int savedNumber : new int[] { 3, 1, 2 }) {
             restored.add(Integer.valueOf(SessionNames.getInstanceNumber(restored, Integer.valueOf(savedNumber))));
         }
@@ -64,7 +64,7 @@ public class SessionNamesTest {
 
         // Memento without instance numbers: the sessions are numbered in the
         // order of the memento.
-        List<Integer> restored = new ArrayList<Integer>();
+        List<Integer> restored = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             restored.add(Integer.valueOf(SessionNames.getInstanceNumber(restored, null)));
         }

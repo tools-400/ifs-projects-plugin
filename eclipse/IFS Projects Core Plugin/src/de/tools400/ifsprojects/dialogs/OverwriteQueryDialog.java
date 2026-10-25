@@ -17,8 +17,8 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
 
 /**
  * Asks the user with Yes, Yes To All, No, No To All and Cancel, whether an
- * existing object is replaced. The dialog is opened on the UI thread, while
- * the calling job waits.
+ * existing object is replaced. The dialog is opened on the UI thread, while the
+ * calling job waits.
  */
 public final class OverwriteQueryDialog implements OverwriteQuery {
 
@@ -45,8 +45,9 @@ public final class OverwriteQueryDialog implements OverwriteQuery {
         Display.getDefault().syncExec(new Runnable() {
             public void run() {
                 MessageDialog dialog = new MessageDialog(PlatformUtils.getWorkbenchShell(), title, null, Messages.bind(question, anObject),
-                    MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL, IDialogConstants.YES_TO_ALL_LABEL,
-                        IDialogConstants.NO_LABEL, IDialogConstants.NO_TO_ALL_LABEL, IDialogConstants.CANCEL_LABEL }, 0);
+                    MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL, IDialogConstants.YES_TO_ALL_LABEL, IDialogConstants.NO_LABEL,
+                        IDialogConstants.NO_TO_ALL_LABEL, IDialogConstants.CANCEL_LABEL },
+                    0);
                 int index = dialog.open();
                 if (index >= 0 && index < ANSWERS.length) {
                     answer[0] = ANSWERS[index];

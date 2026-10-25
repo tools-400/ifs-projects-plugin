@@ -111,8 +111,8 @@ public final class TerminalRequest {
     }
 
     /**
-     * Returns the initial directory or <code>null</code> for the home
-     * directory of the user.
+     * Returns the initial directory or <code>null</code> for the home directory
+     * of the user.
      */
     public String getDirectory() {
         return directory;
@@ -144,8 +144,8 @@ public final class TerminalRequest {
 
     /**
      * Returns the key of the terminal session. Two requests with the same
-     * session key describe the same terminal: same connection, host, port,
-     * user and directory.
+     * session key describe the same terminal: same connection, host, port, user
+     * and directory.
      *
      * @return session key
      */
@@ -163,8 +163,8 @@ public final class TerminalRequest {
     }
 
     /**
-     * Returns the command line that is sent to the shell after the terminal
-     * has been connected.
+     * Returns the command line that is sent to the shell after the terminal has
+     * been connected.
      *
      * @return command line or <code>null</code>
      */

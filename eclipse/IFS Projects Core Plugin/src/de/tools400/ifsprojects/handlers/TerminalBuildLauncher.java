@@ -33,11 +33,11 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
 /**
  * Starts a build or compile command of an IFS project in the SSH terminal of
  * the project. The command is wrapped, so that it writes marker files, and a
- * {@link TerminalBuildJob} shows the errors in the 'Error List' view, when
- * the command has ended.
+ * {@link TerminalBuildJob} shows the errors in the 'Error List' view, when the
+ * command has ended.
  * <p>
- * If the build cannot be prepared or the command cannot be wrapped, the
- * command runs unchanged and the errors are not shown.
+ * If the build cannot be prepared or the command cannot be wrapped, the command
+ * runs unchanged and the errors are not shown.
  * <p>
  * Used by {@link BuildLauncher}.
  */

@@ -16,7 +16,6 @@ import org.eclipse.rse.core.model.IHost;
 import org.eclipse.rse.core.subsystems.ISubSystem;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
-
 /**
  * Retrieves host and directory from objects selected in the Remote Systems
  * view.

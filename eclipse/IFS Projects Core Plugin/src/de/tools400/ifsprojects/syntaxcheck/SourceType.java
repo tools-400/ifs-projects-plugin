@@ -15,8 +15,8 @@ import java.util.Locale;
  */
 public enum SourceType {
 
-    RPGLE("rpgle"), //$NON-NLS-1$
-    SQLRPGLE("sqlrpgle"); //$NON-NLS-1$
+    RPGLE ("rpgle"), //$NON-NLS-1$
+    SQLRPGLE ("sqlrpgle"); //$NON-NLS-1$
 
     private static final char EXTENSION_SEPARATOR = '.';
 

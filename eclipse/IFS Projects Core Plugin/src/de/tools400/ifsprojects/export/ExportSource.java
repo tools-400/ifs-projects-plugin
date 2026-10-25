@@ -18,9 +18,9 @@ import com.ibm.as400.access.AS400;
 import de.tools400.ifsprojects.project.IProjConfig;
 
 /**
- * Project, that is exported: an IFS project or a local IFS project. The
- * methods with a system object access the remote system and must not be called
- * on the UI thread.
+ * Project, that is exported: an IFS project or a local IFS project. The methods
+ * with a system object access the remote system and must not be called on the
+ * UI thread.
  */
 public interface ExportSource {
 

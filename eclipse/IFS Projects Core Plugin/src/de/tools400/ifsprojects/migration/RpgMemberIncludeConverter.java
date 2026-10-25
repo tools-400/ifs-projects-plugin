@@ -24,8 +24,8 @@ import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
  * <ul>
  * <li>Member forms: <code>FILE,MEMBER</code>, <code>LIB/FILE,MEMBER</code> and
  * <code>MEMBER</code>, which is a member of <code>QRPGLESRC</code>.</li>
- * <li>The converted directive refers to the stream file relative to the
- * project directory, which is the current directory of the build, e.g.
+ * <li>The converted directive refers to the stream file relative to the project
+ * directory, which is the current directory of the build, e.g.
  * <code>/copy 'qcpysrc/consts.rpgleinc'</code> (verified with
  * <code>CRTBNDRPG</code> and nested copy books).</li>
  * <li><code>EXEC SQL INCLUDE</code> names only a member, whose source file is
@@ -41,7 +41,10 @@ import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
  */
 final class RpgMemberIncludeConverter extends MemberIncludeConverter {
 
-    /** Source file of a member without source file, e.g. <code>/COPY CONSTS</code>. */
+    /**
+     * Source file of a member without source file, e.g.
+     * <code>/COPY CONSTS</code>.
+     */
     private static final String DEFAULT_SOURCE_FILE = "QRPGLESRC"; //$NON-NLS-1$
 
     private static final String IF_DEFINED = "/IF DEFINED("; //$NON-NLS-1$

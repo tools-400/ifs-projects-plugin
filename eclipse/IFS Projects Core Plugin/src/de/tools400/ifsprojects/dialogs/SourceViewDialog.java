@@ -53,12 +53,12 @@ import de.tools400.ifsprojects.Messages;
  * without writing it: the file or the member does not exist yet, so it cannot
  * be opened in an editor.
  * <ul>
- * <li>Tab <i>Result</i>: the converted source in the viewer of the text
- * editors ({@link SourceViewer}) with line numbers and the text font of the
- * workbench, read-only.</li>
+ * <li>Tab <i>Result</i>: the converted source in the viewer of the text editors
+ * ({@link SourceViewer}) with line numbers and the text font of the workbench,
+ * read-only.</li>
  * <li>Tab <i>Comparison</i>: the source before and after the conversion in the
- * compare viewer of the platform, read-only. It is missing, if there is
- * nothing to compare.</li>
+ * compare viewer of the platform, read-only. It is missing, if there is nothing
+ * to compare.</li>
  * </ul>
  * The search is the action of the editors ({@link FindReplaceAction}) on both
  * tabs, on the button and on Ctrl+F; replacing is not possible, because both
@@ -71,8 +71,8 @@ import de.tools400.ifsprojects.Messages;
  * shell, see {@link #hookFindKey()}.</li>
  * <li>The target of the comparison comes from
  * {@link TextMergeViewer#getAdapter(Class)}; it follows the pane with the
- * focus, therefore the tab sets the focus into the viewer, when it is
- * selected. Without it, the target is empty and the search finds nothing.</li>
+ * focus, therefore the tab sets the focus into the viewer, when it is selected.
+ * Without it, the target is empty and the search finds nothing.</li>
  * </ul>
  */
 public final class SourceViewDialog extends Dialog {
@@ -309,8 +309,8 @@ public final class SourceViewDialog extends Dialog {
 
         Point size = super.getInitialSize();
 
-        return new Point(Math.max(size.x, convertWidthInCharsToPixels(WIDTH_IN_CHARS)), Math.max(size.y,
-            convertHeightInCharsToPixels(HEIGHT_IN_CHARS)));
+        return new Point(Math.max(size.x, convertWidthInCharsToPixels(WIDTH_IN_CHARS)),
+            Math.max(size.y, convertHeightInCharsToPixels(HEIGHT_IN_CHARS)));
     }
 
     /**

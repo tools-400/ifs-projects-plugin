@@ -165,8 +165,8 @@ public class MigrationPreviewWizardPage extends WizardPage {
             }
         }
 
-        summaryLabel.setText(Messages.bind(Messages.Label_A_of_B_members_migrated_C_includes, new Object[] { Integer.toString(migrated), Integer
-            .toString(plan.getItems().size()), Integer.toString(includes) }));
+        summaryLabel.setText(Messages.bind(Messages.Label_A_of_B_members_migrated_C_includes,
+            new Object[] { Integer.toString(migrated), Integer.toString(plan.getItems().size()), Integer.toString(includes) }));
         summaryLabel.getParent().layout();
 
         setErrorMessage(migrated == 0 ? Messages.Error_No_member_migrated : null);
@@ -192,8 +192,10 @@ public class MigrationPreviewWizardPage extends WizardPage {
         if (anItem.getIncludes() != null) {
             for (IncludeConverter.Include include : anItem.getIncludes().getIncludes()) {
                 if (include.getTarget() != null) {
-                    details.append(Messages.bind(Messages.Label_Line_A_B_converted_to_C, new Object[] { Integer.toString(include.getLineNumber()),
-                        include.getName(), include.getTarget() })).append(LINE_SEPARATOR);
+                    details
+                        .append(Messages.bind(Messages.Label_Line_A_B_converted_to_C,
+                            new Object[] { Integer.toString(include.getLineNumber()), include.getName(), include.getTarget() }))
+                        .append(LINE_SEPARATOR);
                 }
             }
         }

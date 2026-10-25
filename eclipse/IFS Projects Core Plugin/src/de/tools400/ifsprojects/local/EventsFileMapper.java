@@ -26,9 +26,9 @@ import java.util.regex.Pattern;
  * </pre>
  *
  * The parser of RDi reads the path with this length and continues it in
- * FILEIDCONT records, if the line is too short. A replaced path is written to
- * a single FILEID record with its new length. The paths of other files, e.g.
- * of system include files, are kept.
+ * FILEIDCONT records, if the line is too short. A replaced path is written to a
+ * single FILEID record with its new length. The paths of other files, e.g. of
+ * system include files, are kept.
  */
 public final class EventsFileMapper {
 
@@ -36,7 +36,9 @@ public final class EventsFileMapper {
     private static final String CARRIAGE_RETURN = "\r"; //$NON-NLS-1$
     private static final String BLANK = " "; //$NON-NLS-1$
 
-    /** FILEID record: record type, version, source ID and line, length, rest. */
+    /**
+     * FILEID record: record type, version, source ID and line, length, rest.
+     */
     private static final Pattern FILEID = Pattern.compile("^(FILEID\\s+\\S+\\s+\\S+\\s+\\S+\\s+)(\\d+)(.*)$"); //$NON-NLS-1$
 
     /** FILEIDCONT record: record type and four fields, rest. */
@@ -58,7 +60,7 @@ public final class EventsFileMapper {
 
         String[] lines = anEvents.split(LINE_SEPARATOR, -1);
         StringBuilder buffer = new StringBuilder(anEvents.length());
-        Set<String> locations = new LinkedHashSet<String>();
+        Set<String> locations = new LinkedHashSet<>();
 
         int index = 0;
         while (index < lines.length) {

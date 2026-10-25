@@ -20,9 +20,9 @@ import org.eclipse.tm.internal.terminal.provisional.api.ITerminalControl;
 
 /**
  * Observes the data that the terminal receives from the remote shell. It is
- * used to send the initial command line, when the shell is ready, i.e. when
- * the shell has written its prompt and is quiet. Otherwise the shell would
- * echo the command line before it has executed its profile.
+ * used to send the initial command line, when the shell is ready, i.e. when the
+ * shell has written its prompt and is quiet. Otherwise the shell would echo the
+ * command line before it has executed its profile.
  * <p>
  * The monitor sits between the terminal control and the connector. Dynamic
  * proxies are used, because the interfaces of the TM terminal differ between

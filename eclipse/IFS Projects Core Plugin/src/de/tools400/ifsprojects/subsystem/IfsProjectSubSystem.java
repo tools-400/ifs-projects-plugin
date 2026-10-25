@@ -31,20 +31,19 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * The 'IFS Projects' subsystem of an IBM i connection. Each filter is an IFS
- * project. The contents of a project are retrieved from IBM's IFS subsystem
- * of the same connection. Therefore the files and directories are IBM's
+ * project. The contents of a project are retrieved from IBM's IFS subsystem of
+ * the same connection. Therefore the files and directories are IBM's
  * IFSRemoteFile objects, which keep all actions of IBM.
  */
 public class IfsProjectSubSystem extends SubSystem implements IToolboxSubSystem {
-
 
     public IfsProjectSubSystem(IHost aHost, IConnectorService aConnectorService) {
         super(aHost, aConnectorService);
     }
 
     @Override
-    protected Object[] internalResolveFilterString(String aFilterString, IProgressMonitor aMonitor) throws InvocationTargetException,
-        InterruptedException {
+    protected Object[] internalResolveFilterString(String aFilterString, IProgressMonitor aMonitor)
+        throws InvocationTargetException, InterruptedException {
 
         ISubSystem ifsSubSystem = IfsProjects.getIfsFileSubSystem(getHost());
         if (ifsSubSystem == null) {

@@ -53,7 +53,9 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
     private Text directoryText;
     private Text nameText;
 
-    /* The name has been entered by the user and follows the directory no more. */
+    /*
+     * The name has been entered by the user and follows the directory no more.
+     */
     private boolean isNameEntered;
     private boolean isUpdatingName;
 
@@ -180,8 +182,8 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
     }
 
     /**
-     * Returns the name of the project in the <code>.project</code> file of
-     * the directory or else the name of the directory.
+     * Returns the name of the project in the <code>.project</code> file of the
+     * directory or else the name of the directory.
      */
     private String getDefaultName() {
 

@@ -78,7 +78,7 @@ public class ExportSettingsTest {
     @Test
     public void testFromMap_invalidValues() {
 
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         values.put("library", " ");
         values.put("sourceFileRule", "UNKNOWN");
         values.put("ccsid", "x");

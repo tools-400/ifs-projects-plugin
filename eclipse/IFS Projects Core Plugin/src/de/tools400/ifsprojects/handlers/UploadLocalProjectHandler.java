@@ -45,9 +45,9 @@ public class UploadLocalProjectHandler extends AbstractHandler {
 
         Deployment.Result upload = LocalProjectCommands.upload(shell, project.getSystem(), project.getLocalProject(), isAll());
         if (upload != null) {
-            MessageDialog.openInformation(shell, Messages.Title_IFS_Projects, Messages.bind(Messages.Info_Upload_to_A_B_uploaded_C_deleted_D_unchanged,
-                new Object[] { upload.getDirectory(), Integer.toString(upload.getUploaded()), Integer.toString(upload.getDeleted()),
-                    Integer.toString(upload.getUnchanged()) }));
+            MessageDialog.openInformation(shell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Info_Upload_to_A_B_uploaded_C_deleted_D_unchanged, new Object[] { upload.getDirectory(),
+                    Integer.toString(upload.getUploaded()), Integer.toString(upload.getDeleted()), Integer.toString(upload.getUnchanged()) }));
         }
 
         return null;

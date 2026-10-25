@@ -98,8 +98,8 @@ public final class RpgIncludeDirective {
     }
 
     /**
-     * Returns the characters in front of the keyword, e.g. the first 6
-     * columns of a fixed format source.
+     * Returns the characters in front of the keyword, e.g. the first 6 columns
+     * of a fixed format source.
      */
     public String getIndentation() {
         return line.substring(0, keywordStart);
@@ -113,8 +113,8 @@ public final class RpgIncludeDirective {
     }
 
     /**
-     * Returns the name without quotes, e.g. <code>inc/consts.rpgleinc</code>
-     * or <code>INC,CONSTS</code>.
+     * Returns the name without quotes, e.g. <code>inc/consts.rpgleinc</code> or
+     * <code>INC,CONSTS</code>.
      */
     public String getName() {
         return name;
@@ -128,8 +128,8 @@ public final class RpgIncludeDirective {
     }
 
     /**
-     * Returns the line with another name. The rest of the line is kept; only
-     * if the line becomes too long, its trailing blanks are removed.
+     * Returns the line with another name. The rest of the line is kept; only if
+     * the line becomes too long, its trailing blanks are removed.
      *
      * @param aName - new name including the quotes, if it shall be quoted
      * @return line or <code>null</code>, if it is longer than the columns of

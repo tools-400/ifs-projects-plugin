@@ -37,9 +37,9 @@ import de.tools400.ifsprojects.swt.ToolTips;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Base class of the property pages of the environment variables of IFS
- * projects and local IFS projects. The variables are exported before the
- * build and compile commands are executed.
+ * Base class of the property pages of the environment variables of IFS projects
+ * and local IFS projects. The variables are exported before the build and
+ * compile commands are executed.
  * <p>
  * Variables, that are used in <code>iproj.json</code>, but are not defined, are
  * added with an empty value, because TOBi stops, if a variable is not defined.
@@ -86,8 +86,8 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
     /**
      * Resolves the project of the page.
      *
-     * @return <code>true</code>, if the element of the page is a project,
-     *         whose variables can be edited
+     * @return <code>true</code>, if the element of the page is a project, whose
+     *         variables can be edited
      */
     protected abstract boolean initialize();
 
@@ -110,19 +110,19 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
     protected abstract void saveVariables(Map<String, String> aVariables) throws Exception;
 
     /**
-     * Reads the <code>iproj.json</code> file of the project. Must be called
-     * on the UI thread.
+     * Reads the <code>iproj.json</code> file of the project. Must be called on
+     * the UI thread.
      *
      * @return configuration, empty, if the file does not exist
      * @throws IProjParseException if the file is invalid
-     * @throws Exception if the file could not be read; the message is shown
-     *         to the user
+     * @throws Exception if the file could not be read; the message is shown to
+     *         the user
      */
     protected abstract IProjConfig readConfig() throws Exception;
 
     /**
-     * Creates controls above the variables, e.g. information about the
-     * project. The parent has one column.
+     * Creates controls above the variables, e.g. information about the project.
+     * The parent has one column.
      *
      * @param aParent - parent
      */
@@ -255,8 +255,8 @@ public abstract class AbstractEnvironmentPropertyPage extends PropertyPage {
         }
 
         Map<String, String> variables = EnvironmentVariables.parse(variablesText.getText());
-        List<String> added = new ArrayList<String>();
-        List<String> unsupported = new ArrayList<String>();
+        List<String> added = new ArrayList<>();
+        List<String> unsupported = new ArrayList<>();
         StringBuilder text = new StringBuilder(variablesText.getText());
         for (String name : references) {
             if (!EnvironmentVariables.isValidName(name)) {

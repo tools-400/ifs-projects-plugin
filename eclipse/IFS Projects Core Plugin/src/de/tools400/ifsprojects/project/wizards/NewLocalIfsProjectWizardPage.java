@@ -118,8 +118,8 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
     /**
      * Returns the name of the selected connection.
      *
-     * @return name or <code>null</code>, if the project is not built on an
-     *         IBM i
+     * @return name or <code>null</code>, if the project is not built on an IBM
+     *         i
      */
     public String getConnectionName() {
         return settingsGroup.getConnectionName();
@@ -135,16 +135,16 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
     }
 
     /**
-     * Returns <code>true</code>, if the text file encoding of the project
-     * shall be set to UTF-8.
+     * Returns <code>true</code>, if the text file encoding of the project shall
+     * be set to UTF-8.
      */
     public boolean isUtf8() {
         return utf8Button.getSelection();
     }
 
     /**
-     * Returns <code>true</code>, if a new <code>iproj.json</code> file shall
-     * be created. An existing file is never replaced.
+     * Returns <code>true</code>, if a new <code>iproj.json</code> file shall be
+     * created. An existing file is never replaced.
      */
     public boolean isCreateIProj() {
         return iprojGroup.isCreateIProj();

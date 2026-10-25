@@ -107,7 +107,7 @@ public class MigrationPreferencePage extends PreferencePage implements IWorkbenc
 
         String[] titles = new String[] { Messages.Label_Column_Build_tool, Messages.Label_Column_Id };
 
-        parsersGroup = new CheckboxTableGroup<Contribution>(aParent, titles, COLUMN_WIDTHS, new ContributionLabelProvider());
+        parsersGroup = new CheckboxTableGroup<>(aParent, titles, COLUMN_WIDTHS, new ContributionLabelProvider());
         ((GridData)parsersGroup.getTable().getLayoutData()).heightHint = TABLE_HEIGHT;
         ToolTips.set(Messages.Tooltip_Build_tool_headers, parsersGroup.getTable());
 
@@ -137,7 +137,7 @@ public class MigrationPreferencePage extends PreferencePage implements IWorkbenc
 
         List<Contribution> checked = parsersGroup.getCheckedElements();
 
-        Set<String> disabled = new HashSet<String>();
+        Set<String> disabled = new HashSet<>();
         for (Contribution contribution : contributions) {
             if (!checked.contains(contribution)) {
                 disabled.add(contribution.getId());

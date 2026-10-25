@@ -34,7 +34,7 @@ public final class TestHeaderParser implements ISourceHeaderParser {
 
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<CreateCommand> commands = new ArrayList<CreateCommand>();
+        List<CreateCommand> commands = new ArrayList<>();
         for (String line : aContent.split("\n")) {
             int tag = line.indexOf(TAG);
             if (tag >= 0) {

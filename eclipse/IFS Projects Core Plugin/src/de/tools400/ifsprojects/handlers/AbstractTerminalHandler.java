@@ -53,8 +53,8 @@ public abstract class AbstractTerminalHandler extends AbstractHandler {
      *
      * @param aShell - parent shell for error messages
      * @param aRequest - terminal request
-     * @return command line of the request or <code>null</code>, if the
-     *         request has no command or the terminal could not be opened
+     * @return command line of the request or <code>null</code>, if the request
+     *         has no command or the terminal could not be opened
      */
     protected static ITerminalCommandLine launch(Shell aShell, TerminalRequest aRequest) {
         try {
@@ -64,8 +64,8 @@ public abstract class AbstractTerminalHandler extends AbstractHandler {
             MessageDialog.openError(aShell, Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
         } catch (RuntimeException e) {
             IfsProjectsPlugin.logError("Unexpected error opening terminal: " + aRequest.getToolTip(), e); //$NON-NLS-1$
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Unexpected_error_A, ExceptionUtils.getLocalizedMessage(e)));
         }
 
         return null;

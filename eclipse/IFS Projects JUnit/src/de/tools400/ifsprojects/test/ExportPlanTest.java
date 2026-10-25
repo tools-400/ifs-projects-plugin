@@ -38,7 +38,7 @@ public class ExportPlanTest {
     @Test
     public void testPlan() {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         files.put("qrpglesrc/hello.pgm.rpgle", "\uFEFF**FREE\n// %METADATA\n// %TEXT Say hello\n// %EMETADATA\n/copy 'inc/consts.rpgleinc'\n");
         files.put("inc/consts.rpgleinc", "**FREE\ndcl-c GREETING 'Hello';\n");
         files.put("qrpglesrc/long.rpgle", "**FREE\n" + LONG_LINE + "\n");
@@ -88,14 +88,14 @@ public class ExportPlanTest {
         assertProblem(plan.getItems().get(6).getProblems().get(0), ProblemType.DUPLICATE, 0);
 
         assertEquals(3, plan.getExportedItems().size());
-        assertEquals(Arrays.asList("INC"), new ArrayList<String>(plan.getNewSourceFiles().keySet()));
+        assertEquals(Arrays.asList("INC"), new ArrayList<>(plan.getNewSourceFiles().keySet()));
         assertEquals(Integer.valueOf(112), plan.getNewSourceFiles().get("INC"));
     }
 
     @Test
     public void testPlan_deselectCopyBook() {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         files.put("qrpglesrc/hello.pgm.rpgle", "**FREE\n/copy 'inc/consts.rpgleinc'\n");
         files.put("inc/consts.rpgleinc", "**FREE\n");
 
@@ -109,7 +109,7 @@ public class ExportPlanTest {
         assertTrue(consts.getProblems().isEmpty());
         assertEquals("**FREE\n/copy 'inc/consts.rpgleinc'\n", hello.getContent());
         assertEquals(IncludeConverter.Problem.NOT_TRANSFERRED, hello.getProblems().get(0).getIncludeProblem());
-        assertEquals(Arrays.asList("QRPGLESRC"), new ArrayList<String>(plan.getNewSourceFiles().keySet()));
+        assertEquals(Arrays.asList("QRPGLESRC"), new ArrayList<>(plan.getNewSourceFiles().keySet()));
 
         plan.setSelected(consts, true);
 
@@ -120,7 +120,7 @@ public class ExportPlanTest {
     @Test
     public void testPlan_setSelectedItems() {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         files.put("qrpglesrc/hello.rpgle", "**FREE\n/copy 'inc/consts.rpgleinc'\n");
         files.put("inc/consts.rpgleinc", "**FREE\n");
 
@@ -148,7 +148,7 @@ public class ExportPlanTest {
     @Test
     public void testPlan_includeOfFailedFile() {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         files.put("qrpglesrc/main.rpgle", "**FREE\n/copy big\n");
         files.put("qrpglesrc/big.rpgleinc", "**FREE\n" + LONG_LINE + "\n");
 
@@ -168,7 +168,7 @@ public class ExportPlanTest {
     @Test
     public void testPlan_newLibrary() {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         files.put("qrpglesrc/long.rpgle", "**FREE\n" + LONG_LINE + "\n");
         files.put("qcmdsrc/cmd1.cmd", "CMD PROMPT('Command')\n");
 
@@ -185,21 +185,21 @@ public class ExportPlanTest {
     @Test
     public void testPlan_libraryErrors() {
 
-        Map<String, String> files = new LinkedHashMap<String, String>();
+        Map<String, String> files = new LinkedHashMap<>();
         files.put("inc/consts.rpgleinc", "**FREE\n");
         files.put("qrpglesrc/hello.rpgle", "**FREE\n");
 
         LibraryInfo library = new LibraryInfo(true);
         library.addFile("INC", false, 0, 0);
 
-        Map<String, String> readErrors = new HashMap<String, String>();
+        Map<String, String> readErrors = new HashMap<>();
         readErrors.put("qrpglesrc/hello.rpgle", "Permission denied");
-        Map<String, String> contents = new HashMap<String, String>(files);
+        Map<String, String> contents = new HashMap<>(files);
         contents.remove("qrpglesrc/hello.rpgle");
 
-        List<String> paths = new ArrayList<String>(files.keySet());
-        ExportPlan plan = new ExportPlan(new ExportSettings("JSMITH#CL", 1141, 112), paths, contents, readErrors, new IncludeResolver(PROJECT,
-            null, paths), library);
+        List<String> paths = new ArrayList<>(files.keySet());
+        ExportPlan plan = new ExportPlan(new ExportSettings("JSMITH#CL", 1141, 112), paths, contents, readErrors,
+            new IncludeResolver(PROJECT, null, paths), library);
 
         assertProblem(plan.getItems().get(0).getProblems().get(0), ProblemType.NOT_A_SOURCE_FILE, 0);
         assertEquals("INC", plan.getItems().get(0).getProblems().get(0).getText());
@@ -211,7 +211,7 @@ public class ExportPlanTest {
 
     private ExportPlan createPlan(Map<String, String> aFiles, LibraryInfo aLibrary, ExportSettings aSettings) {
 
-        List<String> paths = new ArrayList<String>(aFiles.keySet());
+        List<String> paths = new ArrayList<>(aFiles.keySet());
         IncludeResolver resolver = new IncludeResolver(PROJECT, Arrays.asList(PROJECT + "/inc"), paths);
 
         return new ExportPlan(aSettings, paths, aFiles, new HashMap<String, String>(), resolver, aLibrary);

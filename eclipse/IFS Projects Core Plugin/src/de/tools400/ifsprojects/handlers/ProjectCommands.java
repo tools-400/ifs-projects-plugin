@@ -77,15 +77,15 @@ final class ProjectCommands {
         try {
             return IProjConfig.parse(fileContent.getContent());
         } catch (IProjParseException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Invalid_iproj_json_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Invalid_iproj_json_A, ExceptionUtils.getLocalizedMessage(e)));
             return null;
         }
     }
 
     /**
-     * Returns the key of the terminal that is reused for building and
-     * compiling a project or <code>null</code>, if terminals are not reused.
+     * Returns the key of the terminal that is reused for building and compiling
+     * a project or <code>null</code>, if terminals are not reused.
      *
      * @param aHost - RSE connection
      * @param aDirectory - project directory

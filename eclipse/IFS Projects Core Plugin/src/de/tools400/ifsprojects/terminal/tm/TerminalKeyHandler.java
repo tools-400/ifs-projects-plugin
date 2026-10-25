@@ -31,9 +31,9 @@ import org.eclipse.ui.keys.IBindingService;
  * Keys handled by the session before the TM terminal, see
  * {@link #handleKey(Event)}: Ctrl+C copies the selected text, if there is any,
  * and Ctrl+V pastes, like in Windows Terminal (not on the Mac, where Cmd+C and
- * Cmd+V do so). Without a selection, the TM terminal sends Ctrl+C to the
- * shell. Shift+Page Up/Down and Ctrl+Shift+Home/End scroll the terminal, which
- * the TM terminal does not do.
+ * Cmd+V do so). Without a selection, the TM terminal sends Ctrl+C to the shell.
+ * Shift+Page Up/Down and Ctrl+Shift+Home/End scroll the terminal, which the TM
+ * terminal does not do.
  * <p>
  * The terminal receives all keys (instead of the key bindings of the
  * workbench), while it has the focus and is connected, see
@@ -118,9 +118,9 @@ final class TerminalKeyHandler {
     }
 
     /**
-     * Registers a display filter, that receives the keys of the terminal
-     * before the TM terminal and before the key bindings of the workbench, if
-     * the TM terminal has disabled them.
+     * Registers a display filter, that receives the keys of the terminal before
+     * the TM terminal and before the key bindings of the workbench, if the TM
+     * terminal has disabled them.
      */
     private void hookKeyFilter() {
 
@@ -137,8 +137,8 @@ final class TerminalKeyHandler {
     }
 
     /**
-     * Makes the key capture follow the focus of the terminal. The listeners
-     * are called after the focus and mouse track listeners of the TM terminal,
+     * Makes the key capture follow the focus of the terminal. The listeners are
+     * called after the focus and mouse track listeners of the TM terminal,
      * because they are added later. They correct, what the TM terminal of RDi
      * 9.9 does on mouse track events: with the focus, the keys stay captured,
      * when the mouse pointer leaves the terminal; without the focus, the key
@@ -207,7 +207,7 @@ final class TerminalKeyHandler {
 
         setKeyFilterEnabled(!isCapture);
 
-        IContextService contextService = (IContextService)PlatformUI.getWorkbench().getService(IContextService.class);
+        IContextService contextService = PlatformUI.getWorkbench().getService(IContextService.class);
         if (isCapture && contextActivations == null) {
             contextActivations = new IContextActivation[] { contextService.activateContext(CONTEXT_TERMINAL),
                 contextService.activateContext(CONTEXT_EDIT) };
@@ -228,7 +228,7 @@ final class TerminalKeyHandler {
     }
 
     private IBindingService getBindingService() {
-        return (IBindingService)PlatformUI.getWorkbench().getService(IBindingService.class);
+        return PlatformUI.getWorkbench().getService(IBindingService.class);
     }
 
     /**

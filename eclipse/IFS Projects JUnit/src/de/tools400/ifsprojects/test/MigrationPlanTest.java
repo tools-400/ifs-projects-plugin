@@ -33,9 +33,9 @@ import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
 
 public class MigrationPlanTest {
 
-    private final List<SourceMember> members = new ArrayList<SourceMember>();
-    private final Map<String, String> contents = new HashMap<String, String>();
-    private final Map<String, String> readErrors = new HashMap<String, String>();
+    private final List<SourceMember> members = new ArrayList<>();
+    private final Map<String, String> contents = new HashMap<>();
+    private final Map<String, String> readErrors = new HashMap<>();
 
     @Test
     public void testPlan() {
@@ -143,7 +143,8 @@ public class MigrationPlanTest {
     @Test
     public void testPlan_sqlIncludeFile_header() {
 
-        // INCFILE of the header of the build tool wins over the own source file.
+        // INCFILE of the header of the build tool wins over the own source
+        // file.
         add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\n" //
             + "// BUILD: CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2)\n" //
             + "exec sql include HOSTVARS;\n");

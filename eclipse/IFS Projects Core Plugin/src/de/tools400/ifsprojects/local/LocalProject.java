@@ -148,7 +148,7 @@ public final class LocalProject {
 
         String text = getProperty(aProject, getEnvironmentKey(aConnectionName));
         if (text == null) {
-            return new LinkedHashMap<String, String>();
+            return new LinkedHashMap<>();
         }
 
         return EnvironmentVariables.parse(text);
@@ -181,7 +181,7 @@ public final class LocalProject {
         // Same format as the environment variables: one value per line.
         String text = getProperty(aProject, getExportKey(aConnectionName));
         if (text == null || EnvironmentVariables.findInvalidLine(text) > 0) {
-            return new LinkedHashMap<String, String>();
+            return new LinkedHashMap<>();
         }
 
         return EnvironmentVariables.parse(text);

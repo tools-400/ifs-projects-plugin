@@ -140,7 +140,7 @@ public abstract class IncludeConverter {
      */
     static List<String[]> splitLines(String aText) {
 
-        List<String[]> lines = new ArrayList<String[]>();
+        List<String[]> lines = new ArrayList<>();
 
         int start = 0;
         int i = 0;
@@ -203,15 +203,17 @@ public abstract class IncludeConverter {
          */
         NOT_SUPPORTED,
 
-        /** The converted directive does not fit into the columns of the source. */
+        /**
+         * The converted directive does not fit into the columns of the source.
+         */
         TOO_LONG,
 
         /** The directive refers to a member of another library. */
         OTHER_LIBRARY,
 
         /**
-         * The directive has been converted, but the member is in another
-         * source file than the including member. Because <code>EXEC SQL
+         * The directive has been converted, but the member is in another source
+         * file than the including member. Because <code>EXEC SQL
          * INCLUDE</code> names only a member, the source file has to be
          * specified with the parameter <code>INCFILE</code> of the compiler.
          */
@@ -288,7 +290,7 @@ public abstract class IncludeConverter {
      */
     public static final class Result {
 
-        private final List<Include> includes = new ArrayList<Include>();
+        private final List<Include> includes = new ArrayList<>();
         private String content;
 
         /**
@@ -299,8 +301,8 @@ public abstract class IncludeConverter {
         }
 
         /**
-         * Returns the include directives, that have been converted or could
-         * not be converted, in the order of the source.
+         * Returns the include directives, that have been converted or could not
+         * be converted, in the order of the source.
          */
         public List<Include> getIncludes() {
             return Collections.unmodifiableList(includes);

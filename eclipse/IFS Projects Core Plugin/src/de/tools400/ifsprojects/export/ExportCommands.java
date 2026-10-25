@@ -14,8 +14,8 @@ import de.tools400.ifsprojects.utils.StringUtils;
 /**
  * CL commands of the export of stream files into members.
  * <p>
- * <code>CPYFRMSTMF</code> creates a missing member, but without source type
- * and text. Therefore a new member is added with <code>ADDPFM</code> before.
+ * <code>CPYFRMSTMF</code> creates a missing member, but without source type and
+ * text. Therefore a new member is added with <code>ADDPFM</code> before.
  * <code>MBROPT(*REPLACE)</code> keeps source type and text of an existing
  * member; they are changed with <code>CHGPFM</code> afterwards. Verified on the
  * IBM i.

@@ -61,10 +61,9 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
  * Like RDi, the events file is stored as local file in project
  * <code>RemoteSystemsTempFiles</code>, folder <code>IFSProjects</code>. RSE
  * does not upload it, because it has no remote file properties. The parser of
- * RDi attaches the errors as markers to this file. The view shows
- * one table per local file. Each checked stream file has a local file of its
- * own, so that the table of a stream file is replaced, when it is checked
- * again.
+ * RDi attaches the errors as markers to this file. The view shows one table per
+ * local file. Each checked stream file has a local file of its own, so that the
+ * table of a stream file is replaced, when it is checked again.
  * <p>
  * The view opens the file of an error with the location of the error, e.g. a
  * stream file <code>/home/jsmith/src/hello.rpgle</code>. If the error also has
@@ -110,8 +109,8 @@ public final class ErrorList {
      * @param aJobName - name of the jobs
      * @param aHost - RSE connection
      * @param aSourcePath - absolute path of the checked stream file or of the
-     *        built project directory, which names the local events file and
-     *        the table of the view
+     *        built project directory, which names the local events file and the
+     *        table of the view
      * @param anEvents - content of the events files
      * @param aCcsid - CCSID of the job, in which the events files were written
      * @param aSourceMapping - mapping of the project directory to a local
@@ -140,8 +139,8 @@ public final class ErrorList {
                     eventsFile = writeEventsFile(aHost, aSourcePath, events, aCcsid, aMonitor);
                 } catch (CoreException e) {
                     IfsProjectsPlugin.logError("Could not write the events file of: " + aSourcePath, e); //$NON-NLS-1$
-                    PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A,
-                        ExceptionUtils.getLocalizedMessage(e)));
+                    PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects,
+                        Messages.bind(Messages.Error_Could_not_show_errors_A, ExceptionUtils.getLocalizedMessage(e)));
                     return Status.OK_STATUS;
                 }
                 showLater(getName(), eventsFile, aHost, aSourcePath, projectName, projectLocations);
@@ -177,16 +176,16 @@ public final class ErrorList {
     }
 
     /**
-     * Returns the title of the table of a stream file in the 'Error List'
-     * view, e.g. <code>myibmi:/home/jsmith/src/hello.rpgle</code>.
+     * Returns the title of the table of a stream file in the 'Error List' view,
+     * e.g. <code>myibmi:/home/jsmith/src/hello.rpgle</code>.
      */
     private static String getTitle(IHost aHost, String aSourcePath) {
         return aHost.getAliasName() + TITLE_SEPARATOR + aSourcePath;
     }
 
     /**
-     * Writes the events to the local events file of a stream file. Runs in
-     * the workspace job of {@link #showEvents}.
+     * Writes the events to the local events file of a stream file. Runs in the
+     * workspace job of {@link #showEvents}.
      *
      * @param aHost - RSE connection
      * @param aSourcePath - absolute path of the checked stream file
@@ -233,9 +232,9 @@ public final class ErrorList {
     }
 
     /**
-     * Parses a local events file and shows its errors in the 'Error List'
-     * view. The errors of the specified locations are shown for the files of
-     * a local project.
+     * Parses a local events file and shows its errors in the 'Error List' view.
+     * The errors of the specified locations are shown for the files of a local
+     * project.
      * <p>
      * Must be called on the UI thread.
      *
@@ -247,8 +246,8 @@ public final class ErrorList {
      *        e.g. <code>/demo/src/hello.rpgle</code>
      * @throws CoreException if the errors could not be shown
      */
-    private static void show(final IFile anEventsFile, IHost aHost, String aTitle, final String aProjectName,
-        final Set<String> aProjectLocations) throws CoreException {
+    private static void show(final IFile anEventsFile, IHost aHost, String aTitle, final String aProjectName, final Set<String> aProjectLocations)
+        throws CoreException {
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         IWorkbenchPage page = window == null ? null : window.getActivePage();

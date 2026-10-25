@@ -22,7 +22,8 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * <ul>
  * <li>Only an <code>INCLUDE</code> command with the parameter
  * <code>SRCSTMF</code> on one line is converted. Commands with continuation
- * lines or further parameters are reported as {@link Problem#NOT_SUPPORTED}.</li>
+ * lines or further parameters are reported as
+ * {@link Problem#NOT_SUPPORTED}.</li>
  * <li>The source file is specified without library, so that it is searched in
  * the library list.</li>
  * <li>A label and comments are kept.</li>

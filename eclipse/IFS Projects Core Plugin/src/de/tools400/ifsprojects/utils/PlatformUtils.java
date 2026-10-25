@@ -42,8 +42,8 @@ public final class PlatformUtils {
     }
 
     /**
-     * Returns <code>true</code>, if a control is the specified container or
-     * one of its descendants.
+     * Returns <code>true</code>, if a control is the specified container or one
+     * of its descendants.
      *
      * @param aContainer - container
      * @param aControl - control or <code>null</code>
@@ -63,8 +63,8 @@ public final class PlatformUtils {
     }
 
     /**
-     * Shows an error message in a dialog of the active workbench window. May
-     * be called from any thread, e.g. by a job: the dialog is opened
+     * Shows an error message in a dialog of the active workbench window. May be
+     * called from any thread, e.g. by a job: the dialog is opened
      * asynchronously on the UI thread.
      *
      * @param aTitle - title of the dialog

@@ -77,8 +77,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      */
     private static final Comparator<TerminalSession> SESSION_ORDER = new Comparator<TerminalSession>() {
         public int compare(TerminalSession aSession1, TerminalSession aSession2) {
-            return SessionNames.compare(getSortName(aSession1), aSession1.getInstanceNumber(), getSortName(aSession2),
-                aSession2.getInstanceNumber());
+            return SessionNames.compare(getSortName(aSession1), aSession1.getInstanceNumber(), getSortName(aSession2), aSession2.getInstanceNumber());
         }
 
         private String getSortName(TerminalSession aSession) {
@@ -86,7 +85,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
         }
     };
 
-    private final List<TerminalSession> sessions = new ArrayList<TerminalSession>();
+    private final List<TerminalSession> sessions = new ArrayList<>();
     private TerminalSession activeSession;
 
     private IMemento restoredState;
@@ -192,8 +191,8 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
     }
 
     /**
-     * Returns a session with the specified reuse key (build), that is
-     * connected and whose command is not running.
+     * Returns a session with the specified reuse key (build), that is connected
+     * and whose command is not running.
      *
      * @param aReuseKey - reuse key
      * @return session or <code>null</code>
@@ -283,7 +282,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      * Closes all sessions. The view stays open.
      */
     void closeAllSessions() {
-        closeSessions(new ArrayList<TerminalSession>(sessions));
+        closeSessions(new ArrayList<>(sessions));
     }
 
     public void sessionStateChanged(TerminalSession aSession) {
@@ -375,8 +374,8 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      * @param aRequest - terminal request
      * @param aCustomName - name of the session or <code>null</code> for the
      *        default name
-     * @param anInstanceNumber - saved instance number of a restored session
-     *        or <code>null</code>
+     * @param anInstanceNumber - saved instance number of a restored session or
+     *        <code>null</code>
      * @return new session
      */
     private TerminalSession addSession(TerminalRequest aRequest, String aCustomName, Integer anInstanceNumber) {
@@ -394,13 +393,13 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
 
     /**
      * Returns the instance number of a new session with the specified title:
-     * the preferred number, if no session with the title has it, otherwise
-     * the smallest free number, see
+     * the preferred number, if no session with the title has it, otherwise the
+     * smallest free number, see
      * {@link SessionNames#getInstanceNumber(java.util.Collection, Integer)}.
      */
     private int getInstanceNumber(String aTitle, Integer aPreferredNumber) {
 
-        Set<Integer> instanceNumbers = new HashSet<Integer>();
+        Set<Integer> instanceNumbers = new HashSet<>();
         for (TerminalSession session : sessions) {
             if (session.getRequest().getTitle().equals(aTitle)) {
                 instanceNumbers.add(Integer.valueOf(session.getInstanceNumber()));
@@ -477,7 +476,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
      * @return copy of the sessions in the order of the list
      */
     List<TerminalSession> getSessions() {
-        return new ArrayList<TerminalSession>(sessions);
+        return new ArrayList<>(sessions);
     }
 
     void closeSessions(List<TerminalSession> aSessions) {
@@ -509,7 +508,7 @@ public class TmTerminalView extends ViewPart implements TerminalSession.Listener
 
     List<TerminalSession> getSelectedSessions() {
 
-        List<TerminalSession> selectedSessions = new ArrayList<TerminalSession>();
+        List<TerminalSession> selectedSessions = new ArrayList<>();
 
         IStructuredSelection selection = (IStructuredSelection)sessionList.getSelection();
         for (Object element : selection.toList()) {

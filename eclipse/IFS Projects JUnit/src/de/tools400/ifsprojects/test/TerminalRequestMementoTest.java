@@ -20,8 +20,8 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
 import de.tools400.ifsprojects.terminal.tm.TerminalRequestMemento;
 
 /**
- * The mementos are not written to XML and parsed again, because the XML
- * parser of the class path of the tests may not support the properties, that
+ * The mementos are not written to XML and parsed again, because the XML parser
+ * of the class path of the tests may not support the properties, that
  * XMLMemento.createReadRoot() sets. An incomplete memento is not tested,
  * because restore() logs a warning, which loads the plug-in class.
  */
@@ -30,9 +30,9 @@ public class TerminalRequestMementoTest {
     @Test
     public void testSaveAndRestore() {
 
-        TerminalRequest request = TerminalRequest.builder().connectionName("MYIBMI").hostName("ibmi.example.com").port(2222)
-            .userId("jsmith").password("secret").encoding("ISO-8859-1").timeout(10).keepAlive(60).directory("/home/jsmith/src")
-            .command("gmake").reuseKey("build:MYIBMI:/home/jsmith/src").build();
+        TerminalRequest request = TerminalRequest.builder().connectionName("MYIBMI").hostName("ibmi.example.com").port(2222).userId("jsmith")
+            .password("secret").encoding("ISO-8859-1").timeout(10).keepAlive(60).directory("/home/jsmith/src").command("gmake")
+            .reuseKey("build:MYIBMI:/home/jsmith/src").build();
 
         IMemento memento = save(request);
         TerminalRequest restored = TerminalRequestMemento.restore(memento);
@@ -51,8 +51,7 @@ public class TerminalRequestMementoTest {
     @Test
     public void testPasswordAndCommandAreNotSaved() {
 
-        TerminalRequest request = TerminalRequest.builder().hostName("ibmi.example.com").userId("jsmith").password("secret")
-            .command("gmake").build();
+        TerminalRequest request = TerminalRequest.builder().hostName("ibmi.example.com").userId("jsmith").password("secret").command("gmake").build();
 
         IMemento memento = save(request);
         TerminalRequest restored = TerminalRequestMemento.restore(memento);

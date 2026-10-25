@@ -16,7 +16,6 @@ import de.tools400.ifsprojects.export.ExportCommands;
 
 public class ExportCommandsTest {
 
-
     @Test
     public void testGetCreateCommands() {
         assertEquals("CRTLIB LIB(JSMITH#CL)", ExportCommands.getCreateLibraryCommand("JSMITH#CL"));
@@ -36,8 +35,9 @@ public class ExportCommandsTest {
 
     @Test
     public void testGetCopyCommand() {
-        assertEquals("CPYFRMSTMF FROMSTMF('/home/jsmith/.ifsprojects/tmp/ifsprojects_1_2.export')"
-            + " TOMBR('/QSYS.LIB/JSMITH#CL.LIB/QCLSRC.FILE/START.MBR') MBROPT(*REPLACE)",
+        assertEquals(
+            "CPYFRMSTMF FROMSTMF('/home/jsmith/.ifsprojects/tmp/ifsprojects_1_2.export')"
+                + " TOMBR('/QSYS.LIB/JSMITH#CL.LIB/QCLSRC.FILE/START.MBR') MBROPT(*REPLACE)",
             ExportCommands.getCopyCommand("/home/jsmith/.ifsprojects/tmp/ifsprojects_1_2.export", "JSMITH#CL", "QCLSRC", "START"));
         assertEquals("CPYFRMSTMF FROMSTMF('/home/jsmith/it''s/a.clle') TOMBR('/QSYS.LIB/JSMITH#CL.LIB/QCLSRC.FILE/A.MBR') MBROPT(*REPLACE)",
             ExportCommands.getCopyCommand("/home/jsmith/it's/a.clle", "JSMITH#CL", "QCLSRC", "A"));

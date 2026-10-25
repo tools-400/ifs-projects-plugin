@@ -12,8 +12,8 @@ import java.util.List;
 
 /**
  * Reads the commands of the header of a build tool, e.g. of
- * <code>STRPREPRC</code> or of the <code>BUILD</code> command of Scott
- * Klement. Parsers are contributed via extension point
+ * <code>STRPREPRC</code> or of the <code>BUILD</code> command of Scott Klement.
+ * Parsers are contributed via extension point
  * <code>de.tools400.ifsprojects.core.plugin.sourceHeaderParsers</code>; the
  * parser with the highest priority, that finds a header, wins, see
  * {@link SourceHeaderParsers}.

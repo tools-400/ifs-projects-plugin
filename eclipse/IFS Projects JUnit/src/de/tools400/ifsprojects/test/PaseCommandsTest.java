@@ -44,20 +44,19 @@ public class PaseCommandsTest {
     @Test
     public void testAddExports() {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
         variables.put("EMPTY", "");
 
         assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY && makei build",
             PaseCommands.addExports(variables, "makei build"));
-        assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY",
-            PaseCommands.addExports(variables, null));
+        assertEquals("ENVCMD='CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)' EMPTY='' && export ENVCMD EMPTY", PaseCommands.addExports(variables, null));
     }
 
     @Test
     public void testAddExports_quote() {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("TEXT", "it's $HOME");
 
         assertEquals("TEXT='it'\\''s $HOME' && export TEXT && gmake", PaseCommands.addExports(variables, "gmake"));
@@ -72,14 +71,14 @@ public class PaseCommandsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddExports_invalidName() {
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("MY-LIB", "x");
         PaseCommands.addExports(variables, "gmake");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddExports_lineBreak() {
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("CMD", "a\nrm -rf /");
         PaseCommands.addExports(variables, "gmake");
     }
@@ -87,7 +86,7 @@ public class PaseCommandsTest {
     @Test
     public void testReplacePlaceholders() {
 
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         values.put("filename", "WHOAMICPP.RPGLE");
         values.put("files", "WHOAMICPP.RPGLE");
         values.put("usrprf", "JSMITH");
@@ -101,7 +100,7 @@ public class PaseCommandsTest {
     @Test
     public void testReplacePlaceholders_unknownPlaceholderIsKept() {
 
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         values.put("filename", "WHOAMI.PNLGRP");
 
         assertEquals("gmake WHOAMI.PNLGRP {unknown}", PaseCommands.replacePlaceholders("gmake {filename} {unknown}", values));
@@ -111,7 +110,7 @@ public class PaseCommandsTest {
     @Test
     public void testReplacePlaceholders_nullValues() {
 
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         values.put("host", null);
 
         assertEquals("ssh ", PaseCommands.replacePlaceholders("ssh {host}", values));
@@ -121,7 +120,7 @@ public class PaseCommandsTest {
     @Test
     public void testReplacePlaceholders_quotedFileName() {
 
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         values.put("filename", PaseCommands.quote("my file.rpgle"));
 
         assertEquals("gmake 'my file.rpgle'", PaseCommands.replacePlaceholders("gmake {filename}", values));

@@ -24,11 +24,9 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 /**
  * Reads a project and a library and computes the plan of an export, see
  * {@link ExportPlan}. The files of the project are read once, when the first
- * plan is computed. The library is read again, if another library is
- * specified.
+ * plan is computed. The library is read again, if another library is specified.
  * <p>
- * The methods access the remote system and must not be called on the UI
- * thread.
+ * The methods access the remote system and must not be called on the UI thread.
  */
 public final class ExportAnalyzer {
 
@@ -92,8 +90,8 @@ public final class ExportAnalyzer {
 
         String directory = source.getProjectDirectory(aSystem);
         List<String> projectFiles = source.listFiles(aSystem);
-        Map<String, String> fileContents = new HashMap<String, String>();
-        Map<String, String> errors = new HashMap<String, String>();
+        Map<String, String> fileContents = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
 
         for (String path : projectFiles) {
             if (aMonitor.isCanceled()) {

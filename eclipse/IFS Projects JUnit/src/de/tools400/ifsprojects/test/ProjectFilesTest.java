@@ -42,7 +42,7 @@ public class ProjectFilesTest {
     @Test
     public void testReadIgnoreRules() throws Exception {
 
-        final Map<String, String> files = new HashMap<String, String>();
+        final Map<String, String> files = new HashMap<>();
         ProjectFiles.ProjectDirectory directory = new ProjectFiles.ProjectDirectory() {
             public String readFile(String aName) {
                 return files.get(aName);

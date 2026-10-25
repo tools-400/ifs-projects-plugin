@@ -44,7 +44,7 @@ public final class IProjValues {
      */
     public static List<String> getValues(IProjConfig aConfig, String aKey, Map<String, String> aVariables) {
 
-        List<String> values = new ArrayList<String>();
+        List<String> values = new ArrayList<>();
         for (String rawValue : aConfig.getStrings(aKey)) {
             String value = StringUtils.trimToNull(EnvironmentVariables.resolveReferences(rawValue, aVariables));
             if (value != null) {
@@ -66,8 +66,8 @@ public final class IProjValues {
      */
     public static List<String> getLibraries(IProjConfig aConfig, String aKey, Map<String, String> aVariables) {
 
-        List<String> libraries = new ArrayList<String>();
-        Set<String> uniqueLibraries = new HashSet<String>();
+        List<String> libraries = new ArrayList<>();
+        Set<String> uniqueLibraries = new HashSet<>();
         for (String value : getValues(aConfig, aKey, aVariables)) {
             for (String library : value.split(WHITE_SPACE_PATTERN)) {
                 if (library.length() > 0 && uniqueLibraries.add(library.toUpperCase(Locale.ROOT))) {
@@ -109,7 +109,7 @@ public final class IProjValues {
      */
     public static List<String> getIncludeDirectories(String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables) {
 
-        List<String> directories = new ArrayList<String>();
+        List<String> directories = new ArrayList<>();
         for (String directory : getValues(aConfig, IProjConfig.INCLUDE_PATH, aVariables)) {
             if (directory.charAt(0) == SEPARATOR) {
                 directories.add(directory);

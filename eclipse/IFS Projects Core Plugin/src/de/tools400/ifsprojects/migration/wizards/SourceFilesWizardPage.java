@@ -61,8 +61,7 @@ public class SourceFilesWizardPage extends WizardPage {
      *
      * @param aLibrary - library of the source files
      * @param aSourceFiles - source files, which are all selected
-     * @param aDefaultHexCcsid - default CCSID of source files with CCSID
-     *        65535
+     * @param aDefaultHexCcsid - default CCSID of source files with CCSID 65535
      */
     public SourceFilesWizardPage(String aLibrary, List<SourceFile> aSourceFiles, int aDefaultHexCcsid) {
         super(PAGE_NAME);
@@ -79,7 +78,7 @@ public class SourceFilesWizardPage extends WizardPage {
 
         String[] titles = { Messages.Label_Column_Source_file, Messages.Label_Column_Text, Messages.Label_Column_Members,
             Messages.Label_Column_CCSID };
-        sourceFilesGroup = new CheckboxTableGroup<SourceFile>(main, titles, COLUMN_WIDTHS, new SourceFileLabelProvider());
+        sourceFilesGroup = new CheckboxTableGroup<>(main, titles, COLUMN_WIDTHS, new SourceFileLabelProvider());
         ((GridData)sourceFilesGroup.getTable().getLayoutData()).heightHint = TABLE_HEIGHT;
         ((GridData)sourceFilesGroup.getControl().getLayoutData()).horizontalSpan = 2;
 
@@ -119,8 +118,8 @@ public class SourceFilesWizardPage extends WizardPage {
     }
 
     /**
-     * Returns the settings, that have been entered. Must only be called, if
-     * the page is complete.
+     * Returns the settings, that have been entered. Must only be called, if the
+     * page is complete.
      */
     public MigrationSettings getSettings() {
 
@@ -140,8 +139,8 @@ public class SourceFilesWizardPage extends WizardPage {
     }
 
     /**
-     * Reads the members and returns the preview, or <code>null</code>, if
-     * they could not be read.
+     * Reads the members and returns the preview, or <code>null</code>, if they
+     * could not be read.
      */
     @Override
     public IWizardPage getNextPage() {

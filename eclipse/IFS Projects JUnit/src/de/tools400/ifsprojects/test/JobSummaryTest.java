@@ -39,7 +39,7 @@ public class JobSummaryTest {
     @Test
     public void testGetText_manyErrors() {
 
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         for (int i = 1; i <= 25; i++) {
             errors.add("error " + i);
         }

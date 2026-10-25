@@ -52,8 +52,7 @@ public final class ToolTips {
 
     /**
      * Sets the tool tips of a radio group field editor: the tool tip of the
-     * group and the tool tips of the radio buttons in the order of the
-     * buttons.
+     * group and the tool tips of the radio buttons in the order of the buttons.
      *
      * @param anEditor - field editor
      * @param aParent - parent of the field editor

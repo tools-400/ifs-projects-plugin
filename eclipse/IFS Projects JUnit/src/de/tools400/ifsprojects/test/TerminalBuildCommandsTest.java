@@ -26,14 +26,12 @@ public class TerminalBuildCommandsTest {
 
     @Test
     public void testGetScript() {
-        assertEquals("# IFS Projects: writes the marker files of a build or compile command in the terminal.\n"
-            + "# Sourced by: ( _ifsp=<id>; . <this script>; <command>; _ifsp_end $? )\n"
-            + "_ifsp_f='/home/it'\\''s/ifsprojects_'\"$_ifsp\"\n"
-            + "_ifsp_end() { echo $1 > \"$_ifsp_f.rc\"; exit $1; }\n"
-            + "trap '_ifsp_end 129' 1\n"
-            + "trap '_ifsp_end 130' 2\n"
-            + "trap '_ifsp_end 143' 15\n"
-            + "/QOpenSys/usr/bin/sh -c 'echo $PPID' > \"$_ifsp_f.start\"\n", TerminalBuildCommands.getScript("/home/it's/ifsprojects_"));
+        assertEquals(
+            "# IFS Projects: writes the marker files of a build or compile command in the terminal.\n"
+                + "# Sourced by: ( _ifsp=<id>; . <this script>; <command>; _ifsp_end $? )\n" + "_ifsp_f='/home/it'\\''s/ifsprojects_'\"$_ifsp\"\n"
+                + "_ifsp_end() { echo $1 > \"$_ifsp_f.rc\"; exit $1; }\n" + "trap '_ifsp_end 129' 1\n" + "trap '_ifsp_end 130' 2\n"
+                + "trap '_ifsp_end 143' 15\n" + "/QOpenSys/usr/bin/sh -c 'echo $PPID' > \"$_ifsp_f.start\"\n",
+            TerminalBuildCommands.getScript("/home/it's/ifsprojects_"));
     }
 
     @Test
@@ -60,8 +58,9 @@ public class TerminalBuildCommandsTest {
 
     @Test
     public void testGetCheckScript() {
-        assertEquals("exec < /dev/null > /dev/null 2>&1; [ -n \"$(/QOpenSys/usr/bin/ps -p $$ -o pid=)\" ]"
-            + " && [ -z \"$(/QOpenSys/usr/bin/ps -p 54394 -o pid=)\" ] && echo gone > '/t/ifsprojects_1_2.gone'; exit 0",
+        assertEquals(
+            "exec < /dev/null > /dev/null 2>&1; [ -n \"$(/QOpenSys/usr/bin/ps -p $$ -o pid=)\" ]"
+                + " && [ -z \"$(/QOpenSys/usr/bin/ps -p 54394 -o pid=)\" ] && echo gone > '/t/ifsprojects_1_2.gone'; exit 0",
             TerminalBuildCommands.getCheckScript(54394, "/t/ifsprojects_1_2.gone"));
     }
 

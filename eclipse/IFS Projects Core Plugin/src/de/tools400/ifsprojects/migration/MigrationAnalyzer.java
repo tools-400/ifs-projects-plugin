@@ -47,9 +47,9 @@ public final class MigrationAnalyzer {
     public static MigrationPlan analyze(RemoteSession aSession, String aLibrary, List<SourceFile> aSourceFiles, MigrationSettings aSettings,
         IProgressMonitor aMonitor) throws Exception {
 
-        List<SourceMember> members = new ArrayList<SourceMember>();
-        Map<SourceMember, SourceFile> sourceFiles = new HashMap<SourceMember, SourceFile>();
-        List<String> sourceFileNames = new ArrayList<String>();
+        List<SourceMember> members = new ArrayList<>();
+        Map<SourceMember, SourceFile> sourceFiles = new HashMap<>();
+        List<String> sourceFileNames = new ArrayList<>();
         for (SourceFile sourceFile : aSourceFiles) {
             sourceFileNames.add(sourceFile.getName());
             for (SourceMember member : SourceFileCatalog.getMembers(aSession.getSystem(), sourceFile)) {
@@ -60,8 +60,8 @@ public final class MigrationAnalyzer {
 
         aMonitor.beginTask(Messages.bind(Messages.Task_Reading_source_files_of_A, aLibrary), members.size());
 
-        Map<String, String> contents = new HashMap<String, String>();
-        Map<String, String> readErrors = new HashMap<String, String>();
+        Map<String, String> contents = new HashMap<>();
+        Map<String, String> readErrors = new HashMap<>();
         for (SourceMember member : members) {
 
             if (aMonitor.isCanceled()) {

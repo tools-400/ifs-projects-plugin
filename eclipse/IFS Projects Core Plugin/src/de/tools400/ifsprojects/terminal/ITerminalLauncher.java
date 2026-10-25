@@ -10,8 +10,8 @@ package de.tools400.ifsprojects.terminal;
 
 /**
  * A terminal backend. Backends are contributed via extension point
- * <code>de.tools400.ifsprojects.core.plugin.terminalLaunchers</code>. The
- * first available backend with the highest priority is used.
+ * <code>de.tools400.ifsprojects.core.plugin.terminalLaunchers</code>. The first
+ * available backend with the highest priority is used.
  * <p>
  * Implementations must not reference classes of optional terminal bundles in
  * their class signature, because {@link #isAvailable()} is called before it is
@@ -46,8 +46,8 @@ public interface ITerminalLauncher {
      * </ul>
      *
      * @param aRequest - terminal request
-     * @return command line of the request or <code>null</code>, if the
-     *         request has no command
+     * @return command line of the request or <code>null</code>, if the request
+     *         has no command
      * @throws TerminalException
      */
     ITerminalCommandLine launch(TerminalRequest aRequest) throws TerminalException;

@@ -231,8 +231,8 @@ public class RseBuildJob extends Job {
     }
 
     /**
-     * Terminates the shell of the build and all its descendants in a job of
-     * its own and waits, until the build command has ended.
+     * Terminates the shell of the build and all its descendants in a job of its
+     * own and waits, until the build command has ended.
      *
      * @return <code>true</code>, if the build command has ended
      */

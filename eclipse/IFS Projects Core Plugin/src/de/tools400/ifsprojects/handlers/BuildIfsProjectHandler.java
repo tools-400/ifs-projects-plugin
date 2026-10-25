@@ -23,8 +23,8 @@ import de.tools400.ifsprojects.subsystem.IfsProjectEnvironment;
 
 /**
  * Builds the selected IFS project with the build command of the
- * <code>iproj.json</code> file or the default build command of the
- * preferences. The environment variables of the project are exported before.
+ * <code>iproj.json</code> file or the default build command of the preferences.
+ * The environment variables of the project are exported before.
  * <p>
  * Depending on the preferences, the command runs in the terminal of the project
  * or in a job of the RSE connection, see {@link BuildLauncher}.

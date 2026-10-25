@@ -13,12 +13,15 @@ import java.util.regex.Pattern;
 /**
  * Finds the <code>INCLUDE</code> commands in the lines of an ILE CL source and
  * lets the subclass convert them. Comments are ignored, when a command is
- * searched. A command with continuation lines (<code>+</code>,
- * <code>-</code>) is not converted, but passed to the subclass for a check.
+ * searched. A command with continuation lines (<code>+</code>, <code>-</code>)
+ * is not converted, but passed to the subclass for a check.
  */
 public abstract class ClLineConverter implements IncludeConverter.LineConverter {
 
-    /** Regular expression of the optional label of a command, e.g. <code>START:</code>. */
+    /**
+     * Regular expression of the optional label of a command, e.g.
+     * <code>START:</code>.
+     */
     public static final String LABEL = "(?:[A-Z$#@][A-Z0-9$#@_.]*\\s*:\\s*)?"; //$NON-NLS-1$
 
     private static final Pattern INCLUDE = Pattern.compile("^\\s*" + LABEL + "INCLUDE(?=\\s|$)", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$ //$NON-NLS-2$
@@ -68,8 +71,8 @@ public abstract class ClLineConverter implements IncludeConverter.LineConverter 
     protected abstract String convertInclude(int aLineNumber, String aLine, String aCode);
 
     /**
-     * Checks an <code>INCLUDE</code> command with continuation lines, which
-     * is not converted.
+     * Checks an <code>INCLUDE</code> command with continuation lines, which is
+     * not converted.
      *
      * @param aLineNumber - number of the first line of the command
      * @param aCommand - lines of the command without comments, joined with

@@ -159,8 +159,7 @@ public class CplCasHeaderParserTest {
     @Test
     public void testIncludeFile() {
 
-        assertEquals("QCPYSRC", header("      *%%% CRTSQLRPGI OBJ(%LIBO/%OBJ) INCFILE(%LIBS/QCPYSRC)\n      *%%%&\n")
-            .getIncludeFile());
+        assertEquals("QCPYSRC", header("      *%%% CRTSQLRPGI OBJ(%LIBO/%OBJ) INCFILE(%LIBS/QCPYSRC)\n      *%%%&\n").getIncludeFile());
         assertNull(header("      *%%% CRTSQLRPGI OBJ(%LIBO/%OBJ) INCFILE(*SRCFILE)\n      *%%%&\n").getIncludeFile());
     }
 

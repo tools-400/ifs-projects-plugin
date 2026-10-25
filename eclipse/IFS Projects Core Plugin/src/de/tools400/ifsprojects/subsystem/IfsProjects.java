@@ -24,8 +24,8 @@ import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
 
 /**
- * Provides access to the IFS projects of IBM i connections. Only uses the
- * local RSE model, the remote system is not accessed.
+ * Provides access to the IFS projects of IBM i connections. Only uses the local
+ * RSE model, the remote system is not accessed.
  */
 public final class IfsProjects {
 
@@ -69,7 +69,7 @@ public final class IfsProjects {
      */
     public static List<IfsProject> getProjects(IHost aHost) {
 
-        List<IfsProject> projects = new ArrayList<IfsProject>();
+        List<IfsProject> projects = new ArrayList<>();
 
         IfsProjectSubSystem subSystem = getProjectSubSystem(aHost);
         if (subSystem == null) {
@@ -126,7 +126,7 @@ public final class IfsProjects {
      */
     public static List<IfsProject> getProjectsOfDirectory(IHost aHost, String aDirectory) {
 
-        List<IfsProject> projects = new ArrayList<IfsProject>();
+        List<IfsProject> projects = new ArrayList<>();
 
         String directory = IfsPaths.normalizeDirectory(aDirectory);
         if (directory == null) {

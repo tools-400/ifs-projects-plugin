@@ -86,8 +86,7 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
     }
 
     /**
-     * Creates the project and configures it with the settings of the last
-     * page.
+     * Creates the project and configures it with the settings of the last page.
      *
      * @param aDescription - description with name and location of the project
      * @param aWorkingSets - working sets of the project
@@ -120,8 +119,8 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
             });
         } catch (InvocationTargetException e) {
             IfsProjectsPlugin.logError("Could not create local IFS project: " + project.getName(), ExceptionUtils.getCause(e)); //$NON-NLS-1$
-            MessageDialog.openError(getShell(), title, Messages.bind(Messages.Error_Could_not_create_project_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openError(getShell(), title,
+                Messages.bind(Messages.Error_Could_not_create_project_A, ExceptionUtils.getLocalizedMessage(e)));
             return false;
         } catch (InterruptedException e) {
             return false;
@@ -142,8 +141,8 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
             });
         } catch (InvocationTargetException e) {
             IfsProjectsPlugin.logError("Could not configure local IFS project: " + project.getName(), ExceptionUtils.getCause(e)); //$NON-NLS-1$
-            MessageDialog.openWarning(getShell(), title, Messages.bind(Messages.Warning_Project_A_created_but_not_configured_B, project.getName(),
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openWarning(getShell(), title,
+                Messages.bind(Messages.Warning_Project_A_created_but_not_configured_B, project.getName(), ExceptionUtils.getLocalizedMessage(e)));
         } catch (InterruptedException e) {
             // The configuration cannot be canceled.
         }
@@ -155,9 +154,8 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
     }
 
     /**
-     * Configures the new project: encoding, <code>iproj.json</code> (unless
-     * the location already contains one) and the settings of the local IFS
-     * project.
+     * Configures the new project: encoding, <code>iproj.json</code> (unless the
+     * location already contains one) and the settings of the local IFS project.
      */
     private void configure(IProject aProject, boolean anIsUtf8, IProjConfig aConfig, String aConnectionName, String aDeployDirectory,
         IProgressMonitor aMonitor) throws Exception {

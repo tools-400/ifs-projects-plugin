@@ -35,8 +35,7 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
  * <code>{files}</code> (name of the file without directory),
  * <code>{host}</code> (host name) and <code>{usrprf}</code> (user profile).
  * <p>
- * Errors are reported to the user. The methods must be called on the UI
- * thread.
+ * Errors are reported to the user. The methods must be called on the UI thread.
  */
 final class BuildLauncher {
 
@@ -66,8 +65,8 @@ final class BuildLauncher {
 
     /**
      * Creates the launcher of the build mode of the preferences. Connects the
-     * RSE connection or prepares the terminal request, which may prompt for
-     * the user ID.
+     * RSE connection or prepares the terminal request, which may prompt for the
+     * user ID.
      *
      * @param aShell - parent shell
      * @param aHost - RSE connection
@@ -125,7 +124,7 @@ final class BuildLauncher {
         }
 
         String fileName = toShellFileName(aFileName);
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
         values.put(PLACEHOLDER_FILENAME, fileName);
         values.put(PLACEHOLDER_FILES, fileName);
         values.put(PLACEHOLDER_HOST, host.getHostName());
@@ -169,8 +168,7 @@ final class BuildLauncher {
 
     /**
      * Returns the name of a file for the command line: quoted, unless it
-     * consists of characters, that can be passed to the shell without
-     * quotes.
+     * consists of characters, that can be passed to the shell without quotes.
      */
     private static String toShellFileName(String aFileName) {
 

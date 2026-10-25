@@ -17,10 +17,10 @@ import de.tools400.ifsprojects.ibmi.PaseCommands;
  * The shell is started with <code>QP2SHELL2</code>. The remote command server
  * job does not set <code>HOME</code>, therefore the script sets it and runs the
  * profiles like a login shell, so that the <code>PATH</code> contains
- * <code>/QOpenSys/pkgs/bin</code> (<code>makei</code>, <code>gmake</code>).
- * The output is appended to a log file, which is read while the build is
- * running. <code>QP2SHELL2</code> does not return the exit code of the shell,
- * therefore it is written to a file.
+ * <code>/QOpenSys/pkgs/bin</code> (<code>makei</code>, <code>gmake</code>). The
+ * output is appended to a log file, which is read while the build is running.
+ * <code>QP2SHELL2</code> does not return the exit code of the shell, therefore
+ * it is written to a file.
  * <p>
  * The script writes its process ID to a file. A build is canceled by
  * terminating the shell and all its descendants (e.g. <code>makei</code>,
@@ -87,7 +87,8 @@ public final class RseBuildCommands {
         script.append("exec < /dev/null > /dev/null 2>&1"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("pid=$(cat ").append(PaseCommands.quote(aProcessIdFile)).append(')'); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("[ -n \"$pid\" ] || exit 0"); //$NON-NLS-1$
-        script.append(STATEMENT_SEPARATOR).append("tree() { echo $1; for child in $(ps -e -o pid= -o ppid= | awk -v p=$1 '$2 == p { print $1 }'); do tree $child; done; }"); //$NON-NLS-1$
+        script.append(STATEMENT_SEPARATOR)
+            .append("tree() { echo $1; for child in $(ps -e -o pid= -o ppid= | awk -v p=$1 '$2 == p { print $1 }'); do tree $child; done; }"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("kill -TERM $(tree $pid)"); //$NON-NLS-1$
         script.append(STATEMENT_SEPARATOR).append("exit 0"); //$NON-NLS-1$
 

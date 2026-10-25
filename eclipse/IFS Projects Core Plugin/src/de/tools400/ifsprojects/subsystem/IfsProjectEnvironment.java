@@ -46,12 +46,11 @@ public final class IfsProjectEnvironment {
      * Returns the environment variables of an IFS project.
      *
      * @param aFilter - filter of the IFS project
-     * @return variables in the order of the definition, never
-     *         <code>null</code>
+     * @return variables in the order of the definition, never <code>null</code>
      */
     public static Map<String, String> getVariables(ISystemFilter aFilter) {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         if (aFilter == null) {
             return variables;
         }
@@ -61,7 +60,7 @@ public final class IfsProjectEnvironment {
             return variables;
         }
 
-        Map<Integer, String> definitions = new TreeMap<Integer, String>();
+        Map<Integer, String> definitions = new TreeMap<>();
         for (String key : propertySet.getPropertyKeys()) {
             if (key.startsWith(KEY_VARIABLE_PREFIX)) {
                 try {

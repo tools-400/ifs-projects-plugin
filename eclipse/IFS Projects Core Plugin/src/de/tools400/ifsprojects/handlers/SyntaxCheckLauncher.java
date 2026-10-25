@@ -37,10 +37,10 @@ import de.tools400.ifsprojects.syntaxcheck.SourceType;
 import de.tools400.ifsprojects.syntaxcheck.SyntaxCheckJob;
 
 /**
- * Starts the syntax check of an RPGLE or SQLRPGLE stream file of an IFS
- * project or of a file of a local IFS project. Used by the context menus of
- * the Remote Systems view and of the projects of the workspace and by the
- * LPEX user action.
+ * Starts the syntax check of an RPGLE or SQLRPGLE stream file of an IFS project
+ * or of a file of a local IFS project. Used by the context menus of the Remote
+ * Systems view and of the projects of the workspace and by the LPEX user
+ * action.
  * <p>
  * Unsaved changes of the file are saved before, if the user agrees.
  */
@@ -93,8 +93,8 @@ public final class SyntaxCheckLauncher {
             return;
         }
 
-        new SyntaxCheckJob(aHost, system, project.getDirectory(), config, project.getEnvironmentVariables(), aPath, fileName, sourceType,
-            savedFiles, null).schedule();
+        new SyntaxCheckJob(aHost, system, project.getDirectory(), config, project.getEnvironmentVariables(), aPath, fileName, sourceType, savedFiles,
+            null).schedule();
     }
 
     /**
@@ -110,7 +110,8 @@ public final class SyntaxCheckLauncher {
 
         SourceType sourceType = SourceType.fromFileName(aFile.getName());
         if (sourceType == null) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Syntax_check_of_A_not_supported, aFile.getName()));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Syntax_check_of_A_not_supported, aFile.getName()));
             return;
         }
 
@@ -147,15 +148,15 @@ public final class SyntaxCheckLauncher {
     }
 
     /**
-     * Saves the editors of a local file, that have unsaved changes, if the
-     * user agrees.
+     * Saves the editors of a local file, that have unsaved changes, if the user
+     * agrees.
      *
      * @return <code>false</code>, if the user canceled the syntax check or an
      *         editor could not be saved
      */
     private static boolean saveEditors(Shell aShell, IFile aFile) {
 
-        List<IEditorPart> editors = new ArrayList<IEditorPart>();
+        List<IEditorPart> editors = new ArrayList<>();
         for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
             for (IWorkbenchPage page : window.getPages()) {
                 for (IEditorPart editor : page.getDirtyEditors()) {
@@ -188,7 +189,7 @@ public final class SyntaxCheckLauncher {
      */
     private static List<IFile> saveEditors(Shell aShell, List<IEditorPart> anEditors, String aPath) {
 
-        List<IFile> savedFiles = new ArrayList<IFile>();
+        List<IFile> savedFiles = new ArrayList<>();
 
         if (anEditors.isEmpty()) {
             return savedFiles;

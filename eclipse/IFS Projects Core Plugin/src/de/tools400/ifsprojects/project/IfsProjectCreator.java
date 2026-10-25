@@ -49,8 +49,8 @@ public final class IfsProjectCreator {
      * @param aConfig - content of a new <code>iproj.json</code> file or
      *        <code>null</code>, if no file shall be created
      * @return filter of the project
-     * @throws CoreException if the project could not be created, with a
-     *         message for the user; the error has been logged
+     * @throws CoreException if the project could not be created, with a message
+     *         for the user; the error has been logged
      * @throws InterruptedException if the user canceled the operation
      */
     public static ISystemFilter create(IRunnableContext aContext, final IHost aHost, final String aName, final String aDirectory,
@@ -90,8 +90,7 @@ public final class IfsProjectCreator {
         }
     }
 
-    private static void prepareDirectory(IHost aHost, String aDirectory, boolean anIsCreateDirectory, IProjConfig aConfig)
-        throws IProjFileException {
+    private static void prepareDirectory(IHost aHost, String aDirectory, boolean anIsCreateDirectory, IProjConfig aConfig) throws IProjFileException {
 
         if (!IProjFileStore.existsDirectory(aHost, aDirectory)) {
             if (!anIsCreateDirectory) {

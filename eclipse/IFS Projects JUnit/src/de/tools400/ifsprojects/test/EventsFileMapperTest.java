@@ -61,7 +61,7 @@ public class EventsFileMapperTest {
             + "FILEEND    0 002 000003\n" //
             + "FILEEND    0 001 000008\n", result.getEvents());
 
-        assertEquals(new LinkedHashSet<String>(Arrays.asList("/ifsptest/ifsphello.pgm.rpgle")), result.getLocations());
+        assertEquals(new LinkedHashSet<>(Arrays.asList("/ifsptest/ifsphello.pgm.rpgle")), result.getLocations());
     }
 
     @Test

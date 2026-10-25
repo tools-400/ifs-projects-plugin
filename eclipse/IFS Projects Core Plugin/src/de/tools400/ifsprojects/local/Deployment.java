@@ -53,19 +53,19 @@ import de.tools400.ifsprojects.remote.RemoteJobs;
  * file is unchanged, if its size, modification time and encoding are the same
  * as at the last upload or, otherwise, its content is the same.</li>
  * <li>Files, that have been uploaded before, but do not exist any more or are
- * excluded now, are deleted in the deploy directory, also directories, that
- * are empty then. Other files of the deploy directory, e.g. the output of
- * TOBi, are kept. The files are deleted before the upload, because a file,
- * whose name has only changed in case, is the same stream file.</li>
+ * excluded now, are deleted in the deploy directory, also directories, that are
+ * empty then. Other files of the deploy directory, e.g. the output of TOBi, are
+ * kept. The files are deleted before the upload, because a file, whose name has
+ * only changed in case, is the same stream file.</li>
  * <li>The token of the manifest is written to the file
  * <code>.ifsprojects-deploy</code> of the deploy directory, before the
  * directory is changed. If it differs from the token of the manifest, e.g.
  * because another workspace has uploaded the same project, all files are
  * uploaded.</li>
- * <li>Otherwise the stream files are compared with their size and
- * modification time after the last upload. The user is asked, before files
- * changed in the IFS are replaced or deleted, see {@link ConflictHandler}.
- * Missing stream files are uploaded again.</li>
+ * <li>Otherwise the stream files are compared with their size and modification
+ * time after the last upload. The user is asked, before files changed in the
+ * IFS are replaced or deleted, see {@link ConflictHandler}. Missing stream
+ * files are uploaded again.</li>
  * <li>The bytes of a file are copied unchanged. A new file gets the CCSID of
  * the encoding of the local file, so that the compilers convert its text
  * correctly. A file with another CCSID is replaced.</li>
@@ -73,11 +73,10 @@ import de.tools400.ifsprojects.remote.RemoteJobs;
  * that make rebuilds the objects of every uploaded change.</li>
  * <li>Not uploaded are derived, team private and hidden resources, the files of
  * git, Eclipse and the plug-in and the output directories of TOBi in the
- * project directory, see {@link ProjectFiles#isExcluded(String)}, and the files excluded
- * by the ignore file, see {@link IgnoreRules}.</li>
+ * project directory, see {@link ProjectFiles#isExcluded(String)}, and the files
+ * excluded by the ignore file, see {@link IgnoreRules}.</li>
  * </ul>
- * The methods access the remote system and must not be called on the UI
- * thread.
+ * The methods access the remote system and must not be called on the UI thread.
  */
 public final class Deployment {
 
@@ -106,8 +105,8 @@ public final class Deployment {
 
     /**
      * Uploads the files of a project to the deploy directory. The project is
-     * refreshed before, so that changes made outside of the workspace, e.g.
-     * by git, are uploaded.
+     * refreshed before, so that changes made outside of the workspace, e.g. by
+     * git, are uploaded.
      *
      * @param aSystem - system object
      * @param aProject - project
@@ -115,8 +114,8 @@ public final class Deployment {
      * @param aDeployDirectory - absolute path of the deploy directory
      * @param anIsAll - <code>true</code>, if all files are uploaded, also
      *        unchanged files, without asking for files changed in the IFS
-     * @param aConflictHandler - asks the user, before files changed in the
-     *        IFS are replaced or deleted
+     * @param aConflictHandler - asks the user, before files changed in the IFS
+     *        are replaced or deleted
      * @param aMonitor - progress monitor
      * @return result
      * @throws InterruptedException if the user canceled the upload
@@ -132,7 +131,7 @@ public final class Deployment {
         File manifestFile = getManifestFile(aConnectionName, aDeployDirectory, aProject.getName());
         DeployManifest manifest = readManifest(manifestFile);
 
-        List<String> deletes = new ArrayList<String>();
+        List<String> deletes = new ArrayList<>();
         for (String path : manifest.getPaths()) {
             if (!files.containsKey(path)) {
                 deletes.add(path);
@@ -141,7 +140,7 @@ public final class Deployment {
 
         aMonitor.beginTask(Messages.bind(Messages.Task_Uploading_A_to_B, aProject.getName(), aDeployDirectory), deletes.size() + files.size());
 
-        Set<String> directories = new HashSet<String>();
+        Set<String> directories = new HashSet<>();
         createDirectory(aSystem, aDeployDirectory, directories);
 
         IFSFile tokenFile = new IFSFile(aSystem, aDeployDirectory + SEPARATOR + ProjectFiles.DEPLOY_TOKEN_FILE);
@@ -233,8 +232,8 @@ public final class Deployment {
     }
 
     /**
-     * Uploads a file, unless it is unchanged since the last upload, and
-     * updates its entry of the manifest.
+     * Uploads a file, unless it is unchanged since the last upload, and updates
+     * its entry of the manifest.
      *
      * @return <code>true</code>, if the file has been uploaded
      */
@@ -320,8 +319,9 @@ public final class Deployment {
 
     /**
      * Returns the files of a project, that are uploaded: all files except of
-     * the excluded files, see {@link ProjectFiles#isExcluded(String)}, and the files of the
-     * ignore file, see {@link IgnoreRules}. The project is not refreshed.
+     * the excluded files, see {@link ProjectFiles#isExcluded(String)}, and the
+     * files of the ignore file, see {@link IgnoreRules}. The project is not
+     * refreshed.
      *
      * @param aProject - project
      * @return files by path relative to the project
@@ -334,7 +334,7 @@ public final class Deployment {
 
     private static Map<String, IFile> getFiles(IProject aProject, final IgnoreRules anIgnoreRules) throws CoreException {
 
-        final Map<String, IFile> files = new LinkedHashMap<String, IFile>();
+        final Map<String, IFile> files = new LinkedHashMap<>();
 
         // Team private and hidden resources are skipped by default.
         aProject.accept(new IResourceVisitor() {
@@ -417,15 +417,15 @@ public final class Deployment {
     }
 
     /**
-     * Returns the stream files of the deploy directory, except of the
-     * excluded files and directories, see {@link ProjectFiles#isExcluded(String)}. The
+     * Returns the stream files of the deploy directory, except of the excluded
+     * files and directories, see {@link ProjectFiles#isExcluded(String)}. The
      * attributes of the files are returned by the list operation.
      *
      * @return files by path relative to the deploy directory
      */
     private static Map<String, DeployManifest.RemoteFile> listRemoteFiles(AS400 aSystem, String aDeployDirectory) throws Exception {
 
-        Map<String, DeployManifest.RemoteFile> files = new HashMap<String, DeployManifest.RemoteFile>();
+        Map<String, DeployManifest.RemoteFile> files = new HashMap<>();
         listRemoteFiles(new IFSFile(aSystem, aDeployDirectory), "", files); //$NON-NLS-1$
 
         return files;
@@ -597,7 +597,7 @@ public final class Deployment {
 
         private Result(String aDirectory, Set<String> aPaths) {
             this.directory = aDirectory;
-            this.paths = Collections.unmodifiableSet(new HashSet<String>(aPaths));
+            this.paths = Collections.unmodifiableSet(new HashSet<>(aPaths));
         }
 
         /**

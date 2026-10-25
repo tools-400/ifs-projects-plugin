@@ -35,9 +35,9 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * </ul>
  * A statement, whose first keyword is <code>INCLUDE</code>, becomes an
  * {@link RpgSqlIncludeDirective}; <code>SQLCA</code> and <code>SQLDA</code> are
- * skipped, because they are no copy books. If the name cannot be isolated,
- * e.g. because the statement is not terminated, the directive has no name, so
- * that the converters report it as a problem.
+ * skipped, because they are no copy books. If the name cannot be isolated, e.g.
+ * because the statement is not terminated, the directive has no name, so that
+ * the converters report it as a problem.
  */
 public final class RpgSqlStatements {
 
@@ -58,7 +58,9 @@ public final class RpgSqlStatements {
     /** Number of columns of fixed format sources, that contain code. */
     private static final int FIXED_LENGTH = 80;
 
-    /** Index of column 7, in which the delimiters of fixed format sources stand. */
+    /**
+     * Index of column 7, in which the delimiters of fixed format sources stand.
+     */
     private static final int DELIMITER_INDEX = 6;
 
     /** Blanks of the columns 1 to 6, in front of which a directive starts. */
@@ -81,7 +83,7 @@ public final class RpgSqlStatements {
      */
     public static List<RpgSqlIncludeDirective> find(String aContent) {
 
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         for (String[] line : IncludeConverter.splitLines(aContent)) {
             lines.add(line[0]);
         }
@@ -91,7 +93,7 @@ public final class RpgSqlStatements {
 
     private static List<RpgSqlIncludeDirective> find(List<String> aLines) {
 
-        List<RpgSqlIncludeDirective> includes = new ArrayList<RpgSqlIncludeDirective>();
+        List<RpgSqlIncludeDirective> includes = new ArrayList<>();
 
         boolean isFree = !aLines.isEmpty() && RpgLineConverter.isFree(aLines.get(0));
         boolean isFreeFormat = isFree;
@@ -243,8 +245,8 @@ public final class RpgSqlStatements {
     }
 
     /**
-     * Returns <code>true</code>, if a line contains a delimiter of fixed
-     * format in the positions 7 to 15.
+     * Returns <code>true</code>, if a line contains a delimiter of fixed format
+     * in the positions 7 to 15.
      */
     private static boolean isDelimiter(String aCode, String aDelimiter) {
         return aCode.length() >= DELIMITER_INDEX + aDelimiter.length()
@@ -262,13 +264,13 @@ public final class RpgSqlStatements {
      * Returns the directive of a statement, whose first keyword is
      * <code>INCLUDE</code>.
      *
-     * @return directive or <code>null</code>, if the statement is no include
-     *         or includes <code>SQLCA</code> or <code>SQLDA</code>
+     * @return directive or <code>null</code>, if the statement is no include or
+     *         includes <code>SQLCA</code> or <code>SQLDA</code>
      */
     private static RpgSqlIncludeDirective toDirective(Statement aStatement, List<String> aLines, boolean anIsFree, int aMaxLength) {
 
         StringBuilder buffer = new StringBuilder();
-        List<Integer> starts = new ArrayList<Integer>();
+        List<Integer> starts = new ArrayList<>();
         for (Fragment fragment : aStatement.fragments) {
             if (buffer.length() > 0) {
                 buffer.append(' ');
@@ -379,7 +381,7 @@ public final class RpgSqlStatements {
 
         private final int firstLine;
         private final boolean isFreeFormat;
-        private final List<Fragment> fragments = new ArrayList<Fragment>();
+        private final List<Fragment> fragments = new ArrayList<>();
 
         private int lastLine;
         private boolean isOpen = true;

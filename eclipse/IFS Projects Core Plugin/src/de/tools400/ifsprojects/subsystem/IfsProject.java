@@ -52,8 +52,8 @@ public final class IfsProject {
     }
 
     /**
-     * Returns the filter reference of the project, which is the object shown
-     * in the Remote Systems view.
+     * Returns the filter reference of the project, which is the object shown in
+     * the Remote Systems view.
      *
      * @return filter reference or <code>null</code>
      */

@@ -19,8 +19,8 @@ import org.eclipse.swt.widgets.Shell;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 
 /**
- * UI adapter of the 'IFS Projects' subsystem: project icon for the filters
- * and the 'New > IFS Project' action instead of 'New > Filter'.
+ * UI adapter of the 'IFS Projects' subsystem: project icon for the filters and
+ * the 'New > IFS Project' action instead of 'New > Filter'.
  * <p>
  * Do not override getPasswordValidator() and launchCommand(), because their
  * signatures differ between RDi 9.6 and 9.8.

@@ -39,10 +39,10 @@ import de.tools400.ifsprojects.swt.SummaryGroup;
 import de.tools400.ifsprojects.swt.TableToolTips;
 
 /**
- * Second page of the export: the files of the project, the members, into
- * which they are exported, and the problems, that have been found. Files with
- * errors are not exported. The user can deselect files; then the include
- * directives, that refer to them, are not converted.
+ * Second page of the export: the files of the project, the members, into which
+ * they are exported, and the problems, that have been found. Files with errors
+ * are not exported. The user can deselect files; then the include directives,
+ * that refer to them, are not converted.
  */
 public class ExportPreviewWizardPage extends WizardPage {
 
@@ -86,7 +86,7 @@ public class ExportPreviewWizardPage extends WizardPage {
 
         String[] titles = { Messages.Label_Column_File, Messages.Label_Column_Member, Messages.Label_Column_Type, Messages.Label_Column_Status,
             Messages.Label_Column_Problem };
-        filesGroup = new CheckboxTableGroup<ExportPlan.Item>(main, titles, COLUMN_WIDTHS, new ItemLabelProvider());
+        filesGroup = new CheckboxTableGroup<>(main, titles, COLUMN_WIDTHS, new ItemLabelProvider());
         GridData tableData = (GridData)filesGroup.getTable().getLayoutData();
         tableData.widthHint = TABLE_WIDTH;
         tableData.heightHint = TABLE_HEIGHT;
@@ -184,9 +184,9 @@ public class ExportPreviewWizardPage extends WizardPage {
     }
 
     /**
-     * Shows the summary: files, include directives and, if any, the library
-     * and the source files, that are created, and the files, that have no
-     * known source type.
+     * Shows the summary: files, include directives and, if any, the library and
+     * the source files, that are created, and the files, that have no known
+     * source type.
      */
     private void showSummary() {
 
@@ -207,11 +207,11 @@ public class ExportPreviewWizardPage extends WizardPage {
         }
 
         summaryGroup.clear();
-        summaryGroup.addRow(Messages.Label_Summary_Files, Messages.bind(Messages.Label_Summary_A_of_B_exported_C_replace, new Object[] { Integer
-            .toString(exportedItems.size()), Integer.toString(plan.getItems().size()), Integer.toString(replaced) }));
+        summaryGroup.addRow(Messages.Label_Summary_Files, Messages.bind(Messages.Label_Summary_A_of_B_exported_C_replace,
+            new Object[] { Integer.toString(exportedItems.size()), Integer.toString(plan.getItems().size()), Integer.toString(replaced) }));
         if (plan.getOtherFileCount() > 0) {
-            summaryGroup.addRow(Messages.Label_Summary_Not_exported, Messages.bind(Messages.Label_Summary_A_without_source_type, Integer
-                .toString(plan.getOtherFileCount())));
+            summaryGroup.addRow(Messages.Label_Summary_Not_exported,
+                Messages.bind(Messages.Label_Summary_A_without_source_type, Integer.toString(plan.getOtherFileCount())));
         }
         summaryGroup.addRow(Messages.Label_Summary_Includes, Messages.bind(Messages.Label_Summary_A_converted, Integer.toString(includes)));
         if (plan.isCreateLibrary()) {
@@ -230,7 +230,7 @@ public class ExportPreviewWizardPage extends WizardPage {
      */
     private String getNewSourceFilesText(Map<String, Integer> aNewSourceFiles) {
 
-        Set<Integer> recordLengths = new HashSet<Integer>(aNewSourceFiles.values());
+        Set<Integer> recordLengths = new HashSet<>(aNewSourceFiles.values());
         String ccsid = Integer.toString(plan.getSettings().getCcsid());
 
         StringBuilder files = new StringBuilder();
@@ -246,12 +246,13 @@ public class ExportPreviewWizardPage extends WizardPage {
         }
 
         if (recordLengths.size() == 1) {
-            return Messages.bind(Messages.Label_Summary_A_created_ccsid_B_record_length_C, new Object[] { files.toString(), ccsid, recordLengths
-                .iterator().next().toString() });
+            return Messages.bind(Messages.Label_Summary_A_created_ccsid_B_record_length_C,
+                new Object[] { files.toString(), ccsid, recordLengths.iterator().next().toString() });
         }
 
         return Messages.bind(Messages.Label_Summary_A_created_ccsid_B, files.toString(), ccsid);
     }
+
     /**
      * Shows the problems and the converted include directives of a file.
      */
@@ -271,8 +272,10 @@ public class ExportPreviewWizardPage extends WizardPage {
         if (anItem.getIncludes() != null) {
             for (IncludeConverter.Include include : anItem.getIncludes().getIncludes()) {
                 if (include.getTarget() != null) {
-                    details.append(Messages.bind(Messages.Label_Line_A_B_converted_to_C, new Object[] { Integer.toString(include.getLineNumber()),
-                        include.getName(), include.getTarget() })).append(LINE_SEPARATOR);
+                    details
+                        .append(Messages.bind(Messages.Label_Line_A_B_converted_to_C,
+                            new Object[] { Integer.toString(include.getLineNumber()), include.getName(), include.getTarget() }))
+                        .append(LINE_SEPARATOR);
                 }
             }
         }

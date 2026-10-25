@@ -67,8 +67,8 @@ public class SyntaxCheckJob extends Job {
      *        before the syntax check. The job waits, until they have been
      *        uploaded.
      * @param aSourceMapping - mapping of the project directory to a local
-     *        project or <code>null</code>. The errors of the files of the
-     *        local project are shown for the local files.
+     *        project or <code>null</code>. The errors of the files of the local
+     *        project are shown for the local files.
      */
     public SyntaxCheckJob(IHost aHost, AS400 aSystem, String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables,
         String aSourcePath, String aFileName, SourceType aSourceType, List<IFile> aSavedFiles, SourceMapping aSourceMapping) {
@@ -82,7 +82,7 @@ public class SyntaxCheckJob extends Job {
         this.sourcePath = aSourcePath;
         this.fileName = aFileName;
         this.sourceType = aSourceType;
-        this.savedFiles = new ArrayList<IFile>(aSavedFiles);
+        this.savedFiles = new ArrayList<>(aSavedFiles);
         this.sourceMapping = aSourceMapping;
 
         setUser(true);
@@ -126,8 +126,8 @@ public class SyntaxCheckJob extends Job {
             PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
         } catch (RuntimeException e) {
             IfsProjectsPlugin.logError("Unexpected error checking the syntax of: " + sourcePath, e); //$NON-NLS-1$
-            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Unexpected_error_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Unexpected_error_A, ExceptionUtils.getLocalizedMessage(e)));
         } finally {
             aMonitor.done();
         }

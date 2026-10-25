@@ -23,10 +23,10 @@ import java.util.regex.PatternSyntaxException;
  * comments (<code>#</code>), negation (<code>!</code>), directories (trailing
  * <code>/</code>), patterns relative to the project directory (with a
  * <code>/</code> at the beginning or in the middle) or matching a name at any
- * level, and the wildcards <code>*</code>, <code>?</code>,
- * <code>[...]</code> and <code>**</code>. The last matching rule wins. Like
- * git, a file cannot be included again, if a parent directory is excluded,
- * because the upload does not descend into excluded directories.
+ * level, and the wildcards <code>*</code>, <code>?</code>, <code>[...]</code>
+ * and <code>**</code>. The last matching rule wins. Like git, a file cannot be
+ * included again, if a parent directory is excluded, because the upload does
+ * not descend into excluded directories.
  * <p>
  * Ignore files in subdirectories are not supported.
  */
@@ -66,7 +66,7 @@ public final class IgnoreRules {
      */
     public static IgnoreRules parse(String aContent) {
 
-        List<Rule> rules = new ArrayList<Rule>();
+        List<Rule> rules = new ArrayList<>();
         if (aContent != null) {
             for (String line : aContent.split(LINE_SEPARATOR_PATTERN)) {
                 Rule rule = parseLine(line);

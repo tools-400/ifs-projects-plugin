@@ -27,10 +27,10 @@ import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
  * <code>/COPY INC,CONSTS</code>, in the case of the directive.</li>
  * <li><code>EXEC SQL INCLUDE</code> names only a member, e.g.
  * <code>EXEC SQL INCLUDE HOSTVARS</code>. The compiler searches it in the
- * source file of the parameter <code>INCFILE</code>, by default the source
- * file of the compiled member. Therefore a statement, whose member is exported
- * into another source file than the including member, is converted and
- * reported as {@link Problem#INCLUDE_FILE}.</li>
+ * source file of the parameter <code>INCFILE</code>, by default the source file
+ * of the compiled member. Therefore a statement, whose member is exported into
+ * another source file than the including member, is converted and reported as
+ * {@link Problem#INCLUDE_FILE}.</li>
  * </ul>
  */
 final class RpgIncludeConverter extends ExportIncludeConverter {

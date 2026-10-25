@@ -24,12 +24,12 @@ import de.tools400.ifsprojects.ibmi.ClCommands;
 
 /**
  * Files and source members of the library, into which a project is exported.
- * The record length and the CCSID of a source file are the length and the
- * CCSID of its column <code>SRCDTA</code>.
+ * The record length and the CCSID of a source file are the length and the CCSID
+ * of its column <code>SRCDTA</code>.
  * <p>
  * The files are listed with <code>OBJECT_STATISTICS</code>, because the SQL
- * catalog does not contain program-described files, e.g.
- * <code>EVFEVENT</code>. Verified on the IBM i.
+ * catalog does not contain program-described files, e.g. <code>EVFEVENT</code>.
+ * Verified on the IBM i.
  */
 public final class LibraryInfo {
 
@@ -53,8 +53,8 @@ public final class LibraryInfo {
      */
     public LibraryInfo(boolean anExists) {
         this.exists = anExists;
-        this.files = new HashMap<String, File>();
-        this.members = new HashSet<String>();
+        this.files = new HashMap<>();
+        this.members = new HashSet<>();
     }
 
     /**

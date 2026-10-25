@@ -22,7 +22,8 @@ public class IfsProjectSubSystemConfigurationAdapterFactory implements IAdapterF
     public <T> T getAdapter(Object anAdaptableObject, Class<T> anAdapterType) {
 
         if (anAdapterType == ISubSystemConfigurationAdapter.class && anAdaptableObject instanceof IfsProjectSubSystemConfiguration) {
-            // The UI of the subsystem is used: refresh projects on remote changes.
+            // The UI of the subsystem is used: refresh projects on remote
+            // changes.
             IfsProjectRefreshListener.ensureRegistered();
             return anAdapterType.cast(adapter);
         }

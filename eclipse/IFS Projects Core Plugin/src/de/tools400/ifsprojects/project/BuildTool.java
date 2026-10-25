@@ -19,10 +19,10 @@ import de.tools400.ifsprojects.utils.StringUtils;
 public enum BuildTool {
 
     /** GNU Make with a makefile in the project directory. */
-    GMAKE("gmake", "gmake", "gmake {filename}", "gmake"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    GMAKE ("gmake", "gmake", "gmake {filename}", "gmake"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
     /** TOBi (The Object Builder for i) with iproj.json and Rules.mk. */
-    TOBI("TOBi (makei)", "makei build", "makei compile -f {filename}", "makei"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    TOBI ("TOBi (makei)", "makei build", "makei compile -f {filename}", "makei"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
     /** Characters, that make interprets in names: variables and comments. */
     private static final String MAKE_CHARACTERS = "$#"; //$NON-NLS-1$
@@ -74,8 +74,8 @@ public enum BuildTool {
      *
      * @param aBuildCommand - build command or <code>null</code>
      * @param aCompileCommand - compile command or <code>null</code>
-     * @return build tool or <code>null</code>, if the commands do not belong
-     *         to a build tool
+     * @return build tool or <code>null</code>, if the commands do not belong to
+     *         a build tool
      */
     public static BuildTool find(String aBuildCommand, String aCompileCommand) {
 

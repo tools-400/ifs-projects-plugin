@@ -22,9 +22,8 @@ import de.tools400.ifsprojects.sources.SourceTypes;
  * statements of a migrated member, that refer to members, so that they refer to
  * the stream files of the migration, e.g. <code>/copy QCPYSRC,CONSTS</code> to
  * <code>/copy 'qcpysrc/consts.rpgleinc'</code>. Directives, that refer to
- * stream files, are not changed. A directive is not converted, if its member
- * is in another library, in a source file, that is not migrated, or not
- * found.
+ * stream files, are not changed. A directive is not converted, if its member is
+ * in another library, in a source file, that is not migrated, or not found.
  * <p>
  * The path, that {@link #convert(String, String)} expects, is the key of the
  * member, see {@link SourceMember#getKey()}.
@@ -37,7 +36,7 @@ public abstract class MemberIncludeConverter extends IncludeConverter {
     private final String library;
     private final Map<String, String> paths;
     private final Set<String> sourceFiles;
-    private final Set<String> includedMembers = new HashSet<String>();
+    private final Set<String> includedMembers = new HashSet<>();
 
     /**
      * Creates a converter.
@@ -59,8 +58,8 @@ public abstract class MemberIncludeConverter extends IncludeConverter {
      *
      * @param aSourceType - source type of the member
      * @param aLibrary - library of the migrated source files
-     * @param aPaths - paths of the stream files by the keys of the members,
-     *        see {@link #MemberIncludeConverter(String, Map, Set)}
+     * @param aPaths - paths of the stream files by the keys of the members, see
+     *        {@link #MemberIncludeConverter(String, Map, Set)}
      * @param aSourceFiles - migrated source files
      * @param aStyle - style of the RPG directives
      * @param aSqlIncludeFile - source file of the <code>EXEC SQL INCLUDE</code>
@@ -95,8 +94,8 @@ public abstract class MemberIncludeConverter extends IncludeConverter {
     }
 
     /**
-     * Resolves the member of a directive. If it is not migrated, the problem
-     * is added to the result.
+     * Resolves the member of a directive. If it is not migrated, the problem is
+     * added to the result.
      *
      * @param aResult - result
      * @param aLineNumber - line number
@@ -138,8 +137,8 @@ public abstract class MemberIncludeConverter extends IncludeConverter {
     }
 
     /**
-     * Returns the keys of the members, to which the converted directives
-     * refer, of all sources converted by this converter.
+     * Returns the keys of the members, to which the converted directives refer,
+     * of all sources converted by this converter.
      */
     public Set<String> getIncludedMembers() {
         return Collections.unmodifiableSet(includedMembers);

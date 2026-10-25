@@ -40,7 +40,7 @@ public final class LogLines {
      */
     public List<String> add(byte[] aBytes) {
 
-        List<String> lines = new ArrayList<String>();
+        List<String> lines = new ArrayList<>();
         for (byte b : aBytes) {
             if (b == LINE_FEED) {
                 lines.add(decode(incompleteLine.toByteArray()));

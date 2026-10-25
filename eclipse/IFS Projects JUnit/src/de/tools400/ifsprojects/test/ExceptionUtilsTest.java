@@ -38,8 +38,7 @@ public class ExceptionUtilsTest {
     public void testGetLocalizedMessage_ofTheCause() throws Exception {
 
         assertEquals("Not found", ExceptionUtils.getLocalizedMessage(new InvocationTargetException(new IOException("Not found"))));
-        assertEquals("java.lang.NullPointerException",
-            ExceptionUtils.getLocalizedMessage(new InvocationTargetException(new NullPointerException())));
+        assertEquals("java.lang.NullPointerException", ExceptionUtils.getLocalizedMessage(new InvocationTargetException(new NullPointerException())));
 
         // The own message comes first.
         assertEquals("Not created", ExceptionUtils.getLocalizedMessage(new InvocationTargetException(new IOException("Not found"), "Not created")));

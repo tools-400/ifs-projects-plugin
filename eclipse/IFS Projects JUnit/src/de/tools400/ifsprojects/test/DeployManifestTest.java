@@ -33,7 +33,8 @@ public class DeployManifestTest {
         DeployManifest manifest = new DeployManifest();
         manifest.setToken("8d1f6a2e-0c4b-4e57-9a3e-2f1d6c7b8a90");
         manifest.putEntry("src/hello.rpgle", new DeployManifest.Entry(120, 1791972000000L, 1208, "0cc175b9c0f1b6a831c399e269772661"));
-        manifest.putEntry("inc/umlaut \u00e4\u00f6\u00fc=x.rpgleinc", new DeployManifest.Entry(7, 1791972000001L, 1252, "92eb5ffee6ae2fec3ad71c777531578f"));
+        manifest.putEntry("inc/umlaut \u00e4\u00f6\u00fc=x.rpgleinc",
+            new DeployManifest.Entry(7, 1791972000001L, 1252, "92eb5ffee6ae2fec3ad71c777531578f"));
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         manifest.write(outputStream);
@@ -69,7 +70,8 @@ public class DeployManifestTest {
     @Test
     public void testRead_firstVersion() throws Exception {
 
-        // Entries of the first version have no size and time of the stream file.
+        // Entries of the first version have no size and time of the stream
+        // file.
         String properties = "token=t\nfile.src/hello.rpgle=120,1791972000000,1208,0cc175b9c0f1b6a831c399e269772661\n";
         DeployManifest manifest = DeployManifest.read(new ByteArrayInputStream(properties.getBytes("ISO-8859-1")));
 
@@ -88,7 +90,7 @@ public class DeployManifestTest {
         manifest.putEntry("missing", new DeployManifest.Entry(1, 2, 1208, "d").withRemoteFile(new DeployManifest.RemoteFile(10, 100)));
         manifest.putEntry("unknown", new DeployManifest.Entry(1, 2, 1208, "e"));
 
-        Map<String, DeployManifest.RemoteFile> remoteFiles = new HashMap<String, DeployManifest.RemoteFile>();
+        Map<String, DeployManifest.RemoteFile> remoteFiles = new HashMap<>();
         remoteFiles.put("unchanged", new DeployManifest.RemoteFile(10, 100));
         remoteFiles.put("size", new DeployManifest.RemoteFile(11, 100));
         remoteFiles.put("time", new DeployManifest.RemoteFile(10, 101));

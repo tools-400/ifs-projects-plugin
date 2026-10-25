@@ -59,8 +59,8 @@ public final class JobSummary {
     }
 
     /**
-     * Shows the summary in a dialog: a warning, if there are errors,
-     * otherwise an information. Can be called from any thread.
+     * Shows the summary in a dialog: a warning, if there are errors, otherwise
+     * an information. Can be called from any thread.
      *
      * @param aTitle - title of the dialog
      * @param aMessage - message

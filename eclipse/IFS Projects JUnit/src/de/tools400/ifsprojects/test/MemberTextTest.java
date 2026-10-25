@@ -23,19 +23,18 @@ public class MemberTextTest {
 
     @Test
     public void testParse_fixedRpg() {
-        assertEquals("Display a message", MemberText.parse("     * %METADATA                                                      *\n"
-            + "     *  %TEXT Display a message                                       *\n"
-            + "     * %EMETADATA                                                     *\n"
-            + "     H DFTACTGRP(*NO)\n"));
+        assertEquals("Display a message",
+            MemberText.parse("     * %METADATA                                                      *\n"
+                + "     *  %TEXT Display a message                                       *\n"
+                + "     * %EMETADATA                                                     *\n" + "     H DFTACTGRP(*NO)\n"));
     }
 
     @Test
     public void testParse_freeRpg() {
-        assertEquals("It's free", MemberText.parse("**FREE\r\n"
-            + "      // %METADATA                                                     *\r\n"
-            + "      //  %TEXT It's free                                              *\r\n"
-            + "      // %EMETADATA                                                    *\r\n"
-            + "dcl-s x int(10);\r\n"));
+        assertEquals("It's free",
+            MemberText.parse("**FREE\r\n" + "      // %METADATA                                                     *\r\n"
+                + "      //  %TEXT It's free                                              *\r\n"
+                + "      // %EMETADATA                                                    *\r\n" + "dcl-s x int(10);\r\n"));
     }
 
     @Test
@@ -84,30 +83,35 @@ public class MemberTextTest {
      */
     @Test
     public void testInsert_asTobi() {
-        assertEquals("      *%METADATA                                                       *\n"
-            + "      * %TEXT Fixed format program                                     *\n"
-            + "      *%EMETADATA                                                      *\n"
-            + "     H DFTACTGRP(*NO)\n", MemberText.insert("     H DFTACTGRP(*NO)\n", "RPGLE", "Fixed format program"));
-        assertEquals("**FREE\n"
-            + "      //%METADATA                                                      *\n"
-            + "      // %TEXT 12345678901234567890123456789012345678901234567890      *\n"
-            + "      //%EMETADATA                                                     *\n"
-            + "dcl-s x int(10);\n", MemberText.insert("**FREE\ndcl-s x int(10);\n", "RPGLE", "12345678901234567890123456789012345678901234567890"));
-        assertEquals("      /*%METADATA                                                     */\n"
-            + "      /* %TEXT Start the application                                  */\n"
-            + "      /*%EMETADATA                                                    */\n"
-            + "PGM\n", MemberText.insert("PGM\n", "CLLE", "Start the application"));
-        assertEquals("      --%METADATA                                                      *\n"
-            + "      -- %TEXT Customers                                               *\n"
-            + "      --%EMETADATA                                                     *\n"
-            + "create table x (a int);\n", MemberText.insert("create table x (a int);\n", "SQL", "Customers"));
+        assertEquals(
+            "      *%METADATA                                                       *\n"
+                + "      * %TEXT Fixed format program                                     *\n"
+                + "      *%EMETADATA                                                      *\n" + "     H DFTACTGRP(*NO)\n",
+            MemberText.insert("     H DFTACTGRP(*NO)\n", "RPGLE", "Fixed format program"));
+        assertEquals(
+            "**FREE\n" + "      //%METADATA                                                      *\n"
+                + "      // %TEXT 12345678901234567890123456789012345678901234567890      *\n"
+                + "      //%EMETADATA                                                     *\n" + "dcl-s x int(10);\n",
+            MemberText.insert("**FREE\ndcl-s x int(10);\n", "RPGLE", "12345678901234567890123456789012345678901234567890"));
+        assertEquals(
+            "      /*%METADATA                                                     */\n"
+                + "      /* %TEXT Start the application                                  */\n"
+                + "      /*%EMETADATA                                                    */\n" + "PGM\n",
+            MemberText.insert("PGM\n", "CLLE", "Start the application"));
+        assertEquals(
+            "      --%METADATA                                                      *\n"
+                + "      -- %TEXT Customers                                               *\n"
+                + "      --%EMETADATA                                                     *\n" + "create table x (a int);\n",
+            MemberText.insert("create table x (a int);\n", "SQL", "Customers"));
     }
 
     @Test
     public void testInsert_lineSeparators() {
-        assertEquals("**FREE\r\n      //%METADATA                                                      *\r\n"
-            + "      // %TEXT Free                                                    *\r\n"
-            + "      //%EMETADATA                                                     *\r\n", MemberText.insert("**FREE\r\n", "SQLRPGLE", "Free"));
+        assertEquals(
+            "**FREE\r\n      //%METADATA                                                      *\r\n"
+                + "      // %TEXT Free                                                    *\r\n"
+                + "      //%EMETADATA                                                     *\r\n",
+            MemberText.insert("**FREE\r\n", "SQLRPGLE", "Free"));
         assertEquals("**free\n      //%METADATA                                                      *\n"
             + "      // %TEXT Free                                                    *\n"
             + "      //%EMETADATA                                                     *\n", MemberText.insert("**free", "RPGLE", "Free"));
@@ -115,10 +119,11 @@ public class MemberTextTest {
 
     @Test
     public void testInsert_panelGroup() {
-        assertEquals(".*%METADATA                                                            *\n"
-            + ".* %TEXT Help                                                          *\n"
-            + ".*%EMETADATA                                                           *\n"
-            + ":PNLGRP.\n", MemberText.insert(":PNLGRP.\n", "PNLGRP", "Help"));
+        assertEquals(
+            ".*%METADATA                                                            *\n"
+                + ".* %TEXT Help                                                          *\n"
+                + ".*%EMETADATA                                                           *\n" + ":PNLGRP.\n",
+            MemberText.insert(":PNLGRP.\n", "PNLGRP", "Help"));
     }
 
     @Test
@@ -135,8 +140,8 @@ public class MemberTextTest {
     @Test
     public void testInsert_parse() {
         for (String sourceType : new String[] { "RPGLE", "SQLRPGLE", "CLLE", "CMD", "DSPF", "SQL", "PNLGRP" }) {
-            assertEquals(sourceType, "Text of " + sourceType, MemberText.parse(MemberText.insert("line 1\nline 2\n", sourceType, "Text of "
-                + sourceType)));
+            assertEquals(sourceType, "Text of " + sourceType,
+                MemberText.parse(MemberText.insert("line 1\nline 2\n", sourceType, "Text of " + sourceType)));
         }
     }
 }

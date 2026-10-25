@@ -116,8 +116,8 @@ public final class IProjConfig {
     /**
      * Sets the value of a string attribute. An empty value removes the
      * attribute. An unchanged value is kept as it is, so that a number, e.g.
-     * <code>"version": 1</code>, does not become a string and
-     * <code>null</code> is not removed, when the other attributes are saved.
+     * <code>"version": 1</code>, does not become a string and <code>null</code>
+     * is not removed, when the other attributes are saved.
      *
      * @param aKey - attribute name
      * @param aValue - value
@@ -158,7 +158,7 @@ public final class IProjConfig {
      */
     public List<String> getStringList(String aKey) {
 
-        List<String> values = new ArrayList<String>();
+        List<String> values = new ArrayList<>();
 
         JsonElement element = json.get(aKey);
         if (element == null || element.isJsonNull()) {
@@ -196,7 +196,7 @@ public final class IProjConfig {
             return values;
         }
 
-        values = new ArrayList<String>();
+        values = new ArrayList<>();
         String value = getString(aKey);
         if (value != null) {
             values.add(value);

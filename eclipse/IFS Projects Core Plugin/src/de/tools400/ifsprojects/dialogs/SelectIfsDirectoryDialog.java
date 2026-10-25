@@ -238,7 +238,7 @@ public class SelectIfsDirectoryDialog extends Dialog {
             return null;
         }
 
-        List<IfsDirectoryItem> directoryPath = new ArrayList<IfsDirectoryItem>();
+        List<IfsDirectoryItem> directoryPath = new ArrayList<>();
         directoryPath.add(aRootDirectory);
 
         IfsDirectoryItem currentDirectory = aRootDirectory;

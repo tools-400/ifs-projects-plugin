@@ -23,8 +23,8 @@ import de.tools400.ifsprojects.project.IProjConfig;
 
 /**
  * Property page of the environment variables of a local IFS project. The
- * variables are stored in the workspace for the connection of the project,
- * see {@link LocalProject#getEnvironmentVariables(IProject, String)}, and are
+ * variables are stored in the workspace for the connection of the project, see
+ * {@link LocalProject#getEnvironmentVariables(IProject, String)}, and are
  * exported before the build and compile commands are executed, see
  * {@link AbstractEnvironmentPropertyPage}.
  */

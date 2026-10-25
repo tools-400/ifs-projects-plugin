@@ -15,8 +15,8 @@ import java.util.Set;
 /**
  * Selection of the files of a project directory, that are uploaded to the
  * deploy directory of a local IFS project or exported to a library: all files
- * except of the excluded files, see {@link #isExcluded(String)}, and the
- * files of the ignore file, see {@link #readIgnoreRules(ProjectDirectory)}.
+ * except of the excluded files, see {@link #isExcluded(String)}, and the files
+ * of the ignore file, see {@link #readIgnoreRules(ProjectDirectory)}.
  */
 public final class ProjectFiles {
 
@@ -24,7 +24,7 @@ public final class ProjectFiles {
     public static final String DEPLOY_TOKEN_FILE = ".ifsprojects-deploy"; //$NON-NLS-1$
 
     /** Files and directories of the project directory, that are excluded. */
-    private static final Set<String> EXCLUDED_NAMES = new HashSet<String>(Arrays.asList(".git", ".project", ".settings", ".logs", ".evfevent", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+    private static final Set<String> EXCLUDED_NAMES = new HashSet<>(Arrays.asList(".git", ".project", ".settings", ".logs", ".evfevent", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
         ".deps", IgnoreRules.DEPLOY_IGNORE_FILE, DEPLOY_TOKEN_FILE)); //$NON-NLS-1$
 
     private static final char SEPARATOR = '/';

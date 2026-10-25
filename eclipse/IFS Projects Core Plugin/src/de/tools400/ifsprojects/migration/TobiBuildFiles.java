@@ -23,22 +23,21 @@ import de.tools400.ifsprojects.sources.headers.SourceHeader;
 /**
  * Contents of the build files of TOBi for migrated source files:
  * <ul>
- * <li><code>.ibmi.json</code> of a directory with the CCSID of its source
- * file, like <code>makei cvtsrcpf</code>.</li>
+ * <li><code>.ibmi.json</code> of a directory with the CCSID of its source file,
+ * like <code>makei cvtsrcpf</code>.</li>
  * <li><code>Rules.mk</code> of the project directory with the directories of
  * the source files.</li>
  * <li>A draft of the <code>Rules.mk</code> of a directory with one rule per
  * member. The object type comes from the create command of the header of the
  * build tool, e.g. <code>STRPREPRC</code> (see {@link SourceHeader}), otherwise
- * from the source type. The
- * copy books of a member are its prerequisites with their paths relative to the
- * project directory, because TOBi passes prerequisites with unknown extensions
- * like <code>rpgleinc</code> unchanged to make, which runs in the project
- * directory. CL programs and panel groups get the recipe, that TOBi 3.4 does not
- * assign itself, CL sources the directory of the source as INCDIR, and sources
- * with an <code>EXEC SQL INCLUDE</code> of a stream file
- * <code>DBGVIEW := *LIST</code>, because the default <code>*SOURCE</code> of
- * TOBi fails for them.</li>
+ * from the source type. The copy books of a member are its prerequisites with
+ * their paths relative to the project directory, because TOBi passes
+ * prerequisites with unknown extensions like <code>rpgleinc</code> unchanged to
+ * make, which runs in the project directory. CL programs and panel groups get
+ * the recipe, that TOBi 3.4 does not assign itself, CL sources the directory of
+ * the source as INCDIR, and sources with an <code>EXEC SQL INCLUDE</code> of a
+ * stream file <code>DBGVIEW := *LIST</code>, because the default
+ * <code>*SOURCE</code> of TOBi fails for them.</li>
  * </ul>
  */
 public final class TobiBuildFiles {
@@ -70,8 +69,8 @@ public final class TobiBuildFiles {
     }
 
     /**
-     * Returns the content of the <code>.ibmi.json</code> file of the
-     * directory of a source file.
+     * Returns the content of the <code>.ibmi.json</code> file of the directory
+     * of a source file.
      *
      * @param aSourceFile - source file
      * @param aHexCcsid - CCSID of the members of a source file with CCSID
@@ -108,7 +107,7 @@ public final class TobiBuildFiles {
         rules.append("# The objects are defined in the Rules.mk files of the directories.").append(LF); //$NON-NLS-1$
         rules.append(LF);
         rules.append("SUBDIRS ="); //$NON-NLS-1$
-        for (String directory : new TreeSet<String>(aDirectories)) {
+        for (String directory : new TreeSet<>(aDirectories)) {
             rules.append(' ').append(directory);
         }
         rules.append(LF);
@@ -117,8 +116,8 @@ public final class TobiBuildFiles {
     }
 
     /**
-     * Returns the draft of the <code>Rules.mk</code> file of the directory of
-     * a source file.
+     * Returns the draft of the <code>Rules.mk</code> file of the directory of a
+     * source file.
      *
      * @param aSourceFile - source file, e.g. <code>JSMITH#CL/QRPGLESRC</code>
      * @param anItems - migrated members of the source file
@@ -134,7 +133,7 @@ public final class TobiBuildFiles {
         rules.append("#   %.MODULE: private DBGVIEW := *LIST").append(LF); //$NON-NLS-1$
         rules.append("#   HELLO.PGM: private ACTGRP := *NEW").append(LF); //$NON-NLS-1$
 
-        List<String> unsupported = new ArrayList<String>();
+        List<String> unsupported = new ArrayList<>();
         for (MigrationPlan.Item item : anItems) {
             String rule = getRule(item);
             if (rule == null) {
@@ -178,7 +177,8 @@ public final class TobiBuildFiles {
         if (SourceTypes.CLLE.equals(sourceType)) {
             // TOBi compiles CL from a copy in QTEMP, so that INCLUDE finds
             // relative paths only in INCDIR (verified with makei 3.4).
-            rule.append(target).append(": private INCDIR := '").append(MigrationMapping.getDirectory(anItem.getMember().getSourceFile())).append("'").append(LF); //$NON-NLS-1$ //$NON-NLS-2$
+            rule.append(target).append(": private INCDIR := '").append(MigrationMapping.getDirectory(anItem.getMember().getSourceFile())).append("'") //$NON-NLS-1$ //$NON-NLS-2$
+                .append(LF);
         } else if (SourceTypes.SQLRPGLE.equals(sourceType) && hasSqlIncludeOfStreamFile(anItem.getContent())) {
             // DBGVIEW(*SOURCE), the default of TOBi, fails for a statement
             // that includes a stream file (verified with makei 3.4).

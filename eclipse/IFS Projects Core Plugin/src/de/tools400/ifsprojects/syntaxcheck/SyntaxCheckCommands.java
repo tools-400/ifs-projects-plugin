@@ -47,7 +47,6 @@ public final class SyntaxCheckCommands {
     /** Library of the compiled objects and of the events file. */
     public static final String LIBRARY = "QTEMP"; //$NON-NLS-1$
 
-
     /**
      * Message of CRTRPGMOD: "Keywords DFTACTGRP, ACTGRP, or USRPRF are not
      * allowed." It is reported, when the source of a program is compiled as
@@ -220,10 +219,9 @@ public final class SyntaxCheckCommands {
      * Returns the commands, that set up the job of the syntax check like the
      * build jobs of TOBi: the current directory is the project directory, the
      * commands of <code>setIBMiEnvCmd</code> are executed and the libraries of
-     * <code>curlib</code>, <code>preUsrlibl</code> and
-     * <code>postUsrlibl</code> are added to the library list. Variables
-     * (<code>&amp;NAME</code>) are replaced by the environment variables of the
-     * project.
+     * <code>curlib</code>, <code>preUsrlibl</code> and <code>postUsrlibl</code>
+     * are added to the library list. Variables (<code>&amp;NAME</code>) are
+     * replaced by the environment variables of the project.
      *
      * @param aProjectDirectory - absolute project directory
      * @param aConfig - content of <code>iproj.json</code>
@@ -232,7 +230,7 @@ public final class SyntaxCheckCommands {
      */
     public static List<String> getSetupCommands(String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables) {
 
-        List<String> commands = new ArrayList<String>();
+        List<String> commands = new ArrayList<>();
         commands.add("CHGCURDIR DIR(" + ClCommands.quote(aProjectDirectory) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 
         for (String command : IProjValues.getValues(aConfig, IProjConfig.SET_IBMI_ENV_CMD, aVariables)) {

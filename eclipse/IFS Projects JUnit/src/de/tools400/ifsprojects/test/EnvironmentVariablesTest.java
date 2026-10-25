@@ -70,7 +70,7 @@ public class EnvironmentVariablesTest {
     @Test
     public void testFormat() {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
         variables.put("EMPTY", "");
 
@@ -83,12 +83,12 @@ public class EnvironmentVariablesTest {
     @Test
     public void testMerge() {
 
-        Map<String, String> defaults = new LinkedHashMap<String, String>();
+        Map<String, String> defaults = new LinkedHashMap<>();
         defaults.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
         defaults.put("LIB", "DSPSRC");
         defaults.put("TRACE", "1");
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("LIB", "QTEMP");
         variables.put("TRACE", "");
         variables.put("LANG", "ENG");
@@ -135,7 +135,7 @@ public class EnvironmentVariablesTest {
     @Test
     public void testResolveReferences() {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("ENVCMD", "CHGSYSLIBL LIB(UBMSYS) OPTION(*REMOVE)");
         variables.put("LIB", "DSPSRC");
         variables.put("EMPTY", "");

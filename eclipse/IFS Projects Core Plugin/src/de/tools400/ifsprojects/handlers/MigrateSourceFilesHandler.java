@@ -45,8 +45,8 @@ import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Migrates source files into a new IFS project: all source files of a
- * selected library or the selected source files of one library, see
+ * Migrates source files into a new IFS project: all source files of a selected
+ * library or the selected source files of one library, see
  * {@link MigrateToIfsProjectWizard}.
  */
 public class MigrateSourceFilesHandler extends AbstractHandler {
@@ -70,23 +70,23 @@ public class MigrateSourceFilesHandler extends AbstractHandler {
             return null;
         }
 
-        final List<SourceFile> sourceFiles = new ArrayList<SourceFile>();
+        final List<SourceFile> sourceFiles = new ArrayList<>();
         final String[] homeDirectory = new String[1];
         try {
             readSourceFiles(shell, system, library, selectedFiles, sourceFiles, homeDirectory);
         } catch (InvocationTargetException e) {
             Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not read the source files of: " + library, cause); //$NON-NLS-1$
-            MessageDialog.openError(shell, Messages.Title_Migrate_to_IFS_project, Messages.bind(Messages.Error_Could_not_read_A_B, library,
-                ExceptionUtils.getLocalizedMessage(cause)));
+            MessageDialog.openError(shell, Messages.Title_Migrate_to_IFS_project,
+                Messages.bind(Messages.Error_Could_not_read_A_B, library, ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;
         }
 
         if (sourceFiles.isEmpty()) {
-            MessageDialog.openInformation(shell, Messages.Title_Migrate_to_IFS_project, Messages.bind(Messages.Info_Library_A_has_no_source_files,
-                library));
+            MessageDialog.openInformation(shell, Messages.Title_Migrate_to_IFS_project,
+                Messages.bind(Messages.Info_Library_A_has_no_source_files, library));
             return null;
         }
 
@@ -97,12 +97,12 @@ public class MigrateSourceFilesHandler extends AbstractHandler {
     }
 
     /**
-     * Returns the selected library or the selected source files of the
-     * library of the first one.
+     * Returns the selected library or the selected source files of the library
+     * of the first one.
      */
     private static List<QSYSRemoteObject> getSelectedObjects(ISelection aSelection) {
 
-        List<QSYSRemoteObject> objects = new ArrayList<QSYSRemoteObject>();
+        List<QSYSRemoteObject> objects = new ArrayList<>();
         if (!(aSelection instanceof IStructuredSelection)) {
             return objects;
         }
@@ -122,8 +122,8 @@ public class MigrateSourceFilesHandler extends AbstractHandler {
     }
 
     /**
-     * Returns the names of the selected source files or <code>null</code>, if
-     * a library is selected.
+     * Returns the names of the selected source files or <code>null</code>, if a
+     * library is selected.
      */
     private static Set<String> getSelectedFiles(List<QSYSRemoteObject> anObjects) {
 
@@ -131,7 +131,7 @@ public class MigrateSourceFilesHandler extends AbstractHandler {
             return null;
         }
 
-        Set<String> files = new HashSet<String>();
+        Set<String> files = new HashSet<>();
         for (QSYSRemoteObject object : anObjects) {
             files.add(object.getName());
         }

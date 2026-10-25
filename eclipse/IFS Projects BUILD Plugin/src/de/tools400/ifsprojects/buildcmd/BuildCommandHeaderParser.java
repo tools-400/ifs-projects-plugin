@@ -18,9 +18,8 @@ import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
 import de.tools400.ifsprojects.sources.headers.QuotedStrings;
 
 /**
- * Reads the compile commands of the <code>BUILD</code> command of Scott
- * Klement (https://www.scottklement.com/build/) in the first lines of a
- * source, e.g.
+ * Reads the compile commands of the <code>BUILD</code> command of Scott Klement
+ * (https://www.scottklement.com/build/) in the first lines of a source, e.g.
  *
  * <pre>
  *       * To compile:
@@ -34,14 +33,14 @@ import de.tools400.ifsprojects.sources.headers.QuotedStrings;
  * line, and ends at the optional <code>&lt;*</code> outside of a quoted string
  * or at the end of the line. A line, that ends with <code>-</code>, is
  * continued by the next line, which repeats <code>*&gt;</code>; a line without
- * the marker ends the command, so that an unterminated one does not swallow
- * the source. The prefix <code>IGN:</code>, with which the build tool ignores
- * a failing command, is removed.
+ * the marker ends the command, so that an unterminated one does not swallow the
+ * source. The prefix <code>IGN:</code>, with which the build tool ignores a
+ * failing command, is removed.
  * <p>
  * The substitution variables of the build tool start with <code>&amp;</code>,
- * e.g. <code>&amp;L</code> for the library of the source and <code>&amp;ON</code>
- * for the name of the object, so that a library, that is a variable, is
- * recognized as such.
+ * e.g. <code>&amp;L</code> for the library of the source and
+ * <code>&amp;ON</code> for the name of the object, so that a library, that is a
+ * variable, is recognized as such.
  * <p>
  * The marker is two characters only, so a source could contain it by chance.
  * The parser therefore has a lower priority than the one of
@@ -66,7 +65,7 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
     @Override
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<CreateCommand> commands = new ArrayList<CreateCommand>();
+        List<CreateCommand> commands = new ArrayList<>();
 
         ListIterator<String> lines = HeaderLines.read(aContent).listIterator();
         while (lines.hasNext()) {
@@ -116,9 +115,9 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
     }
 
     /**
-     * Returns the text behind the start tag of the next line, if it continues
-     * a command, i.e. if it repeats the start tag. Otherwise the line is not
-     * read and <code>null</code> is returned.
+     * Returns the text behind the start tag of the next line, if it continues a
+     * command, i.e. if it repeats the start tag. Otherwise the line is not read
+     * and <code>null</code> is returned.
      */
     private static String readContinuationLine(ListIterator<String> aLines) {
 
@@ -171,8 +170,8 @@ public final class BuildCommandHeaderParser implements ISourceHeaderParser {
     }
 
     /**
-     * Returns the command without the prefix, with which the build tool
-     * ignores its failure.
+     * Returns the command without the prefix, with which the build tool ignores
+     * its failure.
      */
     private static String removeIgnorePrefix(String aText) {
 

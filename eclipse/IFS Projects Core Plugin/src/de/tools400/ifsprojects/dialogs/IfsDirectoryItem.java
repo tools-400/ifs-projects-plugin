@@ -87,7 +87,7 @@ class IfsDirectoryItem {
             return new IfsDirectoryItem[0];
         }
 
-        List<IfsDirectoryItem> items = new ArrayList<IfsDirectoryItem>();
+        List<IfsDirectoryItem> items = new ArrayList<>();
 
         try {
 

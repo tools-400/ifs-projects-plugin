@@ -18,9 +18,9 @@ import org.eclipse.ui.handlers.HandlerUtil;
 /**
  * Compiles the selected file of a local IFS project: uploads the new and
  * changed files of the project to the deploy directory and runs the compile
- * command of the <code>iproj.json</code> file or the default compile command
- * of the preferences there, like {@link CompileIfsFileHandler}. All changes
- * are uploaded, so that changed copy books are compiled too. See
+ * command of the <code>iproj.json</code> file or the default compile command of
+ * the preferences there, like {@link CompileIfsFileHandler}. All changes are
+ * uploaded, so that changed copy books are compiled too. See
  * {@link LocalProjectCommands#build}.
  */
 public class CompileLocalFileHandler extends AbstractHandler {

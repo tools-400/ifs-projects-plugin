@@ -43,19 +43,19 @@ import de.tools400.ifsprojects.utils.PlatformUtils;
  * polls them with a copy of the RSE system object:
  * <ul>
  * <li>Until the start file exists, the shell has not started the command. If
- * the terminal session is closed until then, the command is never executed
- * and the job ends. The job also ends, if the shell has not started the
- * command 60 seconds after it has been written to the terminal, e.g. because
- * the project directory does not exist, the prompt line contained input or
- * the command line has been discarded with Ctrl+C.</li>
+ * the terminal session is closed until then, the command is never executed and
+ * the job ends. The job also ends, if the shell has not started the command 60
+ * seconds after it has been written to the terminal, e.g. because the project
+ * directory does not exist, the prompt line contained input or the command line
+ * has been discarded with Ctrl+C.</li>
  * <li>The exit code file shows, that the command has ended.</li>
  * <li>A killed subshell does not write the exit code file. Therefore the job
  * checks every 30 seconds, whether the subshell still exists.</li>
  * </ul>
  * Until the job ends, the terminal session does not receive the command lines
  * of other builds, see {@link ITerminalCommandLine#setRunning(boolean)}.
- * Canceling the job only stops waiting. The command is interrupted with
- * Ctrl+C in the terminal.
+ * Canceling the job only stops waiting. The command is interrupted with Ctrl+C
+ * in the terminal.
  */
 public class TerminalBuildJob extends Job {
 
@@ -69,8 +69,8 @@ public class TerminalBuildJob extends Job {
     private static final long START_TIMEOUT_MILLIS = 60000;
 
     /**
-     * Number of polls after the terminal session has been closed, until the
-     * job stops waiting for the start file.
+     * Number of polls after the terminal session has been closed, until the job
+     * stops waiting for the start file.
      */
     private static final int CLOSED_SESSION_POLLS = 2;
 
@@ -87,8 +87,8 @@ public class TerminalBuildJob extends Job {
 
     private ITerminalCommandLine commandLine;
 
-    private TerminalBuildJob(String aName, IHost aHost, AS400 aRseSystem, String aDirectory, String anObjectLibrary,
-        SourceMapping aSourceMapping, String aTemporaryDirectory, String anId) {
+    private TerminalBuildJob(String aName, IHost aHost, AS400 aRseSystem, String aDirectory, String anObjectLibrary, SourceMapping aSourceMapping,
+        String aTemporaryDirectory, String anId) {
         super(aName);
 
         this.host = aHost;
@@ -101,8 +101,8 @@ public class TerminalBuildJob extends Job {
     }
 
     /**
-     * Prepares a build: installs the script, that writes the marker files,
-     * and creates the ID of the marker files.
+     * Prepares a build: installs the script, that writes the marker files, and
+     * creates the ID of the marker files.
      * <p>
      * Must not be called on the UI thread.
      *
@@ -128,9 +128,9 @@ public class TerminalBuildJob extends Job {
     }
 
     /**
-     * Writes the script, that writes the marker files, if it does not exist
-     * or differs. An existing script is deleted before, so that a shell, that
-     * is reading it, keeps the old content.
+     * Writes the script, that writes the marker files, if it does not exist or
+     * differs. An existing script is deleted before, so that a shell, that is
+     * reading it, keeps the old content.
      *
      * @param aSystem - system object
      * @param aTemporaryDirectory - directory of temporary files, see
@@ -209,7 +209,8 @@ public class TerminalBuildJob extends Job {
                 // Short command: the exit code file has been found first.
                 startTime = startFile.exists() ? startFile.lastModified() : exitCodeFile.lastModified();
             } else if (waitForEnd(session.getCommandCall(), startFile, exitCodeFile, goneFile, aMonitor)) {
-                IfsProjectsPlugin.logWarning("The command in the terminal has ended without exit code, e.g. because it has been killed: " + directory); //$NON-NLS-1$
+                IfsProjectsPlugin
+                    .logWarning("The command in the terminal has ended without exit code, e.g. because it has been killed: " + directory); //$NON-NLS-1$
             }
 
             showEvents(session, startTime);
@@ -240,8 +241,8 @@ public class TerminalBuildJob extends Job {
             events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
         } catch (IOException e) {
             IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
-            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_show_errors_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Could_not_show_errors_A, ExceptionUtils.getLocalizedMessage(e)));
             return;
         }
 
@@ -281,7 +282,8 @@ public class TerminalBuildJob extends Job {
                 sentTime = System.currentTimeMillis();
             }
             if (sentTime != 0 && System.currentTimeMillis() - sentTime >= START_TIMEOUT_MILLIS) {
-                IfsProjectsPlugin.logWarning("The command in the terminal has not started in time, e.g. because the directory does not exist: " + directory); //$NON-NLS-1$
+                IfsProjectsPlugin
+                    .logWarning("The command in the terminal has not started in time, e.g. because the directory does not exist: " + directory); //$NON-NLS-1$
                 return NOT_STARTED;
             }
 

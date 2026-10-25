@@ -168,7 +168,7 @@ public final class Preferences {
         int invalidLine = EnvironmentVariables.findInvalidLine(text);
         if (invalidLine > 0) {
             IfsProjectsPlugin.logError("Default environment variables ignored, invalid line: " + invalidLine, null); //$NON-NLS-1$
-            return new LinkedHashMap<String, String>();
+            return new LinkedHashMap<>();
         }
 
         return EnvironmentVariables.parse(text);
@@ -208,7 +208,7 @@ public final class Preferences {
      */
     public Set<String> getDisabledSourceHeaderParsers() {
 
-        Set<String> ids = new HashSet<String>();
+        Set<String> ids = new HashSet<>();
         for (String id : preferenceStore.getString(DISABLED_SOURCE_HEADER_PARSERS).split(ID_SEPARATOR)) {
             String trimmed = StringUtils.trimToNull(id);
             if (trimmed != null) {
@@ -220,15 +220,15 @@ public final class Preferences {
     }
 
     /**
-     * Stores the IDs of the parsers of the headers of the build tools, that
-     * are switched off.
+     * Stores the IDs of the parsers of the headers of the build tools, that are
+     * switched off.
      *
      * @param anIds - IDs of the disabled parsers
      */
     public void setDisabledSourceHeaderParsers(Collection<String> anIds) {
 
         StringBuilder value = new StringBuilder();
-        for (String id : new TreeSet<String>(anIds)) {
+        for (String id : new TreeSet<>(anIds)) {
             if (value.length() > 0) {
                 value.append(ID_SEPARATOR);
             }

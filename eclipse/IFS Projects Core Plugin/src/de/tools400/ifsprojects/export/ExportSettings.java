@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import de.tools400.ifsprojects.sources.MemberText;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
@@ -28,7 +29,9 @@ public final class ExportSettings {
     public static final int MIN_CCSID = 1;
     public static final int MAX_CCSID = 65533;
 
-    /** Source file of {@link SourceFileRule#SINGLE_FILE}, until one is entered. */
+    /**
+     * Source file of {@link SourceFileRule#SINGLE_FILE}, until one is entered.
+     */
     public static final String DEFAULT_SOURCE_FILE = "QSOURCE"; //$NON-NLS-1$
 
     private static final String LIBRARY = "library"; //$NON-NLS-1$
@@ -108,7 +111,7 @@ public final class ExportSettings {
      */
     public Map<String, String> toMap() {
 
-        Map<String, String> values = new LinkedHashMap<String, String>();
+        Map<String, String> values = new LinkedHashMap<>();
         if (library != null) {
             values.put(LIBRARY, library);
         }
@@ -165,8 +168,8 @@ public final class ExportSettings {
     }
 
     /**
-     * Returns the minimum record length of new source files, including
-     * sequence number and date.
+     * Returns the minimum record length of new source files, including sequence
+     * number and date.
      */
     public int getRecordLength() {
         return recordLength;
@@ -225,8 +228,8 @@ public final class ExportSettings {
      * @param aValue - value or <code>null</code>
      * @param aMinimum - minimum
      * @param aMaximum - maximum
-     * @return value or <code>null</code>, if the value is not an integer in
-     *         the range
+     * @return value or <code>null</code>, if the value is not an integer in the
+     *         range
      */
     public static Integer parseInt(String aValue, int aMinimum, int aMaximum) {
 

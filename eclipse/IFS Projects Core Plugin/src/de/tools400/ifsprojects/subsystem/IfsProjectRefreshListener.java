@@ -39,7 +39,6 @@ import de.tools400.ifsprojects.ibmi.IfsPaths;
  */
 public final class IfsProjectRefreshListener implements ISystemRemoteChangeListener {
 
-
     private static IfsProjectRefreshListener instance;
 
     private IfsProjectRefreshListener() {
@@ -85,7 +84,7 @@ public final class IfsProjectRefreshListener implements ISystemRemoteChangeListe
                 return;
             }
 
-            Set<String> parentDirectories = new HashSet<String>();
+            Set<String> parentDirectories = new HashSet<>();
             addDirectory(anEvent.getResourceParent(), parentDirectories);
             addParentDirectories(anEvent.getResource(), parentDirectories);
 
@@ -104,8 +103,8 @@ public final class IfsProjectRefreshListener implements ISystemRemoteChangeListe
 
         ISystemFilterReference filterReference = aProject.getFilterReference();
         if (filterReference != null) {
-            RSEUIPlugin.getTheSystemRegistryUI().postEvent(
-                new SystemResourceChangeEvent(filterReference, ISystemResourceChangeEvents.EVENT_REFRESH, null));
+            RSEUIPlugin.getTheSystemRegistryUI()
+                .postEvent(new SystemResourceChangeEvent(filterReference, ISystemResourceChangeEvents.EVENT_REFRESH, null));
         }
     }
 

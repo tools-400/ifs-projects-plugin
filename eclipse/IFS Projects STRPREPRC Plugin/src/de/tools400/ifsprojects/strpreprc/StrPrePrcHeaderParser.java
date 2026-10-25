@@ -24,18 +24,18 @@ import de.tools400.ifsprojects.sources.headers.QuotedStrings;
  * lines of a source, e.g.
  *
  * <pre>
- *  //&gt;&gt;PRE-COMPILER&lt;&lt;
- *  //&gt;&gt;CRTCMD&lt;&lt; CRTSQLRPGI OBJ(&amp;LI/&amp;OB) SRCSTMF('&amp;STMF') +
- *  //            INCFILE(&amp;SL/QCPYSRC) RPGPPOPT(*LVL2);
- *  //&gt;&gt;END-PRE-COMPILER&lt;&lt;
+ * // &gt;&gt;PRE-COMPILER&lt;&lt;
+ * // &gt;&gt;CRTCMD&lt;&lt; CRTSQLRPGI OBJ(&amp;LI/&amp;OB) SRCSTMF('&amp;STMF') +
+ * // INCFILE(&amp;SL/QCPYSRC) RPGPPOPT(*LVL2);
+ * // &gt;&gt;END-PRE-COMPILER&lt;&lt;
  * </pre>
  *
  * A command starts behind the tag <code>&gt;&gt;CRTCMD&lt;&lt;</code> and ends
- * with a semicolon outside of a quoted string, which can span several lines.
- * A line, that ends with <code>+</code> or <code>-</code>, is continued by the
- * next line of the header, from which the comment characters of the source
- * are removed: <code>//</code> of free form RPG, <code>*</code> of fixed form
- * RPG, also in column 7 behind a form type, e.g.
+ * with a semicolon outside of a quoted string, which can span several lines. A
+ * line, that ends with <code>+</code> or <code>-</code>, is continued by the
+ * next line of the header, from which the comment characters of the source are
+ * removed: <code>//</code> of free form RPG, <code>*</code> of fixed form RPG,
+ * also in column 7 behind a form type, e.g.
  * <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H*</code>, the start of a comment of CL
  * and <code>--</code> of SQL. A line, that is no comment or that contains
  * another tag, ends the command, so that a header without a semicolon does not
@@ -93,7 +93,7 @@ public final class StrPrePrcHeaderParser implements ISourceHeaderParser {
     @Override
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<CreateCommand> commands = new ArrayList<CreateCommand>();
+        List<CreateCommand> commands = new ArrayList<>();
 
         ListIterator<String> lines = HeaderLines.read(aContent).listIterator();
         while (lines.hasNext()) {

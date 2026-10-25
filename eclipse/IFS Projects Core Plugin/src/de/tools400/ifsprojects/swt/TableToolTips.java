@@ -17,9 +17,9 @@ import org.eclipse.swt.widgets.TableItem;
 
 /**
  * Shows a tool tip per row of a table, e.g. the full texts of problems, that a
- * column shows only partly. It is a tool tip of JFace, because the native
- * tool tip text of the table does not show on Windows, where the table shows
- * its own tips of truncated cells.
+ * column shows only partly. It is a tool tip of JFace, because the native tool
+ * tip text of the table does not show on Windows, where the table shows its own
+ * tips of truncated cells.
  */
 public final class TableToolTips {
 
@@ -42,11 +42,10 @@ public final class TableToolTips {
     }
 
     /**
-     * Shows the tool tips of the rows of a table, while the mouse is over
-     * them.
+     * Shows the tool tips of the rows of a table, while the mouse is over them.
      *
-     * @param aTable - table, whose items hold the elements, e.g. the table of
-     *        a table viewer
+     * @param aTable - table, whose items hold the elements, e.g. the table of a
+     *        table viewer
      * @param aProvider - provider of the tool tips
      */
     public static void install(Table aTable, Provider aProvider) {

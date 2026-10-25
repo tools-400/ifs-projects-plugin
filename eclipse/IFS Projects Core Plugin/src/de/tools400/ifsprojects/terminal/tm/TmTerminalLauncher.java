@@ -29,8 +29,8 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 /**
  * Terminal backend for the TM terminal that is shipped with RDi 9.6, 9.8 and
  * 9.9 (<code>org.eclipse.tm.terminal</code> and
- * <code>org.eclipse.tm.terminal.control</code>). All sessions are hosted by
- * one {@link TmTerminalView}.
+ * <code>org.eclipse.tm.terminal.control</code>). All sessions are hosted by one
+ * {@link TmTerminalView}.
  * <p>
  * This class must not reference TM classes in its signature. It is loaded
  * before it is known, whether the TM bundles are installed.
@@ -45,8 +45,10 @@ public class TmTerminalLauncher implements ITerminalLauncher {
     /**
      * Pairs of extension point ID and SSH connector ID.
      * <ul>
-     * <li>RDi 9.8: new TM terminal (<code>org.eclipse.tm.terminal.control</code>)</li>
-     * <li>RDi 9.6, 9.9: old TM terminal (<code>org.eclipse.tm.terminal</code>)</li>
+     * <li>RDi 9.8: new TM terminal
+     * (<code>org.eclipse.tm.terminal.control</code>)</li>
+     * <li>RDi 9.6, 9.9: old TM terminal
+     * (<code>org.eclipse.tm.terminal</code>)</li>
      * </ul>
      */
     private static final String[][] SSH_CONNECTORS = { //

@@ -68,7 +68,7 @@ public final class SourceHeaderParsers {
      * @param aParsers - parsers in the order, in which they are called
      */
     public SourceHeaderParsers(List<ISourceHeaderParser> aParsers) {
-        this.parsers = Collections.unmodifiableList(new ArrayList<ISourceHeaderParser>(aParsers));
+        this.parsers = Collections.unmodifiableList(new ArrayList<>(aParsers));
     }
 
     /**
@@ -99,7 +99,7 @@ public final class SourceHeaderParsers {
 
         Set<String> disabled = Preferences.getInstance().getDisabledSourceHeaderParsers();
 
-        List<ISourceHeaderParser> enabled = new ArrayList<ISourceHeaderParser>();
+        List<ISourceHeaderParser> enabled = new ArrayList<>();
         for (Contribution contribution : all) {
             if (!disabled.contains(contribution.getId())) {
                 enabled.add(contribution.getParser());
@@ -147,7 +147,7 @@ public final class SourceHeaderParsers {
 
     private static List<Contribution> findContributions() {
 
-        List<Contribution> found = new ArrayList<Contribution>();
+        List<Contribution> found = new ArrayList<>();
 
         IExtensionRegistry registry = Platform.getExtensionRegistry();
         if (registry == null) {
@@ -155,7 +155,7 @@ public final class SourceHeaderParsers {
             return found;
         }
 
-        List<IConfigurationElement> elements = new ArrayList<IConfigurationElement>();
+        List<IConfigurationElement> elements = new ArrayList<>();
         for (IConfigurationElement element : registry.getConfigurationElementsFor(EXTENSION_POINT_ID)) {
             if (ELEMENT_PARSER.equals(element.getName())) {
                 elements.add(element);
@@ -172,8 +172,8 @@ public final class SourceHeaderParsers {
             try {
                 Object object = element.createExecutableExtension(ATTRIBUTE_CLASS);
                 if (object instanceof ISourceHeaderParser) {
-                    found.add(new Contribution(element.getAttribute(ATTRIBUTE_ID), element.getAttribute(ATTRIBUTE_NAME),
-                        (ISourceHeaderParser)object));
+                    found
+                        .add(new Contribution(element.getAttribute(ATTRIBUTE_ID), element.getAttribute(ATTRIBUTE_NAME), (ISourceHeaderParser)object));
                 }
             } catch (CoreException e) {
                 IfsProjectsPlugin.logError("Could not create source header parser: " + element.getAttribute(ATTRIBUTE_ID), e); //$NON-NLS-1$

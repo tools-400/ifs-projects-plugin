@@ -38,7 +38,7 @@ public class MigrationFilesTest {
         Map<String, String> files = MigrationFiles.getFiles(createPlan(), SOURCE_FILES, true);
 
         assertEquals(Arrays.asList("qrpglesrc/hello.rpgle", "qcpysrc/consts.rpgleinc", "qrpglesrc/.ibmi.json", "qrpglesrc/Rules.mk",
-            "qcpysrc/.ibmi.json", "qcpysrc/Rules.mk", "Rules.mk"), new ArrayList<String>(files.keySet()));
+            "qcpysrc/.ibmi.json", "qcpysrc/Rules.mk", "Rules.mk"), new ArrayList<>(files.keySet()));
         assertEquals("**FREE\n/copy 'qcpysrc/consts.rpgleinc'\n", files.get("qrpglesrc/hello.rpgle"));
         assertTrue(files.get("qcpysrc/.ibmi.json").contains("\"tgtCcsid\": \"1141\""));
         assertTrue(files.get("Rules.mk").endsWith("SUBDIRS = qcpysrc qrpglesrc\n"));
@@ -49,13 +49,13 @@ public class MigrationFilesTest {
 
         Map<String, String> files = MigrationFiles.getFiles(createPlan(), SOURCE_FILES, false);
 
-        assertEquals(Arrays.asList("qrpglesrc/hello.rpgle", "qcpysrc/consts.rpgleinc"), new ArrayList<String>(files.keySet()));
+        assertEquals(Arrays.asList("qrpglesrc/hello.rpgle", "qcpysrc/consts.rpgleinc"), new ArrayList<>(files.keySet()));
     }
 
     private static MigrationPlan createPlan() {
 
-        List<SourceMember> members = new ArrayList<SourceMember>();
-        Map<String, String> contents = new HashMap<String, String>();
+        List<SourceMember> members = new ArrayList<>();
+        Map<String, String> contents = new HashMap<>();
         add(members, contents, "QRPGLESRC", "HELLO", "RPGLE", "**FREE\n/copy QCPYSRC,CONSTS\n");
         add(members, contents, "QRPGLESRC", "NOTYPE", null, "x\n");
         add(members, contents, "QCPYSRC", "CONSTS", "RPGLE", "**FREE\n");

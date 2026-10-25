@@ -33,11 +33,11 @@ import de.tools400.ifsprojects.sources.headers.ISourceHeaderParser;
  * </pre>
  *
  * The marker <code>*%%%</code> stands in columns 7 - 10, but is searched
- * anywhere in a line, like the markers of the other build tools. The
- * character behind it is a flag:
+ * anywhere in a line, like the markers of the other build tools. The character
+ * behind it is a flag:
  * <ul>
- * <li>a blank: the next 50 characters are a part of the command; the parts of
- * a command are joined with a blank,</li>
+ * <li>a blank: the next 50 characters are a part of the command; the parts of a
+ * command are joined with a blank,</li>
  * <li><code>#</code>: end of a command,</li>
  * <li><code>&amp;</code>: end of the last command and of the header,</li>
  * <li><code>*</code>: comment, e.g. a parameter that is switched off with
@@ -86,7 +86,7 @@ public final class CplCasHeaderParser implements ISourceHeaderParser {
     @Override
     public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-        List<CreateCommand> commands = new ArrayList<CreateCommand>();
+        List<CreateCommand> commands = new ArrayList<>();
         StringBuilder text = new StringBuilder();
 
         for (String line : HeaderLines.read(aContent)) {

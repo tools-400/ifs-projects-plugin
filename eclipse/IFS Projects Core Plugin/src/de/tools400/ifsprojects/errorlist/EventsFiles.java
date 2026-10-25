@@ -18,8 +18,8 @@ import java.util.Set;
  * <p>
  * Each record starts with its type, e.g.
  * <code>ERROR 0 001 1 000006 000006 001 000006 012 RNF7030 S 30 050 The name ...</code>.
- * The text of a long message may continue on the following lines, which do
- * not start with a record type.
+ * The text of a long message may continue on the following lines, which do not
+ * start with a record type.
  */
 public final class EventsFiles {
 
@@ -27,7 +27,7 @@ public final class EventsFiles {
     public static final String EVENTS_FILE = "EVFEVENT"; //$NON-NLS-1$
 
     private static final String ERROR = "ERROR"; //$NON-NLS-1$
-    private static final Set<String> RECORD_TYPES = new HashSet<String>(Arrays.asList("TIMESTAMP", "PROCESSOR", "FILEID", "FILEIDCONT", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    private static final Set<String> RECORD_TYPES = new HashSet<>(Arrays.asList("TIMESTAMP", "PROCESSOR", "FILEID", "FILEIDCONT", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         "FILEEND", ERROR, "EXPANSION", "PROGRAM", "MAPDEFINE", "MAPSTART", "MAPEND", "FEEDBACK")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
     private static final int MESSAGE_ID_INDEX = 9;
     private static final String LINE_SEPARATOR_PATTERN = "\\r?\\n"; //$NON-NLS-1$

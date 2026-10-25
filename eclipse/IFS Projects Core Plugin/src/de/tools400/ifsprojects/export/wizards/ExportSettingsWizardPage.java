@@ -120,8 +120,8 @@ public class ExportSettingsWizardPage extends WizardPage {
     }
 
     /**
-     * Returns the settings, that have been entered. Must only be called, if
-     * the page is complete.
+     * Returns the settings, that have been entered. Must only be called, if the
+     * page is complete.
      */
     public ExportSettings getSettings() {
 
@@ -151,8 +151,8 @@ public class ExportSettingsWizardPage extends WizardPage {
 
     /**
      * Reads the project and the library and returns the preview, or
-     * <code>null</code>, if they could not be read or the user does not want
-     * to create the library.
+     * <code>null</code>, if they could not be read or the user does not want to
+     * create the library.
      */
     @Override
     public IWizardPage getNextPage() {

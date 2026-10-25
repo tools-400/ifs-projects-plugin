@@ -17,7 +17,8 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
  * Checks the syntax of the selected RPGLE or SQLRPGLE file of a local IFS
- * project, see {@link SyntaxCheckLauncher#launch(org.eclipse.swt.widgets.Shell, IFile)}.
+ * project, see
+ * {@link SyntaxCheckLauncher#launch(org.eclipse.swt.widgets.Shell, IFile)}.
  */
 public class CheckSyntaxLocalFileHandler extends AbstractHandler {
 

@@ -108,9 +108,9 @@ public final class MemberText {
      * @param aContent - content of the source
      * @param aSourceType - source type of the member, e.g. <code>RPGLE</code>
      * @param aText - member text
-     * @return content with the comment block or the content itself, if the
-     *         text is empty, the source type has no comment style or the
-     *         source has a member text already
+     * @return content with the comment block or the content itself, if the text
+     *         is empty, the source type has no comment style or the source has
+     *         a member text already
      */
     public static String insert(String aContent, String aSourceType, String aText) {
 
@@ -197,17 +197,33 @@ public final class MemberText {
     private enum CommentStyle {
 
         /** C and CL style. */
-        BLOCK("/*", "*/", INDENTATION, "CMD", "CMDSRC", "C", "CPP", "CLLE", "CLP", "SQLC", "SQLCPP", "BND", "ILESRVPGM", "BNDDIR", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$ //$NON-NLS-13$ //$NON-NLS-14$
-            "DTAARA", "SYSTRG", "MSGF"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        BLOCK (
+            "/*", //$NON-NLS-1$
+            "*/", //$NON-NLS-1$
+            INDENTATION,
+            "CMD", //$NON-NLS-1$
+            "CMDSRC", //$NON-NLS-1$
+            "C", //$NON-NLS-1$
+            "CPP", //$NON-NLS-1$
+            "CLLE", //$NON-NLS-1$
+            "CLP", //$NON-NLS-1$
+            "SQLC", //$NON-NLS-1$
+            "SQLCPP", //$NON-NLS-1$
+            "BND", //$NON-NLS-1$
+            "ILESRVPGM", //$NON-NLS-1$
+            "BNDDIR", //$NON-NLS-1$
+            "DTAARA", //$NON-NLS-1$
+            "SYSTRG", //$NON-NLS-1$
+            "MSGF"), //$NON-NLS-1$
 
         /** SQL style. */
-        SQL("--", "*", INDENTATION, "TABLE", "PFSQL", "VIEW", "SQLUDT", "SQLALIAS", "SQLSEQ", "SQLPRC", "SQLTRG", "SQLUDF", "SQL", "INDEX"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$ //$NON-NLS-13$
+        SQL ("--", "*", INDENTATION, "TABLE", "PFSQL", "VIEW", "SQLUDT", "SQLALIAS", "SQLSEQ", "SQLPRC", "SQLTRG", "SQLUDF", "SQL", "INDEX"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$ //$NON-NLS-13$
 
         /** Fixed form of RPG, DDS and COBOL ("COBOL" style of TOBi). */
-        FIXED_FORM("*", "*", INDENTATION, "DSPF", "LF", "PF", "PRTF", "RPGLE", "SQLRPGLE", "CBLLE", "SQLCBLLE", "CBL", "RPG"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$
+        FIXED_FORM ("*", "*", INDENTATION, "DSPF", "LF", "PF", "PRTF", "RPGLE", "SQLRPGLE", "CBLLE", "SQLCBLLE", "CBL", "RPG"), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$
 
         /** Panel groups and menus. */
-        PANEL(".*", "*", "", "PNLGRPSRC", "MENUSRC", "PNLGRP"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+        PANEL (".*", "*", "", "PNLGRPSRC", "MENUSRC", "PNLGRP"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 
         private final String start;
         private final String end;
@@ -218,7 +234,7 @@ public final class MemberText {
             this.start = aStart;
             this.end = anEnd;
             this.indentation = anIndentation;
-            this.sourceTypes = new HashSet<String>(Arrays.asList(aSourceTypes));
+            this.sourceTypes = new HashSet<>(Arrays.asList(aSourceTypes));
         }
 
         static CommentStyle forSourceType(String aSourceType) {

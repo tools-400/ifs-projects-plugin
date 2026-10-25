@@ -43,12 +43,14 @@ import de.tools400.ifsprojects.rse.RseSelections;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
- * Common code of the handlers of local IFS projects. Errors are reported to
- * the user. The methods must be called on the UI thread.
+ * Common code of the handlers of local IFS projects. Errors are reported to the
+ * user. The methods must be called on the UI thread.
  */
 final class LocalProjectCommands {
 
-    /** Number of files listed in the question about files changed in the IFS. */
+    /**
+     * Number of files listed in the question about files changed in the IFS.
+     */
     private static final int MAX_LISTED_FILES = 20;
 
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
@@ -132,10 +134,9 @@ final class LocalProjectCommands {
     }
 
     /**
-     * Prepares a command of a local IFS project: returns the local IFS
-     * project, asks the user to save the editors of the files of the project,
-     * that have unsaved changes, and connects the RSE connection of the
-     * project.
+     * Prepares a command of a local IFS project: returns the local IFS project,
+     * asks the user to save the editors of the files of the project, that have
+     * unsaved changes, and connects the RSE connection of the project.
      *
      * @param aShell - parent shell
      * @param aProject - project or <code>null</code>
@@ -180,8 +181,8 @@ final class LocalProjectCommands {
 
         LocalProject localProject = LocalProject.get(aProject);
         if (localProject == null) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_A_is_not_configured_as_IFS_project,
-                aProject.getName()));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_A_is_not_configured_as_IFS_project, aProject.getName()));
         }
 
         return localProject;
@@ -198,17 +199,17 @@ final class LocalProjectCommands {
 
         IHost host = aLocalProject.getHost();
         if (host == null) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Connection_A_of_B_not_found,
-                aLocalProject.getConnectionName(), aLocalProject.getName()));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Connection_A_of_B_not_found, aLocalProject.getConnectionName(), aLocalProject.getName()));
         }
 
         return host;
     }
 
     /**
-     * Returns the environment variables, that are exported before the
-     * commands of a local IFS project: the default environment variables of
-     * the preferences and the environment variables of the project.
+     * Returns the environment variables, that are exported before the commands
+     * of a local IFS project: the default environment variables of the
+     * preferences and the environment variables of the project.
      *
      * @param aLocalProject - local IFS project
      * @return variables, never <code>null</code>
@@ -224,9 +225,9 @@ final class LocalProjectCommands {
      * local files.
      * <p>
      * The build runs the build command of the <code>iproj.json</code> file or
-     * the default build command, the compile the compile command or the
-     * default compile command. The environment variables of the project and
-     * the default environment variables are exported before.
+     * the default build command, the compile the compile command or the default
+     * compile command. The environment variables of the project and the default
+     * environment variables are exported before.
      *
      * @param aShell - parent shell
      * @param aProject - project
@@ -283,13 +284,13 @@ final class LocalProjectCommands {
         try {
             return aLocalProject.readConfig();
         } catch (IProjParseException e) {
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Invalid_iproj_json_A,
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Invalid_iproj_json_A, ExceptionUtils.getLocalizedMessage(e)));
         } catch (Exception e) {
             String path = aLocalProject.getProject().getFile(IProjConfig.FILE_NAME).getFullPath().toString();
             IfsProjectsPlugin.logError("Could not read iproj.json: " + path, e); //$NON-NLS-1$
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_read_A_B, path,
-                ExceptionUtils.getLocalizedMessage(e)));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Could_not_read_A_B, path, ExceptionUtils.getLocalizedMessage(e)));
         }
 
         return null;
@@ -346,8 +347,8 @@ final class LocalProjectCommands {
                     public void run() {
                         // The progress dialog is the active shell.
                         Shell shell = aShell.getDisplay().getActiveShell();
-                        isOverwrite[0] = MessageDialog.openQuestion(shell == null ? aShell : shell, Messages.Title_IFS_Projects, Messages.bind(
-                            Messages.Question_Files_changed_in_IFS_A, formatPaths(aPaths)));
+                        isOverwrite[0] = MessageDialog.openQuestion(shell == null ? aShell : shell, Messages.Title_IFS_Projects,
+                            Messages.bind(Messages.Question_Files_changed_in_IFS_A, formatPaths(aPaths)));
                     }
                 });
                 return isOverwrite[0];
@@ -373,8 +374,8 @@ final class LocalProjectCommands {
         } catch (InvocationTargetException e) {
             Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not upload project: " + aLocalProject.getName(), cause); //$NON-NLS-1$
-            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, Messages.bind(Messages.Error_Could_not_upload_A_B, aLocalProject.getName(),
-                ExceptionUtils.getLocalizedMessage(cause)));
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects,
+                Messages.bind(Messages.Error_Could_not_upload_A_B, aLocalProject.getName(), ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;

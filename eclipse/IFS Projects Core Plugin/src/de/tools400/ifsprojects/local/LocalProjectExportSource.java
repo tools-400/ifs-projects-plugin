@@ -29,9 +29,8 @@ import de.tools400.ifsprojects.remote.RemoteJobs;
  * files as by the upload are exported, see {@link Deployment#getFiles}.
  * <p>
  * The deploy directory is the project directory of the include directives,
- * because the project is compiled there. The settings are saved per
- * connection as persistent property of the project, like the environment
- * variables.
+ * because the project is compiled there. The settings are saved per connection
+ * as persistent property of the project, like the environment variables.
  */
 public final class LocalProjectExportSource implements ExportSource {
 
@@ -83,7 +82,7 @@ public final class LocalProjectExportSource implements ExportSource {
 
         localProject.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 
-        return new ArrayList<String>(Deployment.getFiles(localProject.getProject()).keySet());
+        return new ArrayList<>(Deployment.getFiles(localProject.getProject()).keySet());
     }
 
     public String readFile(AS400 aSystem, String aPath) throws Exception {

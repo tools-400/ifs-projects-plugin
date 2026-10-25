@@ -60,8 +60,8 @@ public class ExportToLibraryWizard extends Wizard {
 
         Preferences preferences = Preferences.getInstance();
         String objectLibrary = IProjValues.getObjectLibrary(aSource.getConfig(), aSource.getVariables());
-        this.initialSettings = aSource.loadSettings(new ExportSettings(objectLibrary, preferences.getExportCcsid(),
-            preferences.getExportRecordLength()));
+        this.initialSettings = aSource
+            .loadSettings(new ExportSettings(objectLibrary, preferences.getExportCcsid(), preferences.getExportRecordLength()));
 
         setWindowTitle(Messages.Title_Export_to_library);
         setNeedsProgressMonitor(true);
@@ -91,8 +91,8 @@ public class ExportToLibraryWizard extends Wizard {
             IfsProjectsPlugin.logError("Could not save the export settings of: " + source.getName(), e); //$NON-NLS-1$
         }
 
-        new ExportJob(source.getHost(), rseSystem, source.getName(), plan, new OverwriteQueryDialog(Messages.Title_Export_to_library,
-            Messages.Question_Replace_member_A)).schedule();
+        new ExportJob(source.getHost(), rseSystem, source.getName(), plan,
+            new OverwriteQueryDialog(Messages.Title_Export_to_library, Messages.Question_Replace_member_A)).schedule();
 
         return true;
     }
@@ -126,16 +126,15 @@ public class ExportToLibraryWizard extends Wizard {
         } catch (InvocationTargetException e) {
             Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not read the project for the export: " + source.getName(), cause); //$NON-NLS-1$
-            settingsPage.setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, source.getName(),
-                ExceptionUtils.getLocalizedMessage(cause)));
+            settingsPage
+                .setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, source.getName(), ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;
         }
 
-        if (plan[0].isCreateLibrary()
-            && !MessageDialog.openQuestion(getShell(), Messages.Title_Export_to_library, Messages.bind(Messages.Question_Create_library_A,
-                settings.getLibrary()))) {
+        if (plan[0].isCreateLibrary() && !MessageDialog.openQuestion(getShell(), Messages.Title_Export_to_library,
+            Messages.bind(Messages.Question_Create_library_A, settings.getLibrary()))) {
             return null;
         }
 

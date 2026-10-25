@@ -20,7 +20,10 @@ public final class IfsFilterStrings {
     private static final String ROOT = "/"; //$NON-NLS-1$
     private static final String ALL_FILES = "*"; //$NON-NLS-1$
 
-    /** Switches of RSE remote file filter strings (no sub-directories, no files). */
+    /**
+     * Switches of RSE remote file filter strings (no sub-directories, no
+     * files).
+     */
     private static final String[] SWITCHES = { " /ns", " /nf" }; //$NON-NLS-1$ //$NON-NLS-2$
 
     private IfsFilterStrings() {
@@ -67,9 +70,10 @@ public final class IfsFilterStrings {
     /**
      * Returns the directory part of a filter string.
      *
-     * @param aFilterString - filter string, e.g. <code>/home/jsmith/*.rpgle</code>
-     * @return directory, e.g. <code>/home/jsmith</code> or <code>null</code>, if
-     *         the filter string does not start with a slash
+     * @param aFilterString - filter string, e.g.
+     *        <code>/home/jsmith/*.rpgle</code>
+     * @return directory, e.g. <code>/home/jsmith</code> or <code>null</code>,
+     *         if the filter string does not start with a slash
      */
     public static String getDirectory(String aFilterString) {
 

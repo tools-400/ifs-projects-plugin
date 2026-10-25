@@ -9,8 +9,8 @@
 package de.tools400.ifsprojects.dialogs;
 
 /**
- * Asks the user, whether an existing object, e.g. a member or a stream file,
- * is replaced. See {@link OverwriteQueryDialog} and
+ * Asks the user, whether an existing object, e.g. a member or a stream file, is
+ * replaced. See {@link OverwriteQueryDialog} and
  * {@link RememberingOverwriteQuery}.
  */
 public interface OverwriteQuery {

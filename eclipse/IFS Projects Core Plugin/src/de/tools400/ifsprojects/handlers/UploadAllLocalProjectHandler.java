@@ -9,9 +9,9 @@
 package de.tools400.ifsprojects.handlers;
 
 /**
- * Uploads all files of the selected local IFS project to its deploy
- * directory, also unchanged files, e.g. after the deploy directory has been
- * changed outside of the plug-in.
+ * Uploads all files of the selected local IFS project to its deploy directory,
+ * also unchanged files, e.g. after the deploy directory has been changed
+ * outside of the plug-in.
  */
 public class UploadAllLocalProjectHandler extends UploadLocalProjectHandler {
 

@@ -43,7 +43,7 @@ public final class RemoteEditors {
      */
     public static List<IEditorPart> findDirtyEditors(IHost aHost, String aPath) {
 
-        List<IEditorPart> editors = new ArrayList<IEditorPart>();
+        List<IEditorPart> editors = new ArrayList<>();
         for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
             for (IWorkbenchPage page : window.getPages()) {
                 for (IEditorPart editor : page.getDirtyEditors()) {
@@ -92,8 +92,7 @@ public final class RemoteEditors {
     }
 
     /**
-     * Returns the absolute path of the remote file, whose local copy is
-     * edited.
+     * Returns the absolute path of the remote file, whose local copy is edited.
      *
      * @param aFile - local copy of a remote file
      * @return path or <code>null</code>, if the file is not the local copy of a

@@ -9,8 +9,8 @@
 package de.tools400.ifsprojects.handlers;
 
 /**
- * Opens an additional SSH terminal in the directory of the selected IFS
- * object, even if a terminal of that directory is already open.
+ * Opens an additional SSH terminal in the directory of the selected IFS object,
+ * even if a terminal of that directory is already open.
  */
 public class OpenNewTerminalHereHandler extends OpenTerminalHereHandler {
 

@@ -25,9 +25,9 @@ import de.tools400.ifsprojects.sources.headers.SourceHeader;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
 
 /**
- * The part of the headers, that all build tools have in common: the CL
- * commands and the selection of the parser. The headers themselves are read by
- * plug-ins of their own, which are tested in fragments of those, see
+ * The part of the headers, that all build tools have in common: the CL commands
+ * and the selection of the parser. The headers themselves are read by plug-ins
+ * of their own, which are tested in fragments of those, see
  * {@link TestHeaderParser}.
  * <p>
  * A parser, that throws an exception, is skipped and logged as well. That path
@@ -193,7 +193,7 @@ public class SourceHeaderTest {
 
         public List<CreateCommand> parse(String aContent, String aSourceType) {
 
-            List<CreateCommand> commands = new ArrayList<CreateCommand>();
+            List<CreateCommand> commands = new ArrayList<>();
             for (String line : aContent.split("\n")) {
                 int tag = line.indexOf("MAKE:");
                 if (tag >= 0) {

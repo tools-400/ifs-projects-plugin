@@ -17,9 +17,9 @@ import de.tools400.ifsprojects.utils.StringUtils;
 /**
  * Finds the <code>/COPY</code> and <code>/INCLUDE</code> directives and the
  * <code>EXEC SQL INCLUDE</code> statements (see {@link RpgSqlStatements}) in
- * the lines of an RPG source or copy book and lets the subclass convert them.
- * A converted SQL statement is written with its first line; its further lines
- * are dropped.
+ * the lines of an RPG source or copy book and lets the subclass convert them. A
+ * converted SQL statement is written with its first line; its further lines are
+ * dropped.
  * <ul>
  * <li>Fixed format: the directive starts in column 7 or later, columns 81 and
  * later are comments and keep their position. Comment lines (<code>*</code> in
@@ -65,7 +65,7 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
      */
     protected RpgLineConverter(String aContent) {
 
-        this.sqlIncludes = new HashMap<Integer, RpgSqlIncludeDirective>();
+        this.sqlIncludes = new HashMap<>();
         for (RpgSqlIncludeDirective directive : RpgSqlStatements.find(aContent)) {
             sqlIncludes.put(Integer.valueOf(directive.getFirstLineNumber()), directive);
         }
@@ -164,9 +164,9 @@ public abstract class RpgLineConverter implements IncludeConverter.LineConverter
     }
 
     /**
-     * Appends the comment columns of a fixed format line to the converted
-     * line. If the conversion produced several lines, the comment is appended
-     * to the last one.
+     * Appends the comment columns of a fixed format line to the converted line.
+     * If the conversion produced several lines, the comment is appended to the
+     * last one.
      */
     private static String appendComment(String aConverted, String aComment) {
 

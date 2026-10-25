@@ -13,9 +13,9 @@ import java.util.Map;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
- * Syntax of the commands of the PASE shells: quoting, the export of
- * environment variables, placeholders of the build and compile commands and
- * the call of a shell script from CL.
+ * Syntax of the commands of the PASE shells: quoting, the export of environment
+ * variables, placeholders of the build and compile commands and the call of a
+ * shell script from CL.
  */
 public final class PaseCommands {
 
@@ -54,14 +54,14 @@ public final class PaseCommands {
     }
 
     /**
-     * Returns the command, preceded by the export of environment variables.
-     * The variables are assigned first and then exported, because the Bourne
-     * shell (bsh) does not support <code>export NAME=value</code>:
+     * Returns the command, preceded by the export of environment variables. The
+     * variables are assigned first and then exported, because the Bourne shell
+     * (bsh) does not support <code>export NAME=value</code>:
      * <code>A='1' B='2' &amp;&amp; export A B &amp;&amp; command</code>. The
      * variables stay exported in the shell of the terminal.
      *
-     * @param aVariables - environment variables, the names must be valid
-     *        shell names, see {@link #isVariableName(String)}
+     * @param aVariables - environment variables, the names must be valid shell
+     *        names, see {@link #isVariableName(String)}
      * @param aCommand - command or <code>null</code>
      * @return command line without line terminator or <code>null</code>, if
      *         neither variables nor a command have been specified

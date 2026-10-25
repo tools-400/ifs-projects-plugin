@@ -50,5 +50,4 @@ public class IfsFilterStringsTest {
         assertNull(IfsFilterStrings.getDirectory((String[])null));
     }
 
-
 }

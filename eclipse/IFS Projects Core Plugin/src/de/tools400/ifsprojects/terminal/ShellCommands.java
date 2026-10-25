@@ -31,14 +31,14 @@ public final class ShellCommands {
     }
 
     /**
-     * Returns the command line that changes to the specified directory and
-     * then executes the specified command.
+     * Returns the command line that changes to the specified directory and then
+     * executes the specified command.
      *
      * @param aDirectory - directory to change to or <code>null</code>
      * @param aCommand - command that is executed or <code>null</code>. The
      *        command is sent as is (user shell syntax).
-     * @return command line terminated by {@link #ENTER} or <code>null</code>, if
-     *         neither a directory nor a command has been specified
+     * @return command line terminated by {@link #ENTER} or <code>null</code>,
+     *         if neither a directory nor a command has been specified
      */
     public static String toCommandLine(String aDirectory, String aCommand) {
 

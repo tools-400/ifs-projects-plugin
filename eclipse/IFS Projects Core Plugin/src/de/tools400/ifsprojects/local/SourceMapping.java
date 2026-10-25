@@ -43,8 +43,7 @@ public final class SourceMapping {
     }
 
     /**
-     * Returns the absolute path of the deploy directory without trailing
-     * slash.
+     * Returns the absolute path of the deploy directory without trailing slash.
      */
     public String getRemoteDirectory() {
         return remoteDirectory;

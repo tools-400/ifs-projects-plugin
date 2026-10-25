@@ -27,9 +27,9 @@ import de.tools400.ifsprojects.terminal.TerminalRequest;
 import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
- * Creates terminal requests from RSE connections: user ID and saved password
- * of the connection, settings of the preferences. The user ID is prompted, if
- * the connection has none.
+ * Creates terminal requests from RSE connections: user ID and saved password of
+ * the connection, settings of the preferences. The user ID is prompted, if the
+ * connection has none.
  */
 public final class RseTerminalRequests {
 
@@ -81,8 +81,8 @@ public final class RseTerminalRequests {
 
     /**
      * Converts an IBM i user profile name to the user ID used for the SSH
-     * login. IBM i user profiles are upper case, but the SSH login is
-     * performed with the lower case name.
+     * login. IBM i user profiles are upper case, but the SSH login is performed
+     * with the lower case name.
      *
      * @param aUserId - IBM i user profile, e.g. JSMITH
      * @param aLowercase - specifies whether to convert the user ID to lower

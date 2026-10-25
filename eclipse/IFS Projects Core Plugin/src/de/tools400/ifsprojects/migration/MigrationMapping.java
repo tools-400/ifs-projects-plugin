@@ -16,10 +16,9 @@ import de.tools400.ifsprojects.sources.SourceTypes;
  * Maps the members of source files to stream files of a project, like
  * <code>makei cvtsrcpf --tolower</code> of TOBi: the member <code>NAME</code>
  * of type <code>TYPE</code> in the source file <code>QXXXSRC</code> becomes
- * <code>qxxxsrc/name.type</code>. A copy book, i.e. a member included by
- * other members, gets the extension <code>typeinc</code>, which TOBi
- * recommends, e.g. <code>qcpysrc/consts.rpgleinc</code>, if TOBi knows its
- * source type.
+ * <code>qxxxsrc/name.type</code>. A copy book, i.e. a member included by other
+ * members, gets the extension <code>typeinc</code>, which TOBi recommends, e.g.
+ * <code>qcpysrc/consts.rpgleinc</code>, if TOBi knows its source type.
  */
 public final class MigrationMapping {
 

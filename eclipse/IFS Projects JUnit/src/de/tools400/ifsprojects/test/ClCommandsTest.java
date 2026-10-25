@@ -45,11 +45,14 @@ public class ClCommandsTest {
 
     @Test
     public void testGetCopyToStreamFileCommand() {
-        assertEquals("CPYTOSTMF FROMMBR('/QSYS.LIB/JSMITH#CL.LIB/EVFEVENT.FILE/HELLO.MBR') TOSTMF('/home/jsmith/.ifsprojects/tmp/x.member') STMFOPT(*REPLACE) STMFCCSID(1208)",
-            ClCommands.getCopyToStreamFileCommand(ClCommands.getMemberPath("JSMITH#CL", "EVFEVENT", "HELLO"), "/home/jsmith/.ifsprojects/tmp/x.member"));
+        assertEquals(
+            "CPYTOSTMF FROMMBR('/QSYS.LIB/JSMITH#CL.LIB/EVFEVENT.FILE/HELLO.MBR') TOSTMF('/home/jsmith/.ifsprojects/tmp/x.member') STMFOPT(*REPLACE) STMFCCSID(1208)",
+            ClCommands.getCopyToStreamFileCommand(ClCommands.getMemberPath("JSMITH#CL", "EVFEVENT", "HELLO"),
+                "/home/jsmith/.ifsprojects/tmp/x.member"));
         assertEquals("CPYTOSTMF FROMMBR('/QSYS.LIB/QTEMP.LIB/EVFEVENT.FILE/HELLO.MBR') TOSTMF('/tmp/it''s') STMFOPT(*REPLACE) STMFCCSID(1208)",
             ClCommands.getCopyToStreamFileCommand(ClCommands.getMemberPath("QTEMP", "EVFEVENT", "HELLO"), "/tmp/it's"));
-        assertEquals("CPYTOSTMF FROMMBR('/QSYS.LIB/JSMITH#CL.LIB/QRPGLESRC.FILE/HELLO.MBR') TOSTMF('/tmp/x.member') STMFOPT(*REPLACE) STMFCCSID(1208) DBFCCSID(1141)",
+        assertEquals(
+            "CPYTOSTMF FROMMBR('/QSYS.LIB/JSMITH#CL.LIB/QRPGLESRC.FILE/HELLO.MBR') TOSTMF('/tmp/x.member') STMFOPT(*REPLACE) STMFCCSID(1208) DBFCCSID(1141)",
             ClCommands.getCopyToStreamFileCommand(ClCommands.getMemberPath("JSMITH#CL", "QRPGLESRC", "HELLO"), "/tmp/x.member", 1141));
     }
 }

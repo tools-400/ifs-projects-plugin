@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Label;
 public class SummaryGroup {
 
     private final Group group;
-    private final List<String[]> rows = new ArrayList<String[]>();
+    private final List<String[]> rows = new ArrayList<>();
 
     /**
      * Creates the group.
@@ -69,8 +69,8 @@ public class SummaryGroup {
     }
 
     /**
-     * Shows the rows, that have been added since {@link #clear()}, and lays
-     * out the parent.
+     * Shows the rows, that have been added since {@link #clear()}, and lays out
+     * the parent.
      */
     public void update() {
 

@@ -11,7 +11,6 @@ package de.tools400.ifsprojects.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-
 import org.junit.Test;
 
 import de.tools400.ifsprojects.build.BuildMode;
@@ -23,20 +22,20 @@ public class RseBuildCommandsTest {
     @Test
     public void testGetScript_bash() {
         assertEquals("exec < /dev/null >> '/home/jsmith/.ifsprojects/tmp/b.log' 2>&1; echo $$ > '/home/jsmith/.ifsprojects/tmp/b.pid';"
-            + " export HOME='/home/jsmith';"
-            + " [ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile;"
+            + " export HOME='/home/jsmith';" + " [ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile;"
             + " if [ -f \"$HOME/.bash_profile\" ]; then . \"$HOME/.bash_profile\"; elif [ -f \"$HOME/.bash_login\" ]; then . \"$HOME/.bash_login\";"
             + " elif [ -f \"$HOME/.profile\" ]; then . \"$HOME/.profile\"; fi;"
             + " cd '/home/jsmith/git/dspsrc' && makei build; echo $? > '/home/jsmith/.ifsprojects/tmp/b.rc'",
-            RseBuildCommands.getScript(PaseCommands.BASH, "/home/jsmith", "/home/jsmith/.ifsprojects/tmp/b.log",
-                "/home/jsmith/.ifsprojects/tmp/b.rc", "/home/jsmith/.ifsprojects/tmp/b.pid", "/home/jsmith/git/dspsrc", " makei build "));
+            RseBuildCommands.getScript(PaseCommands.BASH, "/home/jsmith", "/home/jsmith/.ifsprojects/tmp/b.log", "/home/jsmith/.ifsprojects/tmp/b.rc",
+                "/home/jsmith/.ifsprojects/tmp/b.pid", "/home/jsmith/git/dspsrc", " makei build "));
     }
 
     @Test
     public void testGetScript_sh() {
-        assertEquals("exec < /dev/null >> '/t/b.log' 2>&1; echo $$ > '/t/b.pid'; export HOME='/home/jsmith';"
-            + " [ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile; [ -f \"$HOME/.profile\" ] && . \"$HOME/.profile\";"
-            + " cd '/p/it'\\''s' && gmake; echo $? > '/t/b.rc'",
+        assertEquals(
+            "exec < /dev/null >> '/t/b.log' 2>&1; echo $$ > '/t/b.pid'; export HOME='/home/jsmith';"
+                + " [ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile; [ -f \"$HOME/.profile\" ] && . \"$HOME/.profile\";"
+                + " cd '/p/it'\\''s' && gmake; echo $? > '/t/b.rc'",
             RseBuildCommands.getScript(PaseCommands.SH, "/home/jsmith", "/t/b.log", "/t/b.rc", "/t/b.pid", "/p/it's", "gmake"));
     }
 
@@ -46,8 +45,6 @@ public class RseBuildCommandsTest {
             + " tree() { echo $1; for child in $(ps -e -o pid= -o ppid= | awk -v p=$1 '$2 == p { print $1 }'); do tree $child; done; };"
             + " kill -TERM $(tree $pid); exit 0", RseBuildCommands.getStopScript("/t/b.pid"));
     }
-
-
 
     @Test
     public void testParseExitCode() {

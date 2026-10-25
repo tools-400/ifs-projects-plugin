@@ -56,7 +56,7 @@ public final class SourceFileCatalog {
 
         String query = SOURCE_FILES_QUERY + (aFile == null ? "" : FILE_CONDITION) + SOURCE_FILES_ORDER; //$NON-NLS-1$
 
-        List<SourceFile> sourceFiles = new ArrayList<SourceFile>();
+        List<SourceFile> sourceFiles = new ArrayList<>();
         try (Connection connection = new AS400JDBCDriver().connect(aSystem); PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, aLibrary);
             if (aFile != null) {
@@ -64,8 +64,8 @@ public final class SourceFileCatalog {
             }
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    sourceFiles.add(new SourceFile(aLibrary, resultSet.getString(1).trim(), StringUtils.trimToNull(resultSet.getString(2)), resultSet
-                        .getInt(3), resultSet.getInt(4), resultSet.getInt(5)));
+                    sourceFiles.add(new SourceFile(aLibrary, resultSet.getString(1).trim(), StringUtils.trimToNull(resultSet.getString(2)),
+                        resultSet.getInt(3), resultSet.getInt(4), resultSet.getInt(5)));
                 }
             }
         }
@@ -83,8 +83,9 @@ public final class SourceFileCatalog {
      */
     public static List<SourceMember> getMembers(AS400 aSystem, SourceFile aSourceFile) throws Exception {
 
-        List<SourceMember> members = new ArrayList<SourceMember>();
-        try (Connection connection = new AS400JDBCDriver().connect(aSystem); PreparedStatement statement = connection.prepareStatement(MEMBERS_QUERY)) {
+        List<SourceMember> members = new ArrayList<>();
+        try (Connection connection = new AS400JDBCDriver().connect(aSystem);
+            PreparedStatement statement = connection.prepareStatement(MEMBERS_QUERY)) {
             statement.setString(1, aSourceFile.getLibrary());
             statement.setString(2, aSourceFile.getName());
             try (ResultSet resultSet = statement.executeQuery()) {

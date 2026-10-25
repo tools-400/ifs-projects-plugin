@@ -21,7 +21,6 @@ import de.tools400.ifsprojects.terminal.ShellCommands;
 
 public class ShellCommandsTest {
 
-
     @Test
     public void testCommandLine_nothing() {
         assertNull(ShellCommands.toCommandLine(null, null));
@@ -67,22 +66,14 @@ public class ShellCommandsTest {
             ShellCommands.addTerminalType("xterm", ShellCommands.toCommandLine("/home/jsmith/src", "gmake")));
     }
 
-
-
-
-
-
-
-
     @Test
     public void testAddExports_commandLine() {
 
-        Map<String, String> variables = new LinkedHashMap<String, String>();
+        Map<String, String> variables = new LinkedHashMap<>();
         variables.put("ENVCMD", "");
 
         assertEquals("cd '/home/jsmith/git/dspsrc' && ENVCMD='' && export ENVCMD && makei build\r",
             ShellCommands.toCommandLine("/home/jsmith/git/dspsrc", PaseCommands.addExports(variables, "makei build")));
     }
-
 
 }
