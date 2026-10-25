@@ -17,6 +17,10 @@
       %license
    </license>
 
+   <url>
+      <update label="IFS Projects - Remote Update Site" url="https://tools-400.github.io/ifs-projects/update-site/eclipse/rdi8.0/"/>
+   </url>
+
    <plugin
          id="de.tools400.ifsprojects.core.plugin"
          download-size="0"
