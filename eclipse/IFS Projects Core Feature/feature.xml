@@ -6,33 +6,15 @@
       provider-name="Tools/400">
 
    <description url="https://tools-400.github.io/ifs-projects/">
-      Work on Code for IBM i projects (iproj.json) in RDi: projects whose source
-files are stream files in the IFS and that are built on the IBM i.
-
-&quot;IFS Projects&quot; adds to RDi:
-- IFS projects: directories in the IFS, which you edit, build and check like a project.
-- Local IFS projects: projects on your PC, e.g. a Git working copy. They are copied
-  to the IFS and built there.
-- SSH terminal: a command line (shell) of the IBM i in a view of RDi.
-- Export to a library: the source files of a project are copied into source members.
-- Migration to an IFS project: the members of source files are copied into a new
-  IFS project.
-
-The build runs with TOBi (makei) or GNU Make (gmake) in an SSH terminal. The compile
-errors are shown in the &quot;Error List&quot; view.
-
-Parsers for the headers, that build tools write into source members, are available
-as features of their own: STRPREPRC, BUILD, COMPILE and CPLCAS Headers.
+      %description
    </description>
 
    <copyright url="https://tools-400.github.io/ifs-projects/">
-      Copyright (c) 2026 Tools/400. All rights reserved.
+      %copyright
    </copyright>
 
    <license url="http://www.eclipse.org/legal/cpl-v10.html">
-      This program and the accompanying materials are made available
-under the terms of the Common Public License v1.0 which accompanies
-this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html.
+      %license
    </license>
 
    <plugin
