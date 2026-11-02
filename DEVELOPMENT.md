@@ -17,8 +17,11 @@ that add a build tool [EXTENDING.md](EXTENDING.md).
   added to `build.projects` of `build/IFS Projects Build/build/build.properties`, to `site.xml` of
   the update site and to the launch configurations.
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.
-* Launch configurations for RDi 9.8 and 9.9 (German and English):
-  `eclipse/IFS Projects Core Plugin/launches`. VM arguments of the 9.9 configurations:
+* Launch configurations for RDi 9.8 and 9.9 (German and English): one project per RDi version,
+  `eclipse/IFS Projects Launches (RDi 9.8)` and `eclipse/IFS Projects Launches (RDi 9.9)`, because
+  the selected bundles and the VM arguments depend on the version. Import only the project of the
+  running RDi version, then *Run Configurations* does not show the configurations of the other
+  version (closed projects are filtered, too). VM arguments of the 9.9 configurations:
   * `-Dcom.ibm.cic.licensing.p2.home.dir=C:\ProgramData`: without it the license check of the
     IBM i connection fails (RDi 9.8 has it in `config.ini`).
   * `-Declipse.bundle.setTCCL=false`: PDE adds `-Djava.security.manager=allow` on Java 17 and

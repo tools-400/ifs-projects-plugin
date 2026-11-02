@@ -198,5 +198,5 @@ Put the plug-in into a feature of its own, which imports the core feature:
 A feature is also the unit that the Eclipse Marketplace can mark as optional, so that users pick
 the build tools they need. Inside this repository, a new plug-in or feature project additionally
 has to be added to `build.projects` of `build/IFS Projects Build/build/build.properties`, to
-`site.xml` of the update site and to the launch configurations in
-`eclipse/IFS Projects Core Plugin/launches`.
+`site.xml` of the update site and to the launch configurations in the projects
+`eclipse/IFS Projects Launches (RDi <version>)`.
