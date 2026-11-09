@@ -2,7 +2,7 @@
 <feature
       id="de.tools400.ifsprojects.compile.feature"
       label="IFS Projects COMPILE Headers"
-      version="1.0.0.b005"
+      version="1.0.0.b006"
       provider-name="Tools/400">
 
    <description url="https://tools-400.github.io/ifs-projects/">
@@ -22,7 +22,7 @@
    </url>
 
    <requires>
-      <import feature="de.tools400.ifsprojects.core.feature" version="1.0.0.b005" match="greaterOrEqual"/>
+      <import feature="de.tools400.ifsprojects.core.feature" version="1.0.0.b006" match="greaterOrEqual"/>
    </requires>
 
    <plugin
