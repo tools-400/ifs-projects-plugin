@@ -39,10 +39,88 @@ public class TobiBuildFilesTest {
 
     @Test
     public void testGetIbmiJson() {
-        assertEquals("{\n    \"build\": {\n        \"tgtCcsid\": \"273\"\n    }\n}\n",
+        assertEquals("{\n    \"version\": \"0.0.1\",\n    \"build\": {\n        \"tgtCcsid\": \"273\"\n    }\n}\n",
             TobiBuildFiles.getIbmiJson(sourceFile("QRPGLESRC", 273), 1141));
-        assertEquals("{\n    \"build\": {\n        \"tgtCcsid\": \"1141\"\n    }\n}\n",
+        assertEquals("{\n    \"version\": \"0.0.1\",\n    \"build\": {\n        \"tgtCcsid\": \"1141\"\n    }\n}\n",
             TobiBuildFiles.getIbmiJson(sourceFile("QRPGLESRC", 65535), 1141));
+    }
+
+    /**
+     * A binding source becomes a service program, an RPG or CL member with its
+     * name the module of the service program.
+     */
+    @Test
+    public void testGetDirectoryRules_serviceProgram() {
+
+        add("QRPGLESRC", "UTILS", "RPGLE", "**FREE\nctl-opt nomain;\n");
+        add("QRPGLESRC", "HELLO", "RPGLE", "**FREE\n");
+        add("QSRVSRC", "UTILS", "BND", "STRPGMEXP PGMLVL(*CURRENT)\nENDPGMEXP\n");
+        add("QSRVSRC", "OTHER", "BND", "STRPGMEXP PGMLVL(*CURRENT)\nENDPGMEXP\n");
+
+        MigrationPlan plan = createPlan("QRPGLESRC", "QSRVSRC");
+
+        assertEquals(String.format(HEADER, "QRPGLESRC") + "\nUTILS.MODULE: utils.rpgle\n" + "\nHELLO.PGM: hello.rpgle\n", rules(plan, "QRPGLESRC"));
+        assertEquals(String.format(HEADER, "QSRVSRC") + "\nUTILS.SRVPGM: utils.bnd UTILS.MODULE\n"
+            + "\n# Add the modules of the service program, e.g. MODULE1.MODULE MODULE2.MODULE.\nOTHER.SRVPGM: other.bnd\n", rules(plan, "QSRVSRC"));
+    }
+
+    /**
+     * TOBi 3.4 and later accept a <code>#</code> in the name of a target or
+     * of its source, if it is escaped, otherwise make reads the rule as a
+     * comment, and a <code>$</code> as it is. Because TOBi 3.5 does not build
+     * the targets with a recipe, if a target with <code>$</code> or
+     * <code>#</code> has none, the rules of such members are commented out.
+     * Copy books with <code>$</code> or <code>#</code> cannot be prerequisites
+     * (verified with makei 3.5).
+     */
+    @Test
+    public void testGetDirectoryRules_hash() {
+
+        add("QRPGLESRC", "#INIT", "RPGLE", "**FREE\n/copy QRPGLESRC,#CONSTS\n/copy QRPGLESRC,TYPES\n/copy QRPGLESRC,$PROTOS\n");
+        add("QRPGLESRC", "#CONSTS", "RPGLE", "**FREE\n");
+        add("QRPGLESRC", "TYPES", "RPGLE", "**FREE\n");
+        add("QRPGLESRC", "$PROTOS", "RPGLE", "**FREE\n");
+        add("QRPGLESRC", "$UTIL", "RPGLE", "**FREE\n");
+        add("QRPGLESRC", "MAIN", "RPGLE", "**FREE\n");
+        add("QRPGLESRC", "HELLO", "RPGLE", "**FREE\n");
+        add("QCLSRC", "#START", "CLLE", "PGM\nENDPGM\n");
+
+        MigrationPlan plan = createPlan("QRPGLESRC", "QCLSRC");
+
+        String comment = "\n# Rules of members with $ or # in the name, which make interprets. TOBi 3.4 and later accept\n"
+            + "# them in names (# written as \\#), but TOBi 3.5 does not build the targets with a recipe, if a\n"
+            + "# target with $ or # has none. Check the rules, before you remove the comment characters.\n";
+
+        assertEquals(String.format(HEADER, "QRPGLESRC") //
+            + "\nMAIN.PGM: main.rpgle\n" + "\nHELLO.PGM: hello.rpgle\n" + comment //
+            + "\n# Copy books with $ or # cannot be prerequisites in TOBi: qrpglesrc/#consts.rpgleinc qrpglesrc/$protos.rpgleinc\n"
+            + "# \\#INIT.PGM: \\#init.rpgle qrpglesrc/types.rpgleinc\n" //
+            + "\n# $UTIL.PGM: $util.rpgle\n", rules(plan, "QRPGLESRC"));
+        assertEquals(String.format(HEADER, "QCLSRC") + comment
+            + "\n# \\#START.PGM: private INCDIR := 'qclsrc'\n# \\#START.PGM: \\#start.clle\n# \t$(PGM.CLLE_TO_PGM_RECIPE)\n", rules(plan, "QCLSRC"));
+    }
+
+    /**
+     * A member, that includes a copy book with <code>$</code> or
+     * <code>#</code>, gets an active rule without it.
+     */
+    @Test
+    public void testGetDirectoryRules_copyBookWithHash() {
+
+        add("QRPGLESRC", "MAIN", "RPGLE", "**FREE\n/copy QRPGLESRC,#CONSTS\n");
+        add("QRPGLESRC", "#CONSTS", "RPGLE", "**FREE\n");
+        add("QRPGLESRC", "HELLO", "RPGLE", "**FREE\n");
+
+        MigrationPlan plan = createPlan("QRPGLESRC");
+
+        assertEquals(String.format(HEADER, "QRPGLESRC") //
+            + "\n# Copy books with $ or # cannot be prerequisites in TOBi: qrpglesrc/#consts.rpgleinc\nMAIN.PGM: main.rpgle\n" //
+            + "\nHELLO.PGM: hello.rpgle\n", rules(plan, "QRPGLESRC"));
+    }
+
+    private MigrationPlan createPlan(String... aSourceFiles) {
+        return new MigrationPlan("JSMITH#CL", Arrays.asList(aSourceFiles), members, contents, new HashMap<String, String>(),
+            new MigrationSettings(IncludeStyle.REPLACE, false, 1141), new SourceHeaderParsers(new TestHeaderParser()));
     }
 
     @Test
@@ -98,7 +176,7 @@ public class TobiBuildFilesTest {
             }
         }
 
-        return TobiBuildFiles.getDirectoryRules(sourceFile(aSourceFile, 273), items);
+        return TobiBuildFiles.getDirectoryRules(sourceFile(aSourceFile, 273), items, aPlan.getMigratedItems());
     }
 
     private void add(String aSourceFile, String aName, String aSourceType, String aContent) {

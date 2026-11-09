@@ -8,10 +8,16 @@
 
 package de.tools400.ifsprojects.export;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.sources.MemberText;
 import de.tools400.ifsprojects.utils.StringUtils;
 
@@ -40,6 +46,12 @@ public final class ExportSettings {
     private static final String CCSID = "ccsid"; //$NON-NLS-1$
     private static final String RECORD_LENGTH = "recordLength"; //$NON-NLS-1$
     private static final String MEMBER_TEXT = "memberText"; //$NON-NLS-1$
+    private static final String FURTHER_SOURCE_TYPES = "furtherSourceTypes"; //$NON-NLS-1$
+
+    /** Separators of the further source types, when they are entered. */
+    private static final String SOURCE_TYPE_SEPARATORS = "[,;\\s]+"; //$NON-NLS-1$
+    private static final String SOURCE_TYPE_SEPARATOR = ","; //$NON-NLS-1$
+    private static final String FORMATTED_SOURCE_TYPE_SEPARATOR = ", "; //$NON-NLS-1$
 
     private String library;
     private SourceFileRule sourceFileRule;
@@ -48,6 +60,7 @@ public final class ExportSettings {
     private int recordLength;
     private boolean isMemberText;
     private boolean isConvertIncludes;
+    private List<String> furtherSourceTypes;
 
     /**
      * Creates the settings of a project, that has not been exported before.
@@ -64,6 +77,7 @@ public final class ExportSettings {
         this.recordLength = aRecordLength;
         this.isMemberText = true;
         this.isConvertIncludes = true;
+        this.furtherSourceTypes = Collections.emptyList();
     }
 
     /**
@@ -101,7 +115,59 @@ public final class ExportSettings {
             settings.isMemberText = Boolean.parseBoolean(aValues.get(MEMBER_TEXT));
         }
 
+        String furtherSourceTypes = aValues.get(FURTHER_SOURCE_TYPES);
+        if (furtherSourceTypes != null && parseSourceTypes(furtherSourceTypes) != null) {
+            settings.furtherSourceTypes = parseSourceTypes(furtherSourceTypes);
+        }
+
         return settings;
+    }
+
+    /**
+     * Parses source types, that have been entered, e.g. <code>tbl, xml</code>.
+     * They are separated by commas, semicolons or blanks; a leading period of
+     * an extension is ignored.
+     *
+     * @param aText - source types
+     * @return source types in uppercase without duplicates, an empty list for
+     *         an empty text, or <code>null</code>, if a source type is not a
+     *         valid name
+     */
+    public static List<String> parseSourceTypes(String aText) {
+
+        Set<String> sourceTypes = new LinkedHashSet<>();
+        for (String value : aText.trim().split(SOURCE_TYPE_SEPARATORS)) {
+            if (value.length() == 0) {
+                continue;
+            }
+            String sourceType = (value.startsWith(".") ? value.substring(1) : value).toUpperCase(Locale.ROOT); //$NON-NLS-1$
+            if (!ClCommands.isObjectName(sourceType)) {
+                return null;
+            }
+            sourceTypes.add(sourceType);
+        }
+
+        return Collections.unmodifiableList(new ArrayList<>(sourceTypes));
+    }
+
+    /**
+     * Formats source types for the input, as extensions in lowercase, e.g.
+     * <code>tbl, xml</code>.
+     *
+     * @param aSourceTypes - source types
+     * @return text
+     */
+    public static String formatSourceTypes(List<String> aSourceTypes) {
+
+        StringBuilder text = new StringBuilder();
+        for (String sourceType : aSourceTypes) {
+            if (text.length() > 0) {
+                text.append(FORMATTED_SOURCE_TYPE_SEPARATOR);
+            }
+            text.append(sourceType.toLowerCase(Locale.ROOT));
+        }
+
+        return text.toString();
     }
 
     /**
@@ -120,6 +186,15 @@ public final class ExportSettings {
         values.put(CCSID, Integer.toString(ccsid));
         values.put(RECORD_LENGTH, Integer.toString(recordLength));
         values.put(MEMBER_TEXT, Boolean.toString(isMemberText));
+
+        StringBuilder sourceTypes = new StringBuilder();
+        for (String sourceType : furtherSourceTypes) {
+            if (sourceTypes.length() > 0) {
+                sourceTypes.append(SOURCE_TYPE_SEPARATOR);
+            }
+            sourceTypes.append(sourceType);
+        }
+        values.put(FURTHER_SOURCE_TYPES, sourceTypes.toString());
 
         return values;
     }
@@ -201,6 +276,38 @@ public final class ExportSettings {
 
     public void setConvertIncludes(boolean anIsConvertIncludes) {
         this.isConvertIncludes = anIsConvertIncludes;
+    }
+
+    /**
+     * Returns the source types, that are exported in addition to the source
+     * types of TOBi, see {@link de.tools400.ifsprojects.sources.SourceTypes},
+     * e.g. <code>TBL</code> for <code>qddssrc/table.tbl</code>. The migration
+     * writes a member of any source type as a stream file with the source type
+     * as extension.
+     *
+     * @return source types in uppercase
+     */
+    public List<String> getFurtherSourceTypes() {
+        return furtherSourceTypes;
+    }
+
+    /**
+     * Sets the further source types.
+     *
+     * @param aSourceTypes - source types, see
+     *        {@link #parseSourceTypes(String)}
+     */
+    public void setFurtherSourceTypes(List<String> aSourceTypes) {
+
+        List<String> sourceTypes = new ArrayList<>();
+        for (String sourceType : aSourceTypes) {
+            String upperCase = sourceType.toUpperCase(Locale.ROOT);
+            if (!sourceTypes.contains(upperCase)) {
+                sourceTypes.add(upperCase);
+            }
+        }
+
+        this.furtherSourceTypes = Collections.unmodifiableList(sourceTypes);
     }
 
     /**

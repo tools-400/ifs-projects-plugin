@@ -12,15 +12,18 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import com.ibm.as400.access.CharConverter;
 
+import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.sources.MemberText;
 
@@ -45,7 +48,8 @@ public final class ExportPlan {
     private final IncludeResolver resolver;
     private final LibraryInfo library;
     private final List<Item> items;
-    private final int otherFileCount;
+    private final Map<String, Integer> otherFileTypes;
+    private final List<SourceTypeProposals.Proposal> sourceTypeProposals;
     private final Map<String, Integer> newSourceFiles;
 
     /**
@@ -54,9 +58,10 @@ public final class ExportPlan {
      * @param aSettings - settings of the export
      * @param aFiles - paths of all files of the project relative to the project
      *        directory
-     * @param aContents - contents of the files by path, at least of the files
-     *        with an exported source type, see
-     *        {@link ExportMapping#getSourceType}
+     * @param aContents - contents of the files by path, at least of the
+     *        exported files, see {@link ExportMapping#isExported(String)}, and
+     *        of {@link SourceTypeProposals#CODE_FOR_IBM_I_ACTIONS}, if it
+     *        exists
      * @param aReadErrors - messages of the files, that could not be read, by
      *        path
      * @param aResolver - resolver of the include directives
@@ -71,13 +76,51 @@ public final class ExportPlan {
         this.items = new ArrayList<>();
         this.newSourceFiles = new LinkedHashMap<>();
 
-        ExportMapping mapping = new ExportMapping(aSettings.getSourceFileRule(), aSettings.getSourceFile());
+        ExportMapping mapping = ExportMapping.create(aSettings);
+        Set<String> exportedPaths = new HashSet<>();
         for (ExportMapping.Entry entry : mapping.map(aFiles)) {
             items.add(new Item(entry, aContents.get(entry.getPath()), aReadErrors.get(entry.getPath())));
+            exportedPaths.add(entry.getPath());
         }
-        this.otherFileCount = aFiles.size() - items.size();
+        this.otherFileTypes = countOtherFileTypes(aFiles, exportedPaths);
+        this.sourceTypeProposals = Collections.unmodifiableList(SourceTypeProposals.create(aFiles, exportedPaths,
+            aSettings.getFurtherSourceTypes(), aContents.get(SourceTypeProposals.CODE_FOR_IBM_I_ACTIONS)));
 
         compute();
+    }
+
+    /**
+     * Counts the files, that are not exported, by their extensions. Hidden
+     * files are skipped like the other excluded files, e.g. <code>.git</code>.
+     *
+     * @return numbers of files by extension in lowercase, the most frequent
+     *         extension first
+     */
+    private static Map<String, Integer> countOtherFileTypes(List<String> aFiles, Set<String> anExportedPaths) {
+
+        final Map<String, Integer> counts = new HashMap<>();
+        for (String path : aFiles) {
+            if (!anExportedPaths.contains(path) && !ExportMapping.isHidden(path)) {
+                String extension = ExportMapping.getExtension(IfsPaths.getFileName(path)).toLowerCase(Locale.ROOT);
+                Integer count = counts.get(extension);
+                counts.put(extension, Integer.valueOf(count == null ? 1 : count.intValue() + 1));
+            }
+        }
+
+        List<String> extensions = new ArrayList<>(counts.keySet());
+        Collections.sort(extensions, new Comparator<String>() {
+            public int compare(String anExtension, String anotherExtension) {
+                int result = counts.get(anotherExtension).compareTo(counts.get(anExtension));
+                return result != 0 ? result : anExtension.compareTo(anotherExtension);
+            }
+        });
+
+        Map<String, Integer> sortedCounts = new LinkedHashMap<>();
+        for (String extension : extensions) {
+            sortedCounts.put(extension, counts.get(extension));
+        }
+
+        return Collections.unmodifiableMap(sortedCounts);
     }
 
     /**
@@ -103,11 +146,57 @@ public final class ExportPlan {
     }
 
     /**
-     * Returns the number of files, whose source type is not exported, e.g.
-     * <code>iproj.json</code>.
+     * Returns the number of files, that have no exported source type, e.g.
+     * <code>iproj.json</code>, except of hidden files.
      */
     public int getOtherFileCount() {
-        return otherFileCount;
+
+        int count = 0;
+        for (Integer value : otherFileTypes.values()) {
+            count += value.intValue();
+        }
+
+        return count;
+    }
+
+    /**
+     * Returns the extensions of the files, that have no exported source type,
+     * except of hidden files, e.g. <code>json</code>, <code>mk</code> or
+     * <code>tbl</code>, which can be added to the further source types of the
+     * settings.
+     *
+     * @return numbers of files by extension in lowercase, an empty string for
+     *         files without extension, the most frequent extension first
+     */
+    public Map<String, Integer> getOtherFileTypes() {
+        return otherFileTypes;
+    }
+
+    /**
+     * Returns the extensions, that can be added to the further source types
+     * of the settings, and those, that are selected already, see
+     * {@link SourceTypeProposals}.
+     */
+    public List<SourceTypeProposals.Proposal> getSourceTypeProposals() {
+        return sourceTypeProposals;
+    }
+
+    /**
+     * Returns the extensions, that are probably source types, but are not
+     * exported, because they are no further source types of the settings.
+     *
+     * @return extensions in lowercase, e.g. <code>tbl</code>
+     */
+    public List<String> getUnselectedProposals() {
+
+        List<String> extensions = new ArrayList<>();
+        for (SourceTypeProposals.Proposal proposal : sourceTypeProposals) {
+            if (proposal.getReason() != null && !proposal.isSelected()) {
+                extensions.add(proposal.getExtension());
+            }
+        }
+
+        return extensions;
     }
 
     /**
@@ -238,6 +327,16 @@ public final class ExportPlan {
             }
         }
 
+        // The text becomes the text of the member, so its comment block, e.g.
+        // of the migration, is not exported.
+        anItem.text = null;
+        if (settings.isMemberText()) {
+            anItem.text = MemberText.parse(content);
+            if (anItem.text != null) {
+                content = MemberText.remove(content);
+            }
+        }
+
         anItem.content = content;
         anItem.longestLine = SourceCheck.getLongestLine(content);
     }
@@ -275,9 +374,14 @@ public final class ExportPlan {
             return;
         }
 
+        // Invalid bytes are the cause of the characters, that do not exist in
+        // the CCSID, so they are reported instead.
         int ccsid = file == null ? settings.getCcsid() : file.getCcsid();
+        int invalidLine = SourceCheck.findInvalidLine(anItem.content);
         CharConverter converter = getConverter(ccsid, aConverters);
-        if (converter != null) {
+        if (invalidLine > 0) {
+            anItem.problems.add(new Problem(ProblemType.INVALID_BYTES, invalidLine, null, 0, 0));
+        } else if (converter != null) {
             int lineNumber = SourceCheck.findUnmappableLine(anItem.content, converter);
             if (lineNumber > 0) {
                 anItem.problems.add(new Problem(ProblemType.UNMAPPABLE_CHARACTER, lineNumber, null, 0, ccsid));
@@ -295,7 +399,6 @@ public final class ExportPlan {
             }
         }
 
-        anItem.text = settings.isMemberText() ? MemberText.parse(anItem.content) : null;
         anItem.isExistingMember = library.hasMember(anItem.getSourceFile(), anItem.getMember());
     }
 
@@ -348,6 +451,12 @@ public final class ExportPlan {
 
         /** A line contains characters, that do not exist in the CCSID. */
         UNMAPPABLE_CHARACTER (false),
+
+        /**
+         * A line contains bytes, that are not valid in the encoding of the
+         * file, e.g. ISO-8859-1 in a stream file with CCSID 1208.
+         */
+        INVALID_BYTES (false),
 
         /** An include directive has not been converted. */
         INCLUDE (false);
@@ -547,7 +656,9 @@ public final class ExportPlan {
 
         /**
          * Returns the content, that is exported: the content of the file with
-         * converted include directives, without byte order mark.
+         * converted include directives, without byte order mark and without
+         * the comment block of the member text, if it becomes the text of the
+         * member, see {@link MemberText}.
          */
         public String getContent() {
             return content;

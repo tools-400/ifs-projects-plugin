@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.tools400.ifsprojects.sources.TextEncoding;
+
 /**
  * Files, that a migration writes into the project directory: the stream files
  * of the migrated members and, for TOBi projects, the build files of
@@ -24,6 +26,26 @@ public final class MigrationFiles {
 
     private MigrationFiles() {
         // Utility class
+    }
+
+    /**
+     * Returns the CCSIDs of the files of a migration, that are not written in
+     * UTF-8 (CCSID 1208): the XML files, that declare another encoding, see
+     * {@link MigrationPlan.Item#getCcsid()}.
+     *
+     * @param aPlan - plan of the migration
+     * @return CCSIDs by the paths relative to the project directory
+     */
+    public static Map<String, Integer> getCcsids(MigrationPlan aPlan) {
+
+        Map<String, Integer> ccsids = new LinkedHashMap<>();
+        for (MigrationPlan.Item item : aPlan.getMigratedItems()) {
+            if (item.getCcsid() != TextEncoding.CCSID_UTF8) {
+                ccsids.put(item.getPath(), Integer.valueOf(item.getCcsid()));
+            }
+        }
+
+        return ccsids;
     }
 
     /**
@@ -58,7 +80,8 @@ public final class MigrationFiles {
             directories.add(directory);
             files.put(directory + SEPARATOR + TobiBuildFiles.IBMI_JSON_FILE,
                 TobiBuildFiles.getIbmiJson(sourceFile, aPlan.getSettings().getHexCcsid()));
-            files.put(directory + SEPARATOR + TobiBuildFiles.RULES_FILE, TobiBuildFiles.getDirectoryRules(sourceFile, items));
+            files.put(directory + SEPARATOR + TobiBuildFiles.RULES_FILE,
+                TobiBuildFiles.getDirectoryRules(sourceFile, items, aPlan.getMigratedItems()));
         }
 
         if (!directories.isEmpty()) {

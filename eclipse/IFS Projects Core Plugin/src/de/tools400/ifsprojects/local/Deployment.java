@@ -14,7 +14,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.project.IgnoreRules;
 import de.tools400.ifsprojects.project.ProjectFiles;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.sources.TextEncoding;
 
 /**
  * Uploads the files of a local project to its deploy directory in the IFS. The
@@ -87,15 +87,6 @@ public final class Deployment {
     private static final String KEY_SEPARATOR = "\n"; //$NON-NLS-1$
 
     private static final String UTF_8 = "UTF-8"; //$NON-NLS-1$
-    private static final String WINDOWS_1252 = "windows-1252"; //$NON-NLS-1$
-    private static final String ISO_8859_1 = "ISO-8859-1"; //$NON-NLS-1$
-    private static final String ISO_8859_15 = "ISO-8859-15"; //$NON-NLS-1$
-    private static final String US_ASCII = "US-ASCII"; //$NON-NLS-1$
-
-    private static final int CCSID_WINDOWS_1252 = 1252;
-    private static final int CCSID_ISO_8859_1 = 819;
-    private static final int CCSID_ISO_8859_15 = 923;
-    private static final int CCSID_US_ASCII = 367;
 
     private static final char SEPARATOR = '/';
 
@@ -267,34 +258,17 @@ public final class Deployment {
      *
      * @param aCharset - name of the encoding of the local file, e.g.
      *        <code>UTF-8</code> or <code>Cp1252</code>
-     * @return CCSID, 1208 (UTF-8) for unknown encodings
+     * @return CCSID, 1208 (UTF-8) for unknown encodings, see
+     *         {@link TextEncoding#getCcsid(String)}
      */
     public static int getCcsid(String aCharset) {
 
-        String charset;
-        try {
-            charset = Charset.forName(aCharset).name();
-        } catch (Exception e) {
+        int ccsid = TextEncoding.getCcsid(aCharset);
+        if (ccsid == 0) {
             return RemoteJobs.CCSID_UTF8;
         }
 
-        if (UTF_8.equals(charset)) {
-            return RemoteJobs.CCSID_UTF8;
-        }
-        if (WINDOWS_1252.equals(charset)) {
-            return CCSID_WINDOWS_1252;
-        }
-        if (ISO_8859_1.equals(charset)) {
-            return CCSID_ISO_8859_1;
-        }
-        if (ISO_8859_15.equals(charset)) {
-            return CCSID_ISO_8859_15;
-        }
-        if (US_ASCII.equals(charset)) {
-            return CCSID_US_ASCII;
-        }
-
-        return RemoteJobs.CCSID_UTF8;
+        return ccsid;
     }
 
     /**

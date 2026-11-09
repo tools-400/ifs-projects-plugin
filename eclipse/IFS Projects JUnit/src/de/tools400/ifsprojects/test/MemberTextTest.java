@@ -138,6 +138,52 @@ public class MemberTextTest {
     }
 
     @Test
+    public void testRemove() {
+        assertEquals("     H DFTACTGRP(*NO)\n",
+            MemberText.remove("      *%METADATA                                                       *\n"
+                + "      * %TEXT Fixed format program                                     *\n"
+                + "      *%EMETADATA                                                      *\n" + "     H DFTACTGRP(*NO)\n"));
+        assertEquals("**FREE\r\ndcl-s x int(10);\r\n",
+            MemberText.remove("**FREE\r\n" + "      // %METADATA *\r\n" + "      //  %TEXT It's free *\r\n" + "      // %EMETADATA *\r\n"
+                + "dcl-s x int(10);\r\n"));
+        assertEquals(":PNLGRP.\n", MemberText.remove(".* %METADATA *\n.* %TEXT Help *\n.* %EMETADATA *\n:PNLGRP.\n"));
+        assertEquals("// line 1\n", MemberText.remove("// line 1\n// %metadata\n// %text Lowercase keywords\n// %emetadata"));
+        assertEquals("", MemberText.remove("// %METADATA\n// %TEXT Only the block\n// %EMETADATA\n"));
+    }
+
+    @Test
+    public void testRemove_unchanged() {
+        assertEquals("**FREE\ndcl-s x int(10);\n", MemberText.remove("**FREE\ndcl-s x int(10);\n"));
+        assertEquals("// %METADATA\n// %TEXT No end\n", MemberText.remove("// %METADATA\n// %TEXT No end\n"));
+        assertEquals("// %TEXT No metadata\n// %EMETADATA\n", MemberText.remove("// %TEXT No metadata\n// %EMETADATA\n"));
+        assertEquals("", MemberText.remove(""));
+        assertNull(MemberText.remove(null));
+
+        StringBuilder source = new StringBuilder();
+        for (int i = 0; i < 15; i++) {
+            source.append("// line\n");
+        }
+        String late = source + "// %METADATA\n// %TEXT Line 16\n// %EMETADATA\n";
+        assertEquals(late, MemberText.remove(late));
+
+        StringBuilder longBlock = new StringBuilder("// %METADATA\n");
+        for (int i = 0; i < 14; i++) {
+            longBlock.append("// line\n");
+        }
+        longBlock.append("// %EMETADATA\n");
+        assertEquals(longBlock.toString(), MemberText.remove(longBlock.toString()));
+    }
+
+    @Test
+    public void testRemove_insert() {
+        for (String sourceType : new String[] { "RPGLE", "SQLRPGLE", "CLLE", "CMD", "DSPF", "SQL", "PNLGRP" }) {
+            for (String content : new String[] { "line 1\nline 2\n", "**FREE\r\nline 2\r\n", "line 1" }) {
+                assertEquals(sourceType + " " + content, content, MemberText.remove(MemberText.insert(content, sourceType, "Text")));
+            }
+        }
+    }
+
+    @Test
     public void testInsert_parse() {
         for (String sourceType : new String[] { "RPGLE", "SQLRPGLE", "CLLE", "CMD", "DSPF", "SQL", "PNLGRP" }) {
             assertEquals(sourceType, "Text of " + sourceType,

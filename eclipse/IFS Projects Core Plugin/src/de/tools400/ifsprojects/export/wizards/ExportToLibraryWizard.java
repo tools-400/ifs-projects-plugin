@@ -9,12 +9,14 @@
 package de.tools400.ifsprojects.export.wizards;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardPage;
 
 import com.ibm.as400.access.AS400;
 
@@ -106,14 +108,57 @@ public class ExportToLibraryWizard extends Wizard {
      */
     IWizardPage analyze() {
 
-        final ExportSettings settings = settingsPage.getSettings();
+        ExportSettings settings = settingsPage.getSettings();
+        ExportPlan plan = computePlan(settings, settingsPage);
+        if (plan == null) {
+            return null;
+        }
+
+        if (plan.isCreateLibrary() && !MessageDialog.openQuestion(getShell(), Messages.Title_Export_to_library,
+            Messages.bind(Messages.Question_Create_library_A, settings.getLibrary()))) {
+            return null;
+        }
+
+        settingsPage.setErrorMessage(null);
+        previewPage.setPlan(plan);
+
+        return previewPage;
+    }
+
+    /**
+     * Changes the further source types of the settings and computes the plan
+     * again, after the user has selected them on the preview page. The files,
+     * that are exported now, are read.
+     *
+     * @param aSourceTypes - further source types
+     */
+    void changeFurtherSourceTypes(List<String> aSourceTypes) {
+
+        settingsPage.setFurtherSourceTypes(aSourceTypes);
+
+        ExportPlan plan = computePlan(settingsPage.getSettings(), previewPage);
+        if (plan != null) {
+            previewPage.setPlan(plan);
+        }
+    }
+
+    /**
+     * Reads the project and the library and computes the plan of the export.
+     *
+     * @param aSettings - settings of the export
+     * @param aPage - page, that shows the error, if the project cannot be read
+     * @return plan or <code>null</code>, if the project could not be read or
+     *         the user canceled
+     */
+    private ExportPlan computePlan(final ExportSettings aSettings, WizardPage aPage) {
+
         final ExportPlan[] plan = new ExportPlan[1];
 
         try {
             getContainer().run(true, true, new IRunnableWithProgress() {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException, InterruptedException {
                     try (RemoteSession session = new RemoteSession(rseSystem)) {
-                        plan[0] = analyzer.analyze(session.getSystem(), settings, aMonitor);
+                        plan[0] = analyzer.analyze(session.getSystem(), aSettings, aMonitor);
                     } catch (InterruptedException e) {
                         throw e;
                     } catch (Exception e) {
@@ -126,21 +171,12 @@ public class ExportToLibraryWizard extends Wizard {
         } catch (InvocationTargetException e) {
             Throwable cause = ExceptionUtils.getCause(e);
             IfsProjectsPlugin.logError("Could not read the project for the export: " + source.getName(), cause); //$NON-NLS-1$
-            settingsPage
-                .setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, source.getName(), ExceptionUtils.getLocalizedMessage(cause)));
+            aPage.setErrorMessage(Messages.bind(Messages.Error_Could_not_read_A_B, source.getName(), ExceptionUtils.getLocalizedMessage(cause)));
             return null;
         } catch (InterruptedException e) {
             return null;
         }
 
-        if (plan[0].isCreateLibrary() && !MessageDialog.openQuestion(getShell(), Messages.Title_Export_to_library,
-            Messages.bind(Messages.Question_Create_library_A, settings.getLibrary()))) {
-            return null;
-        }
-
-        settingsPage.setErrorMessage(null);
-        previewPage.setPlan(plan[0]);
-
-        return previewPage;
+        return plan[0];
     }
 }

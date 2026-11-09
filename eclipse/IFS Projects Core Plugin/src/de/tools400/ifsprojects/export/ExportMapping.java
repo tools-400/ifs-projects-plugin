@@ -10,10 +10,13 @@ package de.tools400.ifsprojects.export;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import de.tools400.ifsprojects.ibmi.ClCommands;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
@@ -28,12 +31,16 @@ import de.tools400.ifsprojects.sources.SourceTypes;
  * <li>Member: the file name up to the first period in uppercase, e.g.
  * <code>HELLO</code> for <code>hello.pgm.rpgle</code>.</li>
  * <li>Source type: see {@link SourceTypes}, e.g. <code>RPGLE</code> for
- * <code>hello.pgm.rpgle</code> and <code>consts.rpgleinc</code>. Only files
- * with a source type are exported.</li>
+ * <code>hello.pgm.rpgle</code> and <code>consts.rpgleinc</code>, or one of the
+ * further source types of the settings, e.g. <code>TBL</code> for
+ * <code>qddssrc/table.tbl</code>, which TOBi does not know. Only files with a
+ * source type are exported.</li>
  * <li>Source file: see {@link SourceFileRule}.</li>
  * </ul>
- * Files, whose member name is not valid, and files, that would be exported into
- * the same member, are not exported, see {@link Status}.
+ * Hidden files and the files of hidden directories, whose names start with a
+ * period, are not exported, e.g. <code>.github/release.cmd</code>. Files, whose
+ * member name is not valid, and files, that would be exported into the same
+ * member, are not exported, see {@link Status}.
  */
 public final class ExportMapping {
 
@@ -42,6 +49,18 @@ public final class ExportMapping {
 
     private final SourceFileRule rule;
     private final String sourceFile;
+    private final Set<String> furtherSourceTypes;
+
+    /**
+     * Creates a mapping of the source types of TOBi.
+     *
+     * @param aRule - rule, that determines the source file
+     * @param aSourceFile - source file of {@link SourceFileRule#SINGLE_FILE},
+     *        ignored by the other rules
+     */
+    public ExportMapping(SourceFileRule aRule, String aSourceFile) {
+        this(aRule, aSourceFile, Collections.<String> emptyList());
+    }
 
     /**
      * Creates a mapping.
@@ -49,21 +68,111 @@ public final class ExportMapping {
      * @param aRule - rule, that determines the source file
      * @param aSourceFile - source file of {@link SourceFileRule#SINGLE_FILE},
      *        ignored by the other rules
+     * @param aFurtherSourceTypes - source types, that are exported in addition
+     *        to the source types of TOBi, see
+     *        {@link ExportSettings#getFurtherSourceTypes()}
      */
-    public ExportMapping(SourceFileRule aRule, String aSourceFile) {
+    public ExportMapping(SourceFileRule aRule, String aSourceFile, Collection<String> aFurtherSourceTypes) {
         this.rule = aRule;
         this.sourceFile = aSourceFile == null ? null : aSourceFile.trim().toUpperCase(Locale.ROOT);
+        this.furtherSourceTypes = new HashSet<>();
+        for (String sourceType : aFurtherSourceTypes) {
+            furtherSourceTypes.add(sourceType.toUpperCase(Locale.ROOT));
+        }
     }
 
     /**
-     * Returns <code>true</code>, if a file of a project is exported: it has a
-     * source type, see {@link SourceTypes#getSourceType(String)}.
+     * Creates the mapping of the settings of an export.
+     *
+     * @param aSettings - settings
+     * @return mapping
+     */
+    public static ExportMapping create(ExportSettings aSettings) {
+        return new ExportMapping(aSettings.getSourceFileRule(), aSettings.getSourceFile(), aSettings.getFurtherSourceTypes());
+    }
+
+    /**
+     * Returns <code>true</code>, if a file of a project is exported: it is not
+     * hidden and has a source type, see {@link #getSourceType(String)}.
      *
      * @param aPath - path of the file, e.g. <code>src/hello.pgm.rpgle</code>
      * @return <code>true</code>, if the file is exported
      */
-    public static boolean isExported(String aPath) {
-        return SourceTypes.getSourceType(IfsPaths.getFileName(aPath)) != null;
+    public boolean isExported(String aPath) {
+        return getSourceType(aPath) != null;
+    }
+
+    /**
+     * Returns the source type of a file of a project: the source type of TOBi,
+     * see {@link SourceTypes#getSourceType(String)}, or the extension in
+     * uppercase, if it is one of the further source types.
+     *
+     * @param aPath - path of the file, e.g. <code>src/hello.pgm.rpgle</code>
+     * @return source type or <code>null</code>, if the file is not exported,
+     *         because it is hidden or has no source type
+     */
+    public String getSourceType(String aPath) {
+
+        if (isHidden(aPath)) {
+            return null;
+        }
+
+        String fileName = IfsPaths.getFileName(aPath);
+        String sourceType = SourceTypes.getSourceType(fileName);
+        if (sourceType != null) {
+            return sourceType;
+        }
+
+        String extension = getExtension(fileName).toUpperCase(Locale.ROOT);
+        if (furtherSourceTypes.contains(extension)) {
+            return extension;
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns <code>true</code>, if a file or one of its directories is hidden:
+     * its name starts with a period, e.g. <code>.github/release.cmd</code> or
+     * <code>qrpglesrc/.ibmi.json</code>. The export skips them, because their
+     * directories are no source files.
+     *
+     * @param aPath - path of the file relative to the project directory
+     * @return <code>true</code>, if the file is hidden
+     */
+    public static boolean isHidden(String aPath) {
+
+        int start = 0;
+        while (start < aPath.length()) {
+            if (aPath.charAt(start) == EXTENSION_SEPARATOR) {
+                return true;
+            }
+            int end = aPath.indexOf(SEPARATOR, start);
+            if (end < 0) {
+                break;
+            }
+            start = end + 1;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns the extension of a file name: the characters after the last
+     * period.
+     *
+     * @param aFileName - file name, e.g. <code>hello.pgm.rpgle</code>
+     * @return extension, e.g. <code>rpgle</code>, or an empty string, if the
+     *         name has no extension
+     */
+    public static String getExtension(String aFileName) {
+
+        int index = aFileName.lastIndexOf(EXTENSION_SEPARATOR);
+        if (index <= 0) {
+            return ""; //$NON-NLS-1$
+        }
+
+        return aFileName.substring(index + 1);
     }
 
     /**
@@ -94,8 +203,8 @@ public final class ExportMapping {
     }
 
     /**
-     * Maps the stream files of a project to members. Files, whose source type
-     * is not exported, are omitted.
+     * Maps the stream files of a project to members. Files, that are not
+     * exported, see {@link #isExported(String)}, are omitted.
      *
      * @param aPaths - paths of the files relative to the project directory,
      *        separated by slashes, e.g. <code>qrpglesrc/hello.pgm.rpgle</code>
@@ -108,13 +217,12 @@ public final class ExportMapping {
 
         for (String path : aPaths) {
 
-            String fileName = IfsPaths.getFileName(path);
-            String sourceType = SourceTypes.getSourceType(fileName);
+            String sourceType = getSourceType(path);
             if (sourceType == null) {
                 continue;
             }
 
-            String member = getMemberName(fileName);
+            String member = getMemberName(IfsPaths.getFileName(path));
             Entry entry = new Entry(path, getSourceFile(path, sourceType), member, sourceType);
             entries.add(entry);
 

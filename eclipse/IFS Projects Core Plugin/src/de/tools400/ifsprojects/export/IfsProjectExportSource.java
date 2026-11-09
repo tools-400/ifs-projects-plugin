@@ -8,6 +8,7 @@
 
 package de.tools400.ifsprojects.export;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IgnoreRules;
 import de.tools400.ifsprojects.project.ProjectFiles;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.sources.TextEncoding;
 
 /**
  * IFS project, that is exported. Its files are read from the project directory.
@@ -96,8 +98,23 @@ public final class IfsProjectExportSource implements ExportSource {
         return files;
     }
 
+    /**
+     * Reads a file with the CCSID of the stream file. A stream file with text
+     * of an encoding of Java is decoded by the plug-in, so that the encoding of
+     * an XML declaration is used, if the bytes are not valid in the CCSID, and
+     * invalid bytes become {@link TextEncoding#REPLACEMENT_CHARACTER}, see
+     * {@link TextEncoding#decode(byte[], Charset)}. Other CCSIDs, e.g. EBCDIC,
+     * are converted by IBM Toolbox for Java.
+     */
     public String readFile(AS400 aSystem, String aPath) throws Exception {
-        return RemoteJobs.readText(new IFSFile(aSystem, getPath(aPath)));
+
+        IFSFile file = new IFSFile(aSystem, getPath(aPath));
+        Charset charset = TextEncoding.getCharset(RemoteJobs.getValidCcsid(file.getCCSID()));
+        if (charset == null) {
+            return RemoteJobs.readText(file);
+        }
+
+        return TextEncoding.decode(RemoteJobs.readBytes(file, 0), charset);
     }
 
     public ExportSettings loadSettings(ExportSettings aDefaults) {

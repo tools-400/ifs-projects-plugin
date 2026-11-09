@@ -64,7 +64,7 @@ public class ExportPlanTest {
         assertTrue(hello.isExistingMember());
         assertTrue(hello.getProblems().isEmpty());
         assertEquals("Say hello", hello.getText());
-        assertEquals("**FREE\n// %METADATA\n// %TEXT Say hello\n// %EMETADATA\n/copy inc,consts\n", hello.getContent());
+        assertEquals("**FREE\n/copy inc,consts\n", hello.getContent());
         assertEquals(1, hello.getIncludes().getIncludes().size());
 
         Item consts = plan.getItems().get(1);
@@ -180,6 +180,100 @@ public class ExportPlanTest {
         assertEquals(2, plan.getExportedItems().size());
         assertEquals(Integer.valueOf(122), plan.getNewSourceFiles().get("QRPGLESRC"));
         assertEquals(Integer.valueOf(92), plan.getNewSourceFiles().get("QCMDSRC"));
+    }
+
+    @Test
+    public void testPlan_otherFiles() {
+
+        Map<String, String> files = new LinkedHashMap<>();
+        files.put("qrpglesrc/hello.rpgle", "**FREE\n");
+        files.put("qddssrc/table.tbl", "table\n");
+        files.put("qddssrc/table2.tbl", "table\n");
+        files.put("qddssrc/Rules.mk", "\n");
+        files.put("qrpglesrc/Rules.mk", "\n");
+        files.put("qrpglesrc/.ibmi.json", "{}\n");
+        files.put(".github/release.cmd", "@echo off\n");
+        files.put("iproj.json", "{}\n");
+        files.put("LICENSE", "\n");
+
+        ExportPlan plan = createPlan(files, new LibraryInfo(true), new ExportSettings("JSMITH#CL", 1141, 112));
+
+        assertEquals(1, plan.getItems().size());
+        assertEquals(6, plan.getOtherFileCount());
+        assertEquals(Arrays.asList("mk", "tbl", "", "json"), new ArrayList<>(plan.getOtherFileTypes().keySet()));
+        assertEquals(Integer.valueOf(2), plan.getOtherFileTypes().get("tbl"));
+        assertEquals(Arrays.asList("tbl"), plan.getUnselectedProposals());
+        assertEquals(3, plan.getSourceTypeProposals().size());
+
+        ExportSettings settings = new ExportSettings("JSMITH#CL", 1141, 112);
+        settings.setFurtherSourceTypes(Arrays.asList("TBL"));
+        plan = createPlan(files, new LibraryInfo(true), settings);
+
+        assertEquals(3, plan.getItems().size());
+        assertEquals("TBL", plan.getItems().get(1).getSourceType());
+        assertEquals("QDDSSRC", plan.getItems().get(1).getSourceFile());
+        assertTrue(plan.getItems().get(1).isExported());
+        assertEquals(4, plan.getOtherFileCount());
+        assertEquals(Arrays.asList("mk", "", "json"), new ArrayList<>(plan.getOtherFileTypes().keySet()));
+        assertTrue(plan.getUnselectedProposals().isEmpty());
+        assertTrue(plan.getSourceTypeProposals().get(0).isSelected());
+    }
+
+    /**
+     * Bytes, that are not valid in the encoding of the file, are reported
+     * instead of the replacement characters, that do not exist in the CCSID.
+     */
+    @Test
+    public void testPlan_invalidBytes() {
+
+        Map<String, String> files = new LinkedHashMap<>();
+        files.put("qrpglesrc/hello.rpgle", "**FREE\n// �nderung\n// 5 €\n");
+
+        ExportPlan plan = createPlan(files, new LibraryInfo(false), new ExportSettings("JSMITH#CL", 273, 112));
+        Item hello = plan.getItems().get(0);
+
+        assertTrue(hello.isExported());
+        assertEquals(1, hello.getProblems().size());
+        assertProblem(hello.getProblems().get(0), ProblemType.INVALID_BYTES, 2);
+    }
+
+    /**
+     * The comment block of the member text is exported only, if its text does
+     * not become the text of the member.
+     */
+    @Test
+    public void testPlan_memberText() {
+
+        String block = "      *%METADATA                                                       *\n"
+            + "      * %TEXT Fixed format program                                     *\n"
+            + "      *%EMETADATA                                                      *\n";
+        Map<String, String> files = new LinkedHashMap<>();
+        files.put("qrpglesrc/fixed.rpgle", block + "     H DFTACTGRP(*NO)\n");
+        files.put("qrpglesrc/notext.rpgle", "      *%METADATA *\n      *%EMETADATA *\n     H DFTACTGRP(*NO)\n");
+
+        LibraryInfo library = new LibraryInfo(true);
+        library.addFile("QRPGLESRC", true, 68, 273);
+
+        ExportPlan plan = createPlan(files, library, new ExportSettings("JSMITH#CL", 1141, 112));
+
+        Item fixed = plan.getItems().get(0);
+        assertTrue(fixed.isExported());
+        assertEquals("Fixed format program", fixed.getText());
+        assertEquals("     H DFTACTGRP(*NO)\n", fixed.getContent());
+
+        Item noText = plan.getItems().get(1);
+        assertNull(noText.getText());
+        assertEquals("      *%METADATA *\n      *%EMETADATA *\n     H DFTACTGRP(*NO)\n", noText.getContent());
+
+        ExportSettings settings = new ExportSettings("JSMITH#CL", 1141, 112);
+        settings.setMemberText(false);
+        plan = createPlan(files, library, settings);
+
+        fixed = plan.getItems().get(0);
+        assertNull(fixed.getText());
+        assertEquals(block + "     H DFTACTGRP(*NO)\n", fixed.getContent());
+        // The lines of the block (72 characters) do not fit into the record.
+        assertProblem(fixed.getProblems().get(0), ProblemType.LINE_TOO_LONG, 1);
     }
 
     @Test

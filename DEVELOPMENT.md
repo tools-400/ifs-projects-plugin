@@ -67,8 +67,8 @@ Packages below `de.tools400.ifsprojects`:
 | `compile` | Plug-in `IFS Projects COMPILE Plugin`: `CompileHeaderParser` reads the commands behind `*_>`, which may stand anywhere in a line, up to the end of the line; the `*/` of a CL comment at the end of a line is removed. A line, that ends with `+` or `-`, is continued by the next line, which repeats `*_>`; like in CL, `+` skips the leading blanks of the next line. The substitution variables `@1` - `@15` are returned as `&1` - `&15`, so that `SourceHeader` recognizes a library, that is a variable. Its priority is 80, the lowest: no other header contains its marker. |
 | `cplcas` | Plug-in `IFS Projects CPLCAS Plugin`: `CplCasHeaderParser` reads the lines with `*%%%`, which stands in columns 7 - 10, but is searched anywhere in a line. The character behind it is a flag: a blank is followed by up to 50 characters of the command (the frame of a comment block behind them is ignored), `#` ends a command, `&` ends the last command and the header, `*` is a comment and `@` (run again for further libraries) is ignored. The parts of a command are joined with a blank; a line without the marker ends the command. The substitution variables `%LIBO`, `%LIBS`, `%FIC`, `%MBR` and `%OBJ` are returned with `&`. Its priority is 70, the lowest: no other header contains its marker. |
 | `strpreprc` | Plug-in `IFS Projects STRPREPRC Plugin`: `StrPrePrcHeaderParser` reads the commands behind the tags `>>CRTCMD<<` of the first 100 lines. A command ends with a semicolon, a line, that ends with `+` or `-`, is continued by the next line of the header, from which the comment characters are removed (`//`, `*` of fixed format, `/*` of CL, `--` of SQL, and the `*/` at the end of a line). A line, that is no comment, that starts with `**` (`**FREE`, compile time data) or that contains another tag ends the command, so that a header without a semicolon does not swallow the source. |
-| `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
-| `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
+| `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `SourceTypeProposals` (proposed further source types), `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
+| `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`, which opens `SourceTypesDialog`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
 | `migration` | Migration of source members into a new IFS project: `SourceFileCatalog` (SQL catalog) with `SourceFile` and `SourceMember`, `MigrationMapping` (member to stream file), `MemberIncludeConverter` (`RpgMemberIncludeConverter`, `ClMemberIncludeConverter`), `IncludeStyle`, `MigrationSettings`, `MigrationPlan` (preview) computed by `MigrationAnalyzer`, whose items carry the header of their build tool (`Item.getHeader()`, see `sources.headers`), `TobiBuildFiles` (`.ibmi.json`, `Rules.mk`), `MigrationFiles` (all files to write) and `MigrationJob`. |
 | `migration.wizards` | `MigrateToIfsProjectWizard` with `SourceFilesWizardPage`, `MigrationPreviewWizardPage` and `project.wizards.NewIfsProjectWizardPage`. Started by `handlers.MigrateSourceFilesHandler` on a library or on source files. |
 | `preferencepages` | `IfsProjectsPreferencePage` (build) with the sub-pages `SshTerminalPreferencePage`, `MigrationPreferencePage` and `ExportPreferencePage`. Field editors `EnvironmentVariablesFieldEditor` and `CcsidFieldEditor`. `MigrationPreferencePage` is no field editor page: it shows the installed header parsers in a `swt.CheckboxTableGroup`, or a hint, if none is installed. |
@@ -247,13 +247,35 @@ events file in the *Error List*.
 *Export to Library...* copies the source files of an IFS project or a local IFS project into
 source members, e.g. for a change management system. The facts below were verified on the IBM i.
 
-* The wizard reads the files of the project once (`ExportSource.listFiles()`, `readFile()`) and the
-  library for every new library name (`LibraryInfo`). Then it computes the `ExportPlan` in memory;
-  deselecting a file computes it again. The job exports exactly the content of the plan.
+* The wizard lists the files of the project once (`ExportSource.listFiles()`), reads each exported
+  file once (`readFile()`), also when a further source type adds files, and the library for every
+  new library name (`LibraryInfo`). Then it computes the `ExportPlan` in memory; deselecting a file
+  computes it again. The job exports exactly the content of the plan.
 * Files: IFS projects are listed with `IFSFile.listFiles()` and read with the CCSID of the stream
   file. Local IFS projects are refreshed and read from the workspace. Both skip the files that the
   upload skips (`ProjectFiles`, `IgnoreRules`). The deploy directory of a local IFS
   project is only used to resolve absolute include paths and `includePath`; it is not changed.
+* Encodings (`sources.TextEncoding`): stream files with UTF-8 or a single-byte ASCII CCSID (1208,
+  819, 923, 1252, 367) and all files of local IFS projects are read as bytes and decoded by the
+  plug-in, other CCSIDs by IBM Toolbox for Java. Bytes, that are invalid in the encoding, are
+  decoded with the encoding of an XML declaration, if it has one and it decodes them, e.g. a file
+  with ISO-8859-1, that has been copied into the IFS with CCSID 1208; otherwise they become U+FFFD,
+  which the plan reports as `INVALID_BYTES` instead of `UNMAPPABLE_CHARACTER`. The reader of IBM
+  Toolbox for Java lost the next character, too (`Änderung` became `derung`).
+* `ExportMapping` exports the files with an extension of TOBi (`SourceTypes`) or of the further
+  source types of the settings, which the migration writes for source types unknown to TOBi, e.g.
+  `TBL`. It skips hidden files and directories (`.github/release.cmd` would be a command). The
+  preview counts the other files by extension (`ExportPlan.getOtherFileTypes()`).
+* `SourceTypeProposals` proposes further source types from the file names only: IBM source types
+  unknown to TOBi, the `extensions` of the actions in `.vscode/actions.json` of Code for IBM i (read
+  by `ExportAnalyzer`, parsed leniently because of comments) and extensions in source directories
+  (`.ibmi.json`, which `makei cvtsrcpf` and the migration write, or files of TOBi source types).
+  A list of document, script, settings and binary extensions is never proposed. Proposals are only
+  hints: the preview names the unselected ones, `SourceTypesDialog` checks only the further source
+  types of the settings and *Select Proposed* the proposals. The dialog changes the settings and
+  the wizard computes the plan again (`ExportToLibraryWizard.changeFurtherSourceTypes()`), without
+  asking again for a missing library. `NLS.bind` drops single apostrophes, so bound messages double
+  them.
 * Library: `OBJECT_STATISTICS(lib, '*FILE')` joined with `SYSTABLES` (`FILE_TYPE` `S`) and
   `SYSCOLUMNS` (length and CCSID of `SRCDTA`) over the JDBC driver of IBM Toolbox for Java, the
   members from `SYSPARTITIONSTAT`. Program-described files, e.g. `EVFEVENT`, are not in
@@ -266,7 +288,8 @@ source members, e.g. for a change management system. The facts below were verifi
   (and removed with `RMVM`, if the copy fails), a replaced member gets its source type and text
   with `CHGPFM` afterwards.
 * Lines: `CPYFRMSTMF` counts characters, not bytes, expands tabs to tab stops of 8 and drops a
-  byte order mark. Lines longer than the record are truncated with the message CPIA083, which is
+  byte order mark. `TABEXPN(*YES)` is specified, because no tab may get into a member, even if
+  the default of the command has been changed. Lines longer than the record are truncated with the message CPIA083, which is
   also sent, if only trailing blanks are lost. Characters that do not exist in the CCSID of the
   source file become X'3F' without any message. Therefore `SourceCheck` checks the lengths and the
   characters (round trip with `CharConverter`) before the export, instead of evaluating CPIA083.
@@ -295,6 +318,8 @@ source members, e.g. for a change management system. The facts below were verifi
   72 characters from column 7, no blank after the comment start (`      *%METADATA ... *`), after
   line 1 of a `**FREE` source with `//`. Unlike TOBi, panel groups (`PNLGRP`) get it, too.
   `makei cvtsrcpf` itself fails for libraries with `#` in the name (unquoted shell command).
+  `MemberText.remove` reverses it: the export does not write the block into the member, if its
+  text becomes the member text, so that a round trip does not add it again.
 * A file, whose lines are too long for an existing source file, is not exported. The plan
   converts the includes again, until no further file fails, so that no include refers to a missing
   member.
@@ -320,14 +345,25 @@ project, the reverse of the export. The facts below were verified on the IBM i (
   `MigrationPlan` in memory. *Finish* creates the project with `IfsProjectCreator` and starts the
   `MigrationJob`, which writes the files of `MigrationFiles` with `RemoteJobs.writeText()` (CCSID
   1208) and asks before replacing a file.
+* XML: a member, that starts with an XML declaration with an encoding, is written in that encoding
+  with its CCSID (`MigrationPlan.Item.getCcsid()`, `MigrationFiles.getCcsids()`), e.g. the packages
+  of XMLGEN, which are EBCDIC members with `encoding="ISO-8859-1"`, as ISO-8859-1 with CCSID 819.
+  In UTF-8 the file would contradict its declaration. If the encoding is not supported or misses a
+  character, the file stays UTF-8 and the plan reports `ENCODING_NOT_KEPT`.
 * Why not `makei cvtsrcpf`: it fails for libraries with `#` in the name, renames existing files to
   `name_1.type` instead of asking, ignores errors and converts no includes. The migration writes the
   same format: `qxxxsrc/name.type` in lowercase, the `%METADATA` block and `.ibmi.json` with
-  `tgtCcsid`.
+  `tgtCcsid` as string. Unlike `makei cvtsrcpf`, `.ibmi.json` contains `version`, which the schema
+  of TOBi requires (`docs/prepare-the-project/ibmi-json.md`).
+* Member text: source types without comments (`TXT`, `FILE`, `XML`, ...; the comment styles of
+  TOBi, `MemberText.hasCommentStyle()`) cannot keep it; the plan reports `TEXT_NOT_KEPT`.
 * `CPYTOSTMF` of a member of a source file with CCSID 65535 fails with CPDA08C; with
   `DBFCCSID(1141)` the characters are converted correctly. The CCSID is an option of the first page.
 * Copy books: the plan converts the includes once with provisional paths to find the members, that
-  are included (`MemberIncludeConverter.getIncludedMembers()`), and maps them to `typeinc`.
+  are included (`MemberIncludeConverter.getIncludedMembers()`), and maps them to `typeinc`. If more
+  than half of the members of a source type in a source file are included, the other members of
+  that type become copy books, too, unless their header creates an object, e.g. copy books, that
+  are no longer used or only by other libraries.
 * RPG: `/copy 'qcpysrc/consts.rpgleinc'` relative to the current directory works in free and fixed
   format (directive from column 7) and nested. `CRTBNDRPG` of a UTF-8 source needs
   `TGTCCSID(*JOB)`; otherwise it reports `RNS9339 Unable to open file`. The conditional block with
@@ -378,6 +414,18 @@ project, the reverse of the export. The facts below were verified on the IBM i (
   make, which runs in the project directory. Without the directory (`consts.rpgleinc` instead of
   `qcpysrc/consts.rpgleinc`), make reports "No rule to make target", the target is not built and
   `makei` still reports success. The draft therefore lists copy books with their path.
+* Service programs: `UTILS.SRVPGM: utils.bnd UTILS.MODULE` builds the module of another directory
+  first (verified with makei 3.5). The draft makes an RPG or CL member with the name of a binding
+  source the module of its service program.
+* `$` and `#` in names (TOBi 3.4 and later, `\#` in `Rules.mk`, verified with makei 3.5): a target
+  and its source work, also with a recipe. But TOBi replaces them in further prerequisites by
+  `DOLLARESCAPE_` and `HASHESCAPE_`, so that a copy book with `$` or `#` is not found ("No rule to
+  make target"); without `\`, make reads the rest of the line as a comment.
+  If a target with `$` or `#` has no recipe, TOBi does not build any target with a recipe, e.g.
+  CL programs and panel groups. In both cases `makei` reports success. The draft therefore writes
+  the rules of such members as comments and names the copy books with `$` or `#` in a comment
+  instead of listing them as prerequisites. A panel group still needs its recipe in TOBi 3.5, a CL
+  program does not.
 * `CRTPNLGRP` accepts the `.*` comment block before `:PNLGRP.`.
 * The wizard reuses `NewIfsProjectWizardPage`, which shows the error of a proposed directory at
   once and rejects directories with `$` or `#`.

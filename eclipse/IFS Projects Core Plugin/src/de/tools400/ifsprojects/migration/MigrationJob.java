@@ -32,9 +32,10 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Writes the files of a migration, see {@link MigrationFiles}, into the project
- * directory as stream files with CCSID 1208 (UTF-8). Missing directories are
- * created. Before an existing file is replaced, the user is asked, see
- * {@link OverwriteQuery}. At the end, a summary is shown.
+ * directory as stream files with CCSID 1208 (UTF-8), except of the XML files,
+ * that declare another encoding. Missing directories are created. Before an
+ * existing file is replaced, the user is asked, see {@link OverwriteQuery}. At
+ * the end, a summary is shown.
  */
 public class MigrationJob extends Job {
 
@@ -42,6 +43,7 @@ public class MigrationJob extends Job {
     private final String library;
     private final String directory;
     private final Map<String, String> files;
+    private final Map<String, Integer> ccsids;
     private final OverwriteQuery overwriteQuery;
 
     private final List<String> errors;
@@ -57,16 +59,20 @@ public class MigrationJob extends Job {
      * @param aDirectory - project directory
      * @param aFiles - contents of the files by their paths relative to the
      *        project directory
+     * @param aCcsids - CCSIDs of the files, that are not written in UTF-8, by
+     *        their paths, see {@link MigrationFiles#getCcsids(MigrationPlan)}
      * @param anOverwriteQuery - asks the user, whether an existing file is
      *        replaced; the job remembers 'Yes To All' and 'No To All'
      */
-    public MigrationJob(AS400 aRseSystem, String aLibrary, String aDirectory, Map<String, String> aFiles, OverwriteQuery anOverwriteQuery) {
+    public MigrationJob(AS400 aRseSystem, String aLibrary, String aDirectory, Map<String, String> aFiles, Map<String, Integer> aCcsids,
+        OverwriteQuery anOverwriteQuery) {
         super(Messages.bind(Messages.Task_Migrating_A_to_B, aLibrary, aDirectory));
 
         this.rseSystem = aRseSystem;
         this.library = aLibrary;
         this.directory = aDirectory;
         this.files = aFiles;
+        this.ccsids = aCcsids;
         this.overwriteQuery = new RememberingOverwriteQuery(anOverwriteQuery);
         this.errors = new ArrayList<>();
     }
@@ -115,6 +121,7 @@ public class MigrationJob extends Job {
     private boolean write(AS400 aSystem, String aPath, String aContent) {
 
         String path = IfsPaths.append(directory, aPath);
+        int ccsid = ccsids.containsKey(aPath) ? ccsids.get(aPath).intValue() : RemoteJobs.CCSID_UTF8;
         try {
             IFSFile file = new IFSFile(aSystem, path);
             boolean isExisting = file.exists();
@@ -129,7 +136,7 @@ public class MigrationJob extends Job {
                 }
                 // A replaced file would keep its CCSID, see
                 // RemoteJobs.writeText().
-                if (file.getCCSID() != RemoteJobs.CCSID_UTF8 && !file.delete()) {
+                if (file.getCCSID() != ccsid && !file.delete()) {
                     errors.add(Messages.bind(Messages.Error_A_B, aPath, Messages.bind(Messages.Error_Could_not_delete_A, path)));
                     return true;
                 }
@@ -144,7 +151,7 @@ public class MigrationJob extends Job {
                 }
             }
 
-            RemoteJobs.writeText(file, aContent, RemoteJobs.CCSID_UTF8);
+            RemoteJobs.writeText(file, aContent, ccsid);
             if (isExisting) {
                 replaced++;
             } else {

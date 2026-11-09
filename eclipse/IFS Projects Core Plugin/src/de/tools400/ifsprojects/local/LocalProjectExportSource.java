@@ -8,6 +8,9 @@
 
 package de.tools400.ifsprojects.local;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +25,7 @@ import de.tools400.ifsprojects.export.ExportSettings;
 import de.tools400.ifsprojects.export.ExportSource;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.remote.RemoteJobs;
+import de.tools400.ifsprojects.sources.TextEncoding;
 
 /**
  * Local IFS project, that is exported. Its files are read from the workspace,
@@ -33,6 +37,8 @@ import de.tools400.ifsprojects.remote.RemoteJobs;
  * as persistent property of the project, like the environment variables.
  */
 public final class LocalProjectExportSource implements ExportSource {
+
+    private static final int BUFFER_SIZE = 8192;
 
     private final LocalProject localProject;
     private final IHost host;
@@ -85,11 +91,36 @@ public final class LocalProjectExportSource implements ExportSource {
         return new ArrayList<>(Deployment.getFiles(localProject.getProject()).keySet());
     }
 
+    /**
+     * Reads a file with its encoding in the workspace, which is the encoding
+     * of the XML declaration of an XML file, unless another one is set. Like
+     * the export of IFS projects, the plug-in decodes the bytes, see
+     * {@link TextEncoding#decode(byte[], Charset)}.
+     */
     public String readFile(AS400 aSystem, String aPath) throws Exception {
 
         IFile file = localProject.getProject().getFile(aPath);
 
-        return LocalProject.readText(file);
+        Charset charset;
+        try {
+            charset = Charset.forName(file.getCharset());
+        } catch (RuntimeException e) {
+            return LocalProject.readText(file);
+        }
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        InputStream inputStream = file.getContents(true);
+        try {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int count;
+            while ((count = inputStream.read(buffer)) >= 0) {
+                bytes.write(buffer, 0, count);
+            }
+        } finally {
+            inputStream.close();
+        }
+
+        return TextEncoding.decode(bytes.toByteArray(), charset);
     }
 
     public ExportSettings loadSettings(ExportSettings aDefaults) {

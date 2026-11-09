@@ -43,6 +43,12 @@ final class MigrationProblems {
         case MAKE_CHARACTERS:
             return Messages.Problem_Make_characters;
 
+        case TEXT_NOT_KEPT:
+            return Messages.bind(Messages.Problem_Text_not_kept_A, aProblem.getText());
+
+        case ENCODING_NOT_KEPT:
+            return Messages.bind(Messages.Problem_Encoding_not_kept_A, aProblem.getText());
+
         case INCLUDE:
             switch (aProblem.getIncludeProblem()) {
             case NOT_FOUND:

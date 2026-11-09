@@ -50,6 +50,9 @@ final class ExportProblems {
         case UNMAPPABLE_CHARACTER:
             return Messages.bind(Messages.Problem_Line_A_unmappable_B, lineNumber, Integer.toString(aProblem.getLimit()));
 
+        case INVALID_BYTES:
+            return Messages.bind(Messages.Problem_Line_A_invalid_bytes, lineNumber);
+
         case INCLUDE:
             switch (aProblem.getIncludeProblem()) {
             case NOT_FOUND:

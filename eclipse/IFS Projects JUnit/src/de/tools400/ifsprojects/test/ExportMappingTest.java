@@ -109,9 +109,75 @@ public class ExportMappingTest {
 
     @Test
     public void testIsExported() {
-        assertTrue(ExportMapping.isExported("src/hello.pgm.rpgle"));
-        assertTrue(ExportMapping.isExported("hello.pgm.clle"));
-        assertFalse(ExportMapping.isExported("src/Rules.mk"));
-        assertFalse(ExportMapping.isExported("iproj.json"));
+
+        ExportMapping mapping = new ExportMapping(SourceFileRule.DIRECTORY, null);
+
+        assertTrue(mapping.isExported("src/hello.pgm.rpgle"));
+        assertTrue(mapping.isExported("hello.pgm.clle"));
+        assertFalse(mapping.isExported("src/Rules.mk"));
+        assertFalse(mapping.isExported("iproj.json"));
+        assertFalse(mapping.isExported("qddssrc/table.tbl"));
+    }
+
+    /**
+     * Hidden files and the files of hidden directories are not exported, e.g.
+     * the Windows batch file <code>.github/release.cmd</code>, which would be
+     * a command.
+     */
+    @Test
+    public void testIsExported_hidden() {
+
+        ExportMapping mapping = new ExportMapping(SourceFileRule.DIRECTORY, null);
+
+        assertFalse(mapping.isExported(".github/release.cmd"));
+        assertFalse(mapping.isExported("src/.hidden/hello.rpgle"));
+        assertFalse(mapping.isExported("qrpglesrc/.hello.rpgle"));
+        assertTrue(mapping.isExported("src.old/hello.rpgle"));
+
+        List<Entry> entries = mapping.map(Arrays.asList(".github/release.cmd", "qcmdsrc/hello.cmd"));
+        assertEquals(1, entries.size());
+        assertEntry(entries.get(0), "qcmdsrc/hello.cmd", "QCMDSRC", "HELLO", "CMD", Status.OK);
+    }
+
+    @Test
+    public void testIsHidden() {
+        assertTrue(ExportMapping.isHidden(".github/release.cmd"));
+        assertTrue(ExportMapping.isHidden("a/.b/c.rpgle"));
+        assertTrue(ExportMapping.isHidden("qrpglesrc/.ibmi.json"));
+        assertTrue(ExportMapping.isHidden(".gitignore"));
+        assertFalse(ExportMapping.isHidden("src.old/hello.rpgle"));
+        assertFalse(ExportMapping.isHidden("hello.rpgle"));
+        assertFalse(ExportMapping.isHidden("a/b/c"));
+    }
+
+    @Test
+    public void testGetExtension() {
+        assertEquals("rpgle", ExportMapping.getExtension("hello.pgm.rpgle"));
+        assertEquals("XML", ExportMapping.getExtension("BASICS1.XML"));
+        assertEquals("", ExportMapping.getExtension("LICENSE"));
+        assertEquals("", ExportMapping.getExtension(".gitignore"));
+    }
+
+    /**
+     * The migration writes members of source types, that TOBi does not know,
+     * with their source type as extension, e.g. <code>TBL</code>.
+     */
+    @Test
+    public void testMap_furtherSourceTypes() {
+
+        ExportMapping mapping = new ExportMapping(SourceFileRule.DIRECTORY, null, Arrays.asList("tbl", "XML"));
+
+        assertEquals("TBL", mapping.getSourceType("qddssrc/table.tbl"));
+        assertEquals("XML", mapping.getSourceType("QXML/BASICS1.XML"));
+        assertEquals("RPGLE", mapping.getSourceType("qrpglesrc/hello.rpgle"));
+        assertNull(mapping.getSourceType("qddssrc/table.tblinc"));
+        assertNull(mapping.getSourceType("doc/download.bat"));
+        assertNull(mapping.getSourceType(".hidden/table.tbl"));
+
+        List<Entry> entries = mapping.map(Arrays.asList("qddssrc/table.tbl", "QXML/BASICS1.XML", "table.tbl", "README.md"));
+        assertEquals(3, entries.size());
+        assertEntry(entries.get(0), "qddssrc/table.tbl", "QDDSSRC", "TABLE", "TBL", Status.OK);
+        assertEntry(entries.get(1), "QXML/BASICS1.XML", "QXML", "BASICS1", "XML", Status.OK);
+        assertEntry(entries.get(2), "table.tbl", "QSRC", "TABLE", "TBL", Status.OK);
     }
 }

@@ -12,6 +12,8 @@ import java.io.UnsupportedEncodingException;
 
 import com.ibm.as400.access.CharConverter;
 
+import de.tools400.ifsprojects.sources.TextEncoding;
+
 /**
  * Checks the text of a stream file before it is copied into a member, so that
  * no characters are lost. The lines are measured like <code>CPYFRMSTMF</code>
@@ -145,6 +147,25 @@ public final class SourceCheck {
         }
 
         return 0;
+    }
+
+    /**
+     * Returns the first line, that contains bytes, that are not valid in the
+     * encoding of the file, i.e. the character
+     * {@link TextEncoding#REPLACEMENT_CHARACTER}, by which the decoder has
+     * replaced them, see {@link TextEncoding#decode(byte[], java.nio.charset.Charset)}.
+     *
+     * @param aText - text
+     * @return line number or 0, if the text has no invalid bytes
+     */
+    public static int findInvalidLine(String aText) {
+
+        int index = aText.indexOf(TextEncoding.REPLACEMENT_CHARACTER);
+        if (index < 0) {
+            return 0;
+        }
+
+        return aText.substring(0, index).split(LINE_SEPARATOR_PATTERN, -1).length;
     }
 
     /**

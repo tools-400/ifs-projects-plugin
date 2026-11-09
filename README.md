@@ -209,8 +209,12 @@ reverse of `makei cvtsrcpf` of TOBi, e.g. `qrpglesrc/hello.pgm.rpgle` becomes `H
 `RPGLE`. Copy books have the extension of their source type followed by `inc` and get that type,
 e.g. `*.rpgleinc` (`RPGLE`), `*.sqlrpgleinc` (`SQLRPGLE`) and `*.clleinc` (`CLLE`); `*.clinc` of
 Code for IBM i becomes `CLLE`, too. Only the file types that TOBi knows are exported; other files, e.g.
-`iproj.json` or `Rules.mk`, are skipped. The same files as by the upload of local IFS projects are
-excluded, e.g. the files of `.deployignore` or `.gitignore`.
+`iproj.json` or `Rules.mk`, are skipped. *Further source types* on the first page adds extensions,
+e.g. `tbl, xml`: `qddssrc/table.tbl` becomes `TABLE` of type `TBL`. The migration writes members of
+any source type with their source type as extension. Hidden files and the files of hidden
+directories, whose names start with a period, are not exported, e.g. `.github/release.cmd`. The same
+files as by the upload of local IFS projects are excluded, e.g. the files of `.deployignore` or
+`.gitignore`.
 
 **Source files**, to be chosen on the first page:
 
@@ -225,7 +229,13 @@ excluded, e.g. the files of `.deployignore` or `.gitignore`.
 are set in the [preferences](#preferences): 1141 and 112). A source file with longer lines gets a
 longer record length. The CCSID must be an EBCDIC CCSID with one byte per character: select it from
 the list or enter its number. If the library does not exist, you are asked, whether the export
-shall create it.
+shall create it. Tabs are replaced by blanks up to the next tab stop (columns 1, 9, 17, ...), so
+that no tab character gets into a member.
+
+**Encodings.** The files are read with the CCSID of the stream file, files of local IFS projects
+with their encoding in the workspace. An XML file, whose bytes are not valid in that encoding, is
+read with the encoding of its declaration, e.g. a file with ISO-8859-1, that has been copied into
+the IFS with CCSID 1208. Other invalid bytes are reported in the preview with their line.
 
 **Include directives** are converted, so that the members compile from the source files:
 `/copy 'inc/consts.rpgleinc'` becomes `/copy inc,consts` and `INCLUDE SRCSTMF('vars.clinc')`
@@ -252,13 +262,27 @@ becomes `INCLUDE SRCMBR(VARS) SRCFILE(QCLSRC)`. The copy book is searched like t
 // %EMETADATA
 ```
 
+The comment block is not written into the member, because its text becomes the text of the member.
+Without the option, the block stays in the source.
+
 **Preview.** The second page lists the files with member, source type and status (*New*,
 *Replace*, *Error*). Files with errors are not exported: a file name with more than 10 characters
 before the first period, several files for the same member, a line longer than the record length of
 an existing source file or a file of the same name that is not a source file. Warnings, e.g.
 characters that do not exist in the CCSID of the source file or include directives that are not
 converted, do not prevent the export. Select a file to see all its problems, the converted include
-directives and the member text. You can deselect files.
+directives and the member text. You can deselect files. The summary counts the files without known
+source type by extension, e.g. `mk (12), tbl (2)`.
+
+*Source Types...* to the right of the list selects the further source types from these extensions,
+with the number of files and an example. Checked are the further source types of the settings.
+Listed first, with a hint why, are the extensions, that are probably source types: source types of
+IBM, that TOBi does not know, e.g. `TBL`, extensions with an action of Code for IBM i in
+`.vscode/actions.json` and extensions of files in source directories, i.e. directories with
+`.ibmi.json` or with files of known source types; *Select Proposed* checks them. Documents, scripts,
+settings and binary files, e.g. `md`, `mk`, `sh` or `pdf`, are never proposed. After *OK* the
+preview is computed again. As long as proposed extensions are not exported, the page names them in
+a hint; the export never adds them by itself.
 
 A **double-click on a file** shows the source, that would be written into the member — the member
 does not exist yet, so it cannot be opened in an editor:
@@ -285,7 +309,8 @@ the selected ones. All are selected; *Select All* and *Deselect All* are to the 
 Options:
 
 * *Member text as comment %TEXT*: inserts the member text at the beginning of the file, like
-  `makei cvtsrcpf --text`. TOBi uses it as object text, the export reads it back.
+  `makei cvtsrcpf --text`. TOBi uses it as object text, the export reads it back. Source types
+  without comments, e.g. `TXT` or `XML`, cannot keep the text; the preview warns about it.
 * *Keep the RPG directives of the members for the member build*: see include directives below.
 * *CCSID of source files with CCSID 65535*: the members of such files are read with this CCSID,
   because `CPYTOSTMF` does not convert them otherwise.
@@ -293,8 +318,13 @@ Options:
 **Stream files.** The member `NAME` of type `TYPE` in the source file `QXXXSRC` becomes
 `qxxxsrc/name.type`, like `makei cvtsrcpf --tolower`, e.g. `QRPGLESRC(HELLO)` becomes
 `qrpglesrc/hello.rpgle`. A copy book, i.e. a member included by other members, gets the extension
-`typeinc`, which TOBi recommends, e.g. `qcpysrc/consts.rpgleinc`. The files are written in UTF-8
-(CCSID 1208).
+`typeinc`, which TOBi recommends, e.g. `qcpysrc/consts.rpgleinc`. If most members of a source type
+in a source file are copy books, the other members of that type are copy books, too, e.g. copy books
+of `QCPYSRC`, that are no longer used, unless the header of a member creates an object. The files
+are written in UTF-8 (CCSID 1208), except of XML files, whose declaration names another encoding,
+e.g. `<?xml version="1.0" encoding="ISO-8859-1"?>` of the packages of XMLGEN: they are written in
+that encoding (ISO-8859-1 with CCSID 819), so that they match their declaration. If the encoding
+is not supported or misses a character, the preview warns and the file is written in UTF-8.
 
 **Include directives** are converted to the stream files:
 
@@ -337,11 +367,18 @@ Options:
 
 **TOBi files.** If the build tool of the new project is TOBi, the migration also writes:
 
-* `.ibmi.json` in each directory with the CCSID of the source file (`tgtCcsid`).
+* `.ibmi.json` in each directory with the CCSID of the source file (`tgtCcsid`) and the version
+  of the format, which the schema of TOBi requires.
 * `Rules.mk` in the project directory with the directories (`SUBDIRS`).
 * A draft of `Rules.mk` in each directory with one rule per member: a program, or a module, if the
-  header of the member uses `CRTRPGMOD`, `CRTCLMOD` or `OBJTYPE(*MODULE)`; `.FILE` for display,
-  printer and database files; `.CMD` and `.PNLGRP`. Copy books are prerequisites with their path in
+  header of the member uses `CRTRPGMOD`, `CRTCLMOD` or `OBJTYPE(*MODULE)` or if a binding source
+  has its name; `.FILE` for display, printer and database files; `.CMD` and `.PNLGRP`; a service
+  program for a binding source, e.g. `UTILS.SRVPGM: utils.bnd UTILS.MODULE` with the module of the
+  same name, otherwise with a hint to add the modules. The rules of members with `$` or `#` in the
+  name are written as comments, with `#` as `\#`: TOBi 3.4 and later accept these characters, but
+  TOBi 3.5 does not build the targets with a recipe (CL programs, panel groups), if a target with
+  `$` or `#` has none, and still reports success. Copy books with `$` or `#` cannot be
+  prerequisites; a comment names them. Copy books are prerequisites with their path in
   the project, CL rules set the directory of the source as `INCDIR`, and a source with an
   `EXEC SQL INCLUDE` of a stream file gets `DBGVIEW := *LIST`, because the default `*SOURCE` of
   TOBi fails for it (`SQL8009`). Check the draft and set the
@@ -350,8 +387,8 @@ Options:
 
 **Preview.** The second page lists the members with source type, stream file, status (*New*,
 *Error*) and problems. Members without source type are not migrated. Warnings, e.g. a source type
-unknown to TOBi, `$` or `#` in the member name or include directives that are not converted, do not
-prevent the migration. The tool tip of a row shows all problems; select a member to see its details.
+unknown to TOBi, `$` or `#` in the member name, a member text that cannot be kept or include
+directives that are not converted, do not prevent the migration. The tool tip of a row shows all problems; select a member to see its details.
 A **double-click on a member** shows the source, that would be written into the stream file, like
 the preview of the export: the tab *Result* with line numbers and the search, the tab
 *Comparison* with the member and the stream file side by side.

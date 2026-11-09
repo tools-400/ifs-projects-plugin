@@ -8,6 +8,7 @@
 
 package de.tools400.ifsprojects.export.wizards;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.eclipse.jface.wizard.IWizardPage;
@@ -35,7 +36,8 @@ import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * First page of the export: library, source files, CCSID and record length of
- * new source files and member text. 'Next' reads the project and the library
+ * new source files, further source types and member text. 'Next' reads the
+ * project and the library
  * and shows the {@link ExportPreviewWizardPage}.
  */
 public class ExportSettingsWizardPage extends WizardPage {
@@ -53,6 +55,7 @@ public class ExportSettingsWizardPage extends WizardPage {
     private Text sourceFileText;
     private CcsidCombo ccsidCombo;
     private Text recordLengthText;
+    private Text furtherSourceTypesText;
     private Button memberTextButton;
 
     /**
@@ -83,6 +86,12 @@ public class ExportSettingsWizardPage extends WizardPage {
         createSourceFileGroup(main);
         createNewSourceFilesGroup(main);
 
+        Label furtherSourceTypesLabel = new Label(main, SWT.NONE);
+        furtherSourceTypesLabel.setText(Messages.Label_Further_source_types_colon);
+        furtherSourceTypesText = new Text(main, SWT.BORDER);
+        furtherSourceTypesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        ToolTips.set(Messages.Tooltip_Further_source_types, furtherSourceTypesLabel, furtherSourceTypesText);
+
         memberTextButton = new Button(main, SWT.CHECK);
         memberTextButton.setText(Messages.Label_Member_text_from_TEXT);
         memberTextButton.setLayoutData(createSpanningGridData());
@@ -99,6 +108,7 @@ public class ExportSettingsWizardPage extends WizardPage {
         sourceFileText.addModifyListener(modifyListener);
         ccsidCombo.addModifyListener(modifyListener);
         recordLengthText.addModifyListener(modifyListener);
+        furtherSourceTypesText.addModifyListener(modifyListener);
 
         SelectionAdapter ruleListener = new SelectionAdapter() {
             @Override
@@ -136,8 +146,19 @@ public class ExportSettingsWizardPage extends WizardPage {
         settings.setSourceFile(getSourceFile());
         settings.setMemberText(memberTextButton.getSelection());
         settings.setConvertIncludes(initialSettings.isConvertIncludes());
+        settings.setFurtherSourceTypes(ExportSettings.parseSourceTypes(furtherSourceTypesText.getText()));
 
         return settings;
+    }
+
+    /**
+     * Sets the further source types, e.g. after the user has selected them on
+     * the preview page.
+     *
+     * @param aSourceTypes - source types
+     */
+    void setFurtherSourceTypes(List<String> aSourceTypes) {
+        furtherSourceTypesText.setText(ExportSettings.formatSourceTypes(aSourceTypes));
     }
 
     /**
@@ -206,6 +227,7 @@ public class ExportSettingsWizardPage extends WizardPage {
         ccsidCombo.setCcsid(aSettings.getCcsid());
         recordLengthText.setText(Integer.toString(aSettings.getRecordLength()));
         memberTextButton.setSelection(aSettings.isMemberText());
+        furtherSourceTypesText.setText(ExportSettings.formatSourceTypes(aSettings.getFurtherSourceTypes()));
     }
 
     private void validate() {
@@ -224,6 +246,8 @@ public class ExportSettingsWizardPage extends WizardPage {
         } else if (ExportSettings.parseInt(recordLengthText.getText(), ExportSettings.MIN_RECORD_LENGTH, ExportSettings.MAX_RECORD_LENGTH) == null) {
             errorMessage = Messages.bind(Messages.Error_Record_length_invalid_A_B, Integer.toString(ExportSettings.MIN_RECORD_LENGTH),
                 Integer.toString(ExportSettings.MAX_RECORD_LENGTH));
+        } else if (ExportSettings.parseSourceTypes(furtherSourceTypesText.getText()) == null) {
+            errorMessage = Messages.Error_Further_source_types_invalid;
         }
 
         setErrorMessage(errorMessage);

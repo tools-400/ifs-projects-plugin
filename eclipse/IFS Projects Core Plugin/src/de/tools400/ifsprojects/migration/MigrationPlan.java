@@ -25,8 +25,10 @@ import de.tools400.ifsprojects.sources.MemberText;
 import de.tools400.ifsprojects.sources.RpgSqlIncludeDirective;
 import de.tools400.ifsprojects.sources.RpgSqlStatements;
 import de.tools400.ifsprojects.sources.SourceTypes;
+import de.tools400.ifsprojects.sources.TextEncoding;
 import de.tools400.ifsprojects.sources.headers.SourceHeader;
 import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
+import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Plan of a migration: the stream files of the members of source files, their
@@ -34,7 +36,9 @@ import de.tools400.ifsprojects.sources.headers.SourceHeaderParsers;
  * the first pass determines the source file of the <code>EXEC SQL
  * INCLUDE</code> statements of each member, see {@link #getSqlIncludeFiles()};
  * the second pass finds the copy books, i.e. the members included by other
- * members, which get the extension of copy books, see {@link MigrationMapping};
+ * members and the other members of the same source type in a source file, most
+ * of whose members are included, which get the extension of copy books, see
+ * {@link MigrationMapping};
  * the third pass converts the include directives to these paths and inserts the
  * member text.
  * <p>
@@ -242,7 +246,9 @@ public final class MigrationPlan {
 
     /**
      * Converts the includes with provisional paths, in which no member is a
-     * copy book, and returns the members, to which the includes refer.
+     * copy book, and returns the members, to which the includes refer, and the
+     * further copy books of the source files of copy books, see
+     * {@link #addCopyBooksOfCopyBookFiles(Set)}.
      */
     private Set<String> findCopyBooks(Map<String, String> aSqlIncludeFiles) {
 
@@ -250,7 +256,7 @@ public final class MigrationPlan {
 
         Set<String> copyBooks = new HashSet<>();
         for (Item item : items) {
-            if (item.content != null && item.member.getSourceType() != null) {
+            if (isReadable(item)) {
                 MemberIncludeConverter converter = MemberIncludeConverter.create(item.member.getSourceType(), library, paths, sourceFiles,
                     IncludeStyle.REPLACE, aSqlIncludeFiles.get(item.member.getKey()));
                 if (converter != null) {
@@ -260,7 +266,59 @@ public final class MigrationPlan {
             }
         }
 
+        addCopyBooksOfCopyBookFiles(copyBooks);
+
         return copyBooks;
+    }
+
+    /**
+     * Adds the members, that are not included by other members, to the copy
+     * books, if most members of the same source type in their source file are
+     * included, e.g. the copy books of <code>QCPYSRC</code>, that are not used
+     * any longer or only by other libraries. A member, whose header creates an
+     * object, is no copy book.
+     *
+     * @param aCopyBooks - keys of the included members, to which the further
+     *        copy books are added
+     */
+    private void addCopyBooksOfCopyBookFiles(Set<String> aCopyBooks) {
+
+        Map<String, int[]> counts = new HashMap<>();
+        for (Item item : items) {
+            if (isReadable(item)) {
+                String key = getSourceFileAndType(item);
+                int[] count = counts.get(key);
+                if (count == null) {
+                    count = new int[2];
+                    counts.put(key, count);
+                }
+                count[1]++;
+                if (aCopyBooks.contains(item.member.getKey())) {
+                    count[0]++;
+                }
+            }
+        }
+
+        for (Item item : items) {
+            if (isReadable(item) && !aCopyBooks.contains(item.member.getKey()) && item.header.getCreateCommand() == null) {
+                int[] count = counts.get(getSourceFileAndType(item));
+                if (2 * count[0] > count[1]) {
+                    aCopyBooks.add(item.member.getKey());
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns <code>true</code>, if the member has been read and has a source
+     * type.
+     */
+    private static boolean isReadable(Item anItem) {
+        return anItem.content != null && anItem.member.getSourceType() != null;
+    }
+
+    private static String getSourceFileAndType(Item anItem) {
+        return anItem.member.getSourceFile().toUpperCase(Locale.ROOT) + '/' + anItem.member.getSourceType().toUpperCase(Locale.ROOT);
     }
 
     /**
@@ -320,8 +378,27 @@ public final class MigrationPlan {
             }
         }
 
-        if (settings.isMemberText() && anItem.member.getText() != null) {
-            content = MemberText.insert(content, anItem.member.getSourceType(), anItem.member.getText());
+        String text = anItem.member.getText();
+        if (settings.isMemberText() && !StringUtils.isBlank(text)) {
+            if (MemberText.hasCommentStyle(anItem.member.getSourceType())) {
+                content = MemberText.insert(content, anItem.member.getSourceType(), text);
+            } else {
+                anItem.problems.add(new Problem(ProblemType.TEXT_NOT_KEPT, 0, anItem.member.getSourceType(), null));
+            }
+        }
+
+        // An XML file is written in the encoding of its declaration, e.g. the
+        // packages of XMLGEN with ISO-8859-1, so that it does not contradict
+        // it.
+        anItem.ccsid = TextEncoding.CCSID_UTF8;
+        String encoding = TextEncoding.getXmlEncoding(content);
+        if (encoding != null) {
+            int ccsid = TextEncoding.getCcsid(encoding);
+            if (ccsid != 0 && TextEncoding.canEncode(content, encoding)) {
+                anItem.ccsid = ccsid;
+            } else {
+                anItem.problems.add(new Problem(ProblemType.ENCODING_NOT_KEPT, 0, encoding, null));
+            }
         }
 
         anItem.migratedContent = content;
@@ -343,6 +420,19 @@ public final class MigrationPlan {
 
         /** The name contains characters, that make interprets in Rules.mk. */
         MAKE_CHARACTERS (false),
+
+        /**
+         * The member text is not kept, because the source type has no
+         * comments, in which it could be written, see {@link MemberText}.
+         */
+        TEXT_NOT_KEPT (false),
+
+        /**
+         * The XML declaration names an encoding, that is not supported or
+         * cannot hold all characters, so that the file is written in UTF-8,
+         * see {@link TextEncoding}.
+         */
+        ENCODING_NOT_KEPT (false),
 
         /** An include directive could not be converted. */
         INCLUDE (false);
@@ -428,6 +518,7 @@ public final class MigrationPlan {
 
         private String path;
         private String migratedContent;
+        private int ccsid;
         private IncludeConverter.Result includes;
 
         Item(SourceMember aMember, String aContent, String aReadError, SourceHeader aHeader) {
@@ -437,6 +528,7 @@ public final class MigrationPlan {
             this.header = aHeader;
             this.problems = new ArrayList<>();
             this.includedPaths = new ArrayList<>();
+            this.ccsid = TextEncoding.CCSID_UTF8;
         }
 
         public SourceMember getMember() {
@@ -460,6 +552,15 @@ public final class MigrationPlan {
          */
         public String getPath() {
             return path;
+        }
+
+        /**
+         * Returns the CCSID of the stream file: 1208 (UTF-8), or the CCSID of
+         * the encoding of the XML declaration of an XML file, e.g. 819 for
+         * ISO-8859-1.
+         */
+        public int getCcsid() {
+            return ccsid;
         }
 
         /**

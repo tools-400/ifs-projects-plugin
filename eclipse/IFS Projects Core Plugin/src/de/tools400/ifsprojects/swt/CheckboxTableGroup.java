@@ -30,13 +30,15 @@ import de.tools400.ifsprojects.Messages;
 
 /**
  * Table with a checkbox per row and the buttons 'Select All' and 'Deselect All'
- * to the right of the table. New elements are checked.
+ * to the right of the table, below which further buttons can be added. New
+ * elements are checked.
  *
  * @param <T> - type of the elements
  */
 public class CheckboxTableGroup<T> {
 
     private final Composite composite;
+    private final Composite buttons;
     private final CheckboxTableViewer viewer;
     private final List<Runnable> listeners = new ArrayList<>();
 
@@ -76,7 +78,7 @@ public class CheckboxTableGroup<T> {
             }
         });
 
-        Composite buttons = new Composite(composite, SWT.NONE);
+        buttons = new Composite(composite, SWT.NONE);
         GridLayout buttonsLayout = new GridLayout(1, true);
         buttonsLayout.marginWidth = 0;
         buttonsLayout.marginHeight = 0;
@@ -132,6 +134,28 @@ public class CheckboxTableGroup<T> {
         }
 
         return elements;
+    }
+
+    /**
+     * Adds a button below the buttons 'Select All' and 'Deselect All'.
+     *
+     * @param aLabel - label of the button
+     * @param anAction - action, that the button runs
+     * @return button
+     */
+    public Button addButton(String aLabel, final Runnable anAction) {
+
+        Button button = new Button(buttons, SWT.PUSH);
+        button.setText(aLabel);
+        button.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        button.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent anEvent) {
+                anAction.run();
+            }
+        });
+
+        return button;
     }
 
     /**

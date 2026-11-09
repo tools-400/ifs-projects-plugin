@@ -22,6 +22,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import de.tools400.ifsprojects.migration.IncludeStyle;
+import de.tools400.ifsprojects.migration.MigrationFiles;
 import de.tools400.ifsprojects.migration.MigrationPlan;
 import de.tools400.ifsprojects.migration.MigrationPlan.Item;
 import de.tools400.ifsprojects.migration.MigrationPlan.ProblemType;
@@ -182,6 +183,112 @@ public class MigrationPlanTest {
         add("QRPGLESRC", "HELLO", "RPGLE", "Hello world", "**FREE\n");
 
         assertEquals("**FREE\n", createPlan(false).getItems().get(0).getContent());
+    }
+
+    /**
+     * Source types without comments cannot keep the member text, which is
+     * reported as a warning.
+     */
+    @Test
+    public void testPlan_textNotKept() {
+
+        add("QRPGLESRC", "README", "TXT", "Read me", "Some text\n");
+        add("QRPGLESRC", "TABLE", "TBL", "Translation table", "x\n");
+        add("QRPGLESRC", "NOTEXT", "TXT", " ", "Some text\n");
+
+        List<Item> items = createPlan(true).getItems();
+
+        assertEquals("Some text\n", items.get(0).getContent());
+        assertTrue(items.get(0).isMigrated());
+        assertEquals(1, items.get(0).getProblems().size());
+        assertEquals(ProblemType.TEXT_NOT_KEPT, items.get(0).getProblems().get(0).getType());
+        assertEquals("TXT", items.get(0).getProblems().get(0).getText());
+
+        assertEquals(ProblemType.UNKNOWN_SOURCE_TYPE, items.get(1).getProblems().get(0).getType());
+        assertEquals(ProblemType.TEXT_NOT_KEPT, items.get(1).getProblems().get(1).getType());
+
+        assertTrue(items.get(2).getProblems().isEmpty());
+        assertTrue(createPlan(false).getItems().get(0).getProblems().isEmpty());
+    }
+
+    /**
+     * If most members of a source type in a source file are included, the
+     * others are copy books, too, unless their header creates an object.
+     */
+    @Test
+    public void testPlan_copyBooksOfCopyBookFile() {
+
+        add("QRPGLESRC", "HELLO", "RPGLE", null, "**FREE\n/copy QCPYSRC,CONSTS\n/copy QCPYSRC,TYPES\n/copy QCPYSRC,PROTOS\n");
+        add("QRPGLESRC", "UNUSED", "RPGLE", null, "**FREE\n");
+        add("QCPYSRC", "CONSTS", "RPGLE", null, "**FREE\n");
+        add("QCPYSRC", "TYPES", "RPGLE", null, "**FREE\n");
+        add("QCPYSRC", "PROTOS", "RPGLE", null, "**FREE\n");
+        add("QCPYSRC", "OLD", "RPGLE", null, "**FREE\n");
+        add("QCPYSRC", "TOOL", "RPGLE", null, "**FREE\n// BUILD: CRTBNDRPG PGM(&LI/&OB)\n");
+        add("QCPYSRC", "HELLOD", "DSPF", null, "     A          R FMT1\n");
+
+        List<Item> items = createPlan(false).getItems();
+
+        assertEquals("qrpglesrc/hello.rpgle", items.get(0).getPath());
+        assertEquals("qrpglesrc/unused.rpgle", items.get(1).getPath());
+        assertEquals("qcpysrc/consts.rpgleinc", items.get(2).getPath());
+        assertEquals("qcpysrc/types.rpgleinc", items.get(3).getPath());
+        assertEquals("qcpysrc/protos.rpgleinc", items.get(4).getPath());
+        assertEquals("qcpysrc/old.rpgleinc", items.get(5).getPath());
+        assertEquals("qcpysrc/tool.rpgle", items.get(6).getPath());
+        assertEquals("qcpysrc/hellod.dspf", items.get(7).getPath());
+    }
+
+    /**
+     * An XML member is written in the encoding of its declaration, e.g. the
+     * packages of XMLGEN, if the encoding contains all characters.
+     */
+    @Test
+    public void testPlan_xmlEncoding() {
+
+        add("QXML", "BASICS1", "XML", null, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<!-- Änderung -->\n");
+        add("QXML", "EURO", "XML", null, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<!-- 5 € -->\n");
+        add("QXML", "EBCDIC", "XML", null, "<?xml version=\"1.0\" encoding=\"IBM-Unknown\"?>\n<a/>\n");
+        add("QXML", "UTF8", "XML", null, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a/>\n");
+        add("QRPGLESRC", "HELLO", "RPGLE", null, "**FREE\n// Änderung\n");
+
+        MigrationPlan plan = new MigrationPlan("jsmith#cl", Arrays.asList("QXML", "QRPGLESRC"), members, contents, readErrors,
+            new MigrationSettings(IncludeStyle.REPLACE, false, 1141), new SourceHeaderParsers(new TestHeaderParser()));
+        List<Item> items = plan.getItems();
+
+        assertEquals(819, items.get(0).getCcsid());
+        assertEquals(ProblemType.UNKNOWN_SOURCE_TYPE, items.get(0).getProblems().get(0).getType());
+        assertEquals(1, items.get(0).getProblems().size());
+
+        assertEquals(1208, items.get(1).getCcsid());
+        assertEquals(ProblemType.ENCODING_NOT_KEPT, items.get(1).getProblems().get(1).getType());
+        assertEquals("ISO-8859-1", items.get(1).getProblems().get(1).getText());
+
+        assertEquals(1208, items.get(2).getCcsid());
+        assertEquals(ProblemType.ENCODING_NOT_KEPT, items.get(2).getProblems().get(1).getType());
+
+        assertEquals(1208, items.get(3).getCcsid());
+        assertEquals(1, items.get(3).getProblems().size());
+        assertEquals(1208, items.get(4).getCcsid());
+
+        Map<String, Integer> ccsids = MigrationFiles.getCcsids(plan);
+        assertEquals(1, ccsids.size());
+        assertEquals(Integer.valueOf(819), ccsids.get("qxml/basics1.xml"));
+    }
+
+    /**
+     * Half of the members is not most of them.
+     */
+    @Test
+    public void testPlan_copyBooksOfMixedFile() {
+
+        add("QRPGLESRC", "HELLO", "RPGLE", null, "**FREE\n/copy CONSTS\n");
+        add("QRPGLESRC", "CONSTS", "RPGLE", null, "**FREE\n");
+
+        List<Item> items = createPlan(false).getItems();
+
+        assertEquals("qrpglesrc/hello.rpgle", items.get(0).getPath());
+        assertEquals("qrpglesrc/consts.rpgleinc", items.get(1).getPath());
     }
 
     private MigrationPlan createPlan(boolean anIsMemberText) {

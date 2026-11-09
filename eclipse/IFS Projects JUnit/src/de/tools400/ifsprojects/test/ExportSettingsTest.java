@@ -13,6 +13,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,6 +95,39 @@ public class ExportSettingsTest {
         assertTrue(settings.isMemberText());
 
         assertNull(ExportSettings.fromMap(new HashMap<String, String>(), new ExportSettings(null, 1141, 112)).getLibrary());
+    }
+
+    @Test
+    public void testFurtherSourceTypes() {
+
+        ExportSettings settings = new ExportSettings("JSMITH#CL", 1141, 112);
+        assertTrue(settings.getFurtherSourceTypes().isEmpty());
+
+        settings.setFurtherSourceTypes(Arrays.asList("tbl", "XML", "Tbl"));
+        assertEquals(Arrays.asList("TBL", "XML"), settings.getFurtherSourceTypes());
+
+        ExportSettings restored = ExportSettings.fromMap(settings.toMap(), new ExportSettings("OTHER", 37, 120));
+        assertEquals(Arrays.asList("TBL", "XML"), restored.getFurtherSourceTypes());
+
+        String text = EnvironmentVariables.format(settings.toMap());
+        assertEquals(settings.toMap(), EnvironmentVariables.parse(text));
+
+        Map<String, String> values = new HashMap<>();
+        values.put("furtherSourceTypes", "TBL,MY-TYPE");
+        assertTrue(ExportSettings.fromMap(values, new ExportSettings("OTHER", 37, 120)).getFurtherSourceTypes().isEmpty());
+    }
+
+    @Test
+    public void testParseSourceTypes() {
+        assertEquals(Arrays.asList("TBL", "XML", "BAT"), ExportSettings.parseSourceTypes(" tbl, .xml;bat  TBL "));
+        assertEquals(Arrays.asList("MY#TYPE"), ExportSettings.parseSourceTypes("my#type"));
+        assertTrue(ExportSettings.parseSourceTypes("").isEmpty());
+        assertTrue(ExportSettings.parseSourceTypes(" , ").isEmpty());
+        assertNull(ExportSettings.parseSourceTypes("tbl, my-type"));
+        assertNull(ExportSettings.parseSourceTypes("abcdefghijk"));
+        assertNull(ExportSettings.parseSourceTypes("."));
+        assertEquals("tbl, xml", ExportSettings.formatSourceTypes(Arrays.asList("TBL", "XML")));
+        assertEquals("", ExportSettings.formatSourceTypes(new ArrayList<String>()));
     }
 
     @Test

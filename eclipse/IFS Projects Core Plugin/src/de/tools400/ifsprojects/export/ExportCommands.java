@@ -70,7 +70,8 @@ public final class ExportCommands {
     /**
      * Returns the command that copies a stream file into a member. The text is
      * converted from the CCSID of the stream file to the CCSID of the source
-     * file.
+     * file. Tabs are expanded to blanks, so that no tab character gets into a
+     * member, also if the default of <code>TABEXPN</code> has been changed.
      *
      * @param aStreamFile - absolute path of the stream file
      * @param aLibrary - library
@@ -80,7 +81,7 @@ public final class ExportCommands {
      */
     public static String getCopyCommand(String aStreamFile, String aLibrary, String aSourceFile, String aMember) {
         return "CPYFRMSTMF FROMSTMF(" + ClCommands.quote(aStreamFile) + ") TOMBR(" //$NON-NLS-1$ //$NON-NLS-2$
-            + ClCommands.quote(ClCommands.getMemberPath(aLibrary, aSourceFile, aMember)) + ") MBROPT(*REPLACE)"; //$NON-NLS-1$
+            + ClCommands.quote(ClCommands.getMemberPath(aLibrary, aSourceFile, aMember)) + ") MBROPT(*REPLACE) TABEXPN(*YES)"; //$NON-NLS-1$
     }
 
     /**

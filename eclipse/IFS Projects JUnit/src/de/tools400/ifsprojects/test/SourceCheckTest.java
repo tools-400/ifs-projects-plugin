@@ -83,4 +83,12 @@ public class SourceCheckTest {
         assertEquals("**FREE", SourceCheck.removeByteOrderMark("**FREE"));
         assertEquals("", SourceCheck.removeByteOrderMark(""));
     }
+
+    @Test
+    public void testFindInvalidLine() {
+        assertEquals(1, SourceCheck.findInvalidLine("�"));
+        assertEquals(3, SourceCheck.findInvalidLine("a\r\nb\nc�\n�"));
+        assertEquals(0, SourceCheck.findInvalidLine("// Änderung\n"));
+        assertEquals(0, SourceCheck.findInvalidLine(""));
+    }
 }

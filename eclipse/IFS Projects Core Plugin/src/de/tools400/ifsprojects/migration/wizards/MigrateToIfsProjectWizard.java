@@ -112,7 +112,7 @@ public class MigrateToIfsProjectWizard extends Wizard {
         boolean isTobi = projectPage.getBuildTool() == BuildTool.TOBI;
         Map<String, String> files = MigrationFiles.getFiles(previewPage.getPlan(), sourceFilesPage.getSelectedSourceFiles(), isTobi);
 
-        new MigrationJob(rseSystem, library, projectPage.getDirectory(), files,
+        new MigrationJob(rseSystem, library, projectPage.getDirectory(), files, MigrationFiles.getCcsids(previewPage.getPlan()),
             new OverwriteQueryDialog(Messages.Title_Migrate_to_IFS_project, Messages.Question_Replace_file_A)).schedule();
 
         return true;

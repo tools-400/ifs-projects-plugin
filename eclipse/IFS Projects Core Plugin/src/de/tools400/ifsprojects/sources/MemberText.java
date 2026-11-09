@@ -100,6 +100,71 @@ public final class MemberText {
     }
 
     /**
+     * Returns <code>true</code>, if the comment block can be inserted into the
+     * sources of a source type, see {@link #insert(String, String, String)}.
+     * Like TOBi, the method knows no comments of e.g. <code>TXT</code>,
+     * <code>FILE</code> or <code>XML</code>; an XML document must start with
+     * its declaration.
+     *
+     * @param aSourceType - source type, e.g. <code>RPGLE</code>
+     * @return <code>true</code>, if the source type has comments
+     */
+    public static boolean hasCommentStyle(String aSourceType) {
+        return CommentStyle.forSourceType(aSourceType) != null;
+    }
+
+    /**
+     * Removes the comment block with the member text, i.e. the lines from
+     * <code>%METADATA</code> to <code>%EMETADATA</code>, which are searched
+     * like {@link #parse(String)} does. This reverses
+     * {@link #insert(String, String, String)}, e.g. when the text becomes the
+     * text of a member.
+     *
+     * @param aContent - content of the source
+     * @return content without the comment block or the content itself, if it
+     *         has no complete comment block
+     */
+    public static String remove(String aContent) {
+
+        if (aContent == null) {
+            return null;
+        }
+
+        int lineNumber = 0;
+        int metadataLine = -1;
+        int blockStart = -1;
+        int lineStart = 0;
+        while (lineStart < aContent.length()) {
+
+            int lineEnd = getLineEnd(aContent, lineStart);
+            int nextLineStart = getNextLineStart(aContent, lineEnd);
+            String line = aContent.substring(lineStart, lineEnd).toUpperCase(Locale.ROOT);
+
+            if (metadataLine < 0) {
+                if (lineNumber >= LINES_TO_CHECK) {
+                    return aContent;
+                }
+                if (line.contains(METADATA)) {
+                    metadataLine = lineNumber;
+                    blockStart = lineStart;
+                }
+            } else {
+                if (lineNumber >= metadataLine + LINES_TO_CHECK) {
+                    return aContent;
+                }
+                if (line.contains(END_METADATA)) {
+                    return aContent.substring(0, blockStart) + aContent.substring(nextLineStart);
+                }
+            }
+
+            lineNumber++;
+            lineStart = nextLineStart;
+        }
+
+        return aContent;
+    }
+
+    /**
      * Inserts the comment block with the member text at the beginning of a
      * source, like <code>makei cvtsrcpf --text</code> of TOBi 3.4. In a
      * <code>**FREE</code> source, it is inserted after the first line. Unlike
@@ -179,8 +244,16 @@ public final class MemberText {
     }
 
     private static int getFirstLineEnd(String aContent) {
+        return getLineEnd(aContent, 0);
+    }
 
-        for (int i = 0; i < aContent.length(); i++) {
+    /**
+     * Returns the index of the line separator of the line, that starts at an
+     * index, or the length of the content, if it is the last line.
+     */
+    private static int getLineEnd(String aContent, int aLineStart) {
+
+        for (int i = aLineStart; i < aContent.length(); i++) {
             char c = aContent.charAt(i);
             if (c == '\n' || c == '\r') {
                 return i;
@@ -188,6 +261,18 @@ public final class MemberText {
         }
 
         return aContent.length();
+    }
+
+    /**
+     * Returns the index of the line after the line separator at an index.
+     */
+    private static int getNextLineStart(String aContent, int aLineEnd) {
+
+        if (aContent.startsWith("\r\n", aLineEnd)) { //$NON-NLS-1$
+            return aLineEnd + 2;
+        }
+
+        return Math.min(aLineEnd + 1, aContent.length());
     }
 
     /**

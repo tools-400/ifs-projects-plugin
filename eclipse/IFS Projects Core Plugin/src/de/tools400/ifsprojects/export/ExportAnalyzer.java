@@ -23,19 +23,21 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Reads a project and a library and computes the plan of an export, see
- * {@link ExportPlan}. The files of the project are read once, when the first
- * plan is computed. The library is read again, if another library is specified.
+ * {@link ExportPlan}. The files of the project are listed once, when the first
+ * plan is computed, and each exported file is read once, when a plan exports it
+ * for the first time, e.g. after a further source type has been added to the
+ * settings. The library is read again, if another library is specified.
  * <p>
  * The methods access the remote system and must not be called on the UI thread.
  */
 public final class ExportAnalyzer {
 
     private final ExportSource source;
+    private final Map<String, String> contents;
+    private final Map<String, String> readErrors;
 
     private String projectDirectory;
     private List<String> files;
-    private Map<String, String> contents;
-    private Map<String, String> readErrors;
 
     private String libraryName;
     private LibraryInfo libraryInfo;
@@ -47,6 +49,8 @@ public final class ExportAnalyzer {
      */
     public ExportAnalyzer(ExportSource aSource) {
         this.source = aSource;
+        this.contents = new HashMap<>();
+        this.readErrors = new HashMap<>();
     }
 
     /**
@@ -61,7 +65,8 @@ public final class ExportAnalyzer {
      */
     public ExportPlan analyze(AS400 aSystem, ExportSettings aSettings, IProgressMonitor aMonitor) throws Exception {
 
-        readProject(aSystem, aMonitor);
+        listFiles(aSystem, aMonitor);
+        readFiles(aSystem, ExportMapping.create(aSettings), aMonitor);
 
         if (!aSettings.getLibrary().equals(libraryName)) {
             aMonitor.subTask(Messages.bind(Messages.Task_Reading_library_A, aSettings.getLibrary()));
@@ -76,11 +81,9 @@ public final class ExportAnalyzer {
     }
 
     /**
-     * Lists the files of the project and reads the exported files, see
-     * {@link ExportMapping#isExported(String)}, once per analyzer. Files, that
-     * cannot be read, are logged and reported by the plan.
+     * Lists the files of the project once per analyzer.
      */
-    private void readProject(AS400 aSystem, IProgressMonitor aMonitor) throws Exception {
+    private void listFiles(AS400 aSystem, IProgressMonitor aMonitor) throws Exception {
 
         if (files != null) {
             return;
@@ -90,28 +93,35 @@ public final class ExportAnalyzer {
 
         String directory = source.getProjectDirectory(aSystem);
         List<String> projectFiles = source.listFiles(aSystem);
-        Map<String, String> fileContents = new HashMap<>();
-        Map<String, String> errors = new HashMap<>();
 
-        for (String path : projectFiles) {
+        projectDirectory = directory;
+        files = projectFiles;
+    }
+
+    /**
+     * Reads the files, that a mapping exports, see
+     * {@link ExportMapping#isExported(String)}, and the actions of Code for
+     * IBM i, see {@link SourceTypeProposals#CODE_FOR_IBM_I_ACTIONS}, that have
+     * not been read yet. Files, that cannot be read, are logged and reported
+     * by the plan.
+     */
+    private void readFiles(AS400 aSystem, ExportMapping aMapping, IProgressMonitor aMonitor) throws Exception {
+
+        for (String path : files) {
             if (aMonitor.isCanceled()) {
                 throw new InterruptedException();
             }
-            if (!ExportMapping.isExported(path)) {
+            boolean isRead = aMapping.isExported(path) || SourceTypeProposals.CODE_FOR_IBM_I_ACTIONS.equals(path);
+            if (!isRead || contents.containsKey(path) || readErrors.containsKey(path)) {
                 continue;
             }
             aMonitor.subTask(path);
             try {
-                fileContents.put(path, source.readFile(aSystem, path));
+                contents.put(path, source.readFile(aSystem, path));
             } catch (Exception e) {
                 IfsProjectsPlugin.logError("Could not read the file for the export: " + path, e); //$NON-NLS-1$
-                errors.put(path, ExceptionUtils.getLocalizedMessage(e));
+                readErrors.put(path, ExceptionUtils.getLocalizedMessage(e));
             }
         }
-
-        projectDirectory = directory;
-        contents = fileContents;
-        readErrors = errors;
-        files = projectFiles;
     }
 }

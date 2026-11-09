@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -21,11 +22,13 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
@@ -37,18 +40,23 @@ import de.tools400.ifsprojects.sources.IncludeConverter;
 import de.tools400.ifsprojects.swt.CheckboxTableGroup;
 import de.tools400.ifsprojects.swt.SummaryGroup;
 import de.tools400.ifsprojects.swt.TableToolTips;
+import de.tools400.ifsprojects.swt.ToolTips;
 
 /**
  * Second page of the export: the files of the project, the members, into which
  * they are exported, and the problems, that have been found. Files with errors
  * are not exported. The user can deselect files; then the include directives,
- * that refer to them, are not converted.
+ * that refer to them, are not converted. 'Source Types...' selects further
+ * source types; the message of the page names the extensions, that are
+ * probably source types, but not exported.
  */
 public class ExportPreviewWizardPage extends WizardPage {
 
     private static final String PAGE_NAME = "ExportPreviewWizardPage"; //$NON-NLS-1$
     private static final String LINE_SEPARATOR = "\n"; //$NON-NLS-1$
     private static final String LIST_SEPARATOR = ", "; //$NON-NLS-1$
+    private static final String ELLIPSIS = "..."; //$NON-NLS-1$
+    private static final int MAX_OTHER_FILE_TYPES = 8;
     private static final String EMPTY = ""; //$NON-NLS-1$
 
     private static final int COLUMN_FILE = 0;
@@ -101,6 +109,12 @@ public class ExportPreviewWizardPage extends WizardPage {
                 }
             }
         });
+        Button sourceTypesButton = filesGroup.addButton(Messages.Label_Source_types_button, new Runnable() {
+            public void run() {
+                selectSourceTypes();
+            }
+        });
+        ToolTips.set(Messages.Tooltip_Source_types_button, sourceTypesButton);
         // The tool tip shows the full texts of the problems, that the column
         // shows only partly.
         TableToolTips.install(table, new TableToolTips.Provider() {
@@ -179,6 +193,14 @@ public class ExportPreviewWizardPage extends WizardPage {
         setErrorMessage(isEmpty ? Messages.Error_No_file_exported : null);
         setPageComplete(!isEmpty);
 
+        // Only a hint: the user decides, which extensions are exported.
+        List<String> proposals = plan.getUnselectedProposals();
+        if (proposals.isEmpty()) {
+            setMessage(null);
+        } else {
+            setMessage(Messages.bind(Messages.Info_Probable_source_types_A, join(proposals)), IMessageProvider.INFORMATION);
+        }
+
         IStructuredSelection selection = (IStructuredSelection)viewer.getSelection();
         showDetails((ExportPlan.Item)selection.getFirstElement());
     }
@@ -210,8 +232,8 @@ public class ExportPreviewWizardPage extends WizardPage {
         summaryGroup.addRow(Messages.Label_Summary_Files, Messages.bind(Messages.Label_Summary_A_of_B_exported_C_replace,
             new Object[] { Integer.toString(exportedItems.size()), Integer.toString(plan.getItems().size()), Integer.toString(replaced) }));
         if (plan.getOtherFileCount() > 0) {
-            summaryGroup.addRow(Messages.Label_Summary_Not_exported,
-                Messages.bind(Messages.Label_Summary_A_without_source_type, Integer.toString(plan.getOtherFileCount())));
+            summaryGroup.addRow(Messages.Label_Summary_Not_exported, Messages.bind(Messages.Label_Summary_A_without_source_type_B,
+                Integer.toString(plan.getOtherFileCount()), getOtherFileTypesText(plan.getOtherFileTypes())));
         }
         summaryGroup.addRow(Messages.Label_Summary_Includes, Messages.bind(Messages.Label_Summary_A_converted, Integer.toString(includes)));
         if (plan.isCreateLibrary()) {
@@ -221,6 +243,56 @@ public class ExportPreviewWizardPage extends WizardPage {
             summaryGroup.addRow(Messages.Label_Summary_Source_files, getNewSourceFilesText(plan.getNewSourceFiles()));
         }
         summaryGroup.update();
+    }
+
+    /**
+     * Lets the user select the further source types and computes the plan
+     * again, see {@link SourceTypesDialog}.
+     */
+    private void selectSourceTypes() {
+
+        SourceTypesDialog dialog = new SourceTypesDialog(getShell(), plan.getSourceTypeProposals());
+        if (dialog.open() == Window.OK) {
+            ((ExportToLibraryWizard)getWizard()).changeFurtherSourceTypes(dialog.getSelectedSourceTypes());
+        }
+    }
+
+    private static String join(List<String> aValues) {
+
+        StringBuilder text = new StringBuilder();
+        for (String value : aValues) {
+            if (text.length() > 0) {
+                text.append(LIST_SEPARATOR);
+            }
+            text.append(value);
+        }
+
+        return text.toString();
+    }
+
+    /**
+     * Returns the text of the extensions of the files, that are not exported,
+     * e.g. <code>mk (12), sh (4), tbl (2), ...</code>, so that the user notices
+     * extensions, that may be added to the further source types.
+     */
+    private static String getOtherFileTypesText(Map<String, Integer> anOtherFileTypes) {
+
+        StringBuilder text = new StringBuilder();
+        int count = 0;
+        for (Map.Entry<String, Integer> entry : anOtherFileTypes.entrySet()) {
+            if (count == MAX_OTHER_FILE_TYPES) {
+                text.append(LIST_SEPARATOR).append(ELLIPSIS);
+                break;
+            }
+            if (count > 0) {
+                text.append(LIST_SEPARATOR);
+            }
+            String extension = entry.getKey().length() == 0 ? Messages.Label_Without_extension : entry.getKey();
+            text.append(extension).append(" (").append(entry.getValue()).append(')'); //$NON-NLS-1$
+            count++;
+        }
+
+        return text.toString();
     }
 
     /**
