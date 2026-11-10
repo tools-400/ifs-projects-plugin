@@ -141,8 +141,9 @@ You choose it with *Run build and compile commands* in the [preferences](#prefer
   shows, that the plug-in waits for the end of the build; canceling it there only stops waiting,
   not the build.
 * **In a job of the RSE connection**: the build runs in the background in a job of the RDi
-  connection (RSE), without SSH. The output is shown in the *Commands Log* view, and *Cancel* in
-  the *Progress* view stops the build. Builds of the same project run one after the other.
+  connection (RSE), without SSH. The output is shown in the *Commands Log* view. The *Progress*
+  view shows the object, that TOBi is creating, and the number of created and failed objects;
+  *Cancel* there stops the build. Builds of the same project run one after the other.
 
 In both cases, the compile errors are shown in the *Error List* view afterwards. Exception: a
 build command with a comment (`#`) or with `&` or `|` at the end runs unchanged in the terminal,

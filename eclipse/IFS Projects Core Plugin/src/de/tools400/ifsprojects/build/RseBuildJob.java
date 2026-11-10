@@ -178,11 +178,12 @@ public class RseBuildJob extends Job {
         throws Exception {
 
         LogLines logLines = new LogLines();
+        BuildProgress progress = new BuildProgress();
         long offset = 0;
         while (aCommandThread.isAlive()) {
             if (aMonitor.isCanceled()) {
                 boolean isStopped = stop(aProcessIdFile.getAbsolutePath(), aCommandThread);
-                logNewLines(aLogFile, offset, logLines);
+                logNewLines(aLogFile, offset, logLines, progress, aMonitor);
                 if (isStopped) {
                     CommandsLog.log(host, Messages.Log_Canceled);
                 } else {
@@ -194,10 +195,10 @@ public class RseBuildJob extends Job {
                 return false;
             }
             aCommandThread.join(POLL_INTERVAL_MILLIS);
-            offset = logNewLines(aLogFile, offset, logLines);
+            offset = logNewLines(aLogFile, offset, logLines, progress, aMonitor);
         }
 
-        logNewLines(aLogFile, offset, logLines);
+        logNewLines(aLogFile, offset, logLines, progress, aMonitor);
         String lastLine = logLines.flush();
         if (lastLine != null) {
             CommandsLog.log(host, lastLine);
@@ -250,18 +251,30 @@ public class RseBuildJob extends Job {
     }
 
     /**
-     * Logs the lines, that have been appended to the log file.
+     * Logs the lines, that have been appended to the log file, and shows the
+     * step of the build and the number of created and failed objects in the
+     * progress monitor, see {@link BuildProgress}.
      *
      * @return new offset
      */
-    private long logNewLines(IFSFile aLogFile, long anOffset, LogLines aLogLines) throws Exception {
+    private long logNewLines(IFSFile aLogFile, long anOffset, LogLines aLogLines, BuildProgress aProgress, IProgressMonitor aMonitor)
+        throws Exception {
 
         byte[] bytes = RemoteJobs.readBytes(aLogFile, anOffset);
+        boolean isProgressChanged = false;
         for (String line : aLogLines.add(bytes)) {
             // Empty lines would be logged as empty comments.
             if (!StringUtils.isBlank(line)) {
                 CommandsLog.log(host, line);
+                if (aProgress.add(line)) {
+                    isProgressChanged = true;
+                }
             }
+        }
+
+        if (isProgressChanged && aProgress.getStep() != null) {
+            aMonitor.subTask(Messages.bind(Messages.Task_Build_progress_A_B_C, new Object[] { Integer.toString(aProgress.getCreatedCount()),
+                Integer.toString(aProgress.getFailedCount()), aProgress.getStep() }));
         }
 
         return anOffset + bytes.length;

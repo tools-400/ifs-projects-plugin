@@ -149,6 +149,7 @@ public class Messages extends NLS {
 
     public static String Task_Building_A;
     public static String Task_Compiling_A;
+    public static String Task_Build_progress_A_B_C;
     public static String Task_Waiting_for_command_to_start;
     public static String Task_Waiting_for_command_to_end;
     public static String Log_Running_A_in_B;
