@@ -12,18 +12,23 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.core.model.IHost;
 import org.eclipse.swt.widgets.Shell;
 
 import com.ibm.as400.access.AS400;
 
+import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.build.BuildMode;
 import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.preferences.Preferences;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.rse.RseTerminalRequests;
+import de.tools400.ifsprojects.terminal.TerminalException;
+import de.tools400.ifsprojects.terminal.TerminalLaunchers;
 import de.tools400.ifsprojects.terminal.TerminalRequest;
+import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Starts the build of a project or the compile of a file of IFS projects and
@@ -66,12 +71,15 @@ final class BuildLauncher {
     /**
      * Creates the launcher of the build mode of the preferences. Connects the
      * RSE connection or prepares the terminal request, which may prompt for the
-     * user ID.
+     * user ID. In the terminal mode, it first checks that a terminal can be
+     * opened, so that the error is reported before the changes of a local
+     * project are uploaded.
      *
      * @param aShell - parent shell
      * @param aHost - RSE connection
-     * @return launcher or <code>null</code>, if the connection could not be
-     *         established or the user canceled
+     * @return launcher or <code>null</code>, if no terminal implementation is
+     *         installed, the connection could not be established or the user
+     *         canceled
      */
     static BuildLauncher create(Shell aShell, IHost aHost) {
 
@@ -81,6 +89,10 @@ final class BuildLauncher {
                 return null;
             }
             return new BuildLauncher(aShell, aHost, system, null);
+        }
+
+        if (!isTerminalAvailable(aShell)) {
+            return null;
         }
 
         TerminalRequest.Builder requestBuilder = RseTerminalRequests.createBuilder(aShell, aHost);
@@ -155,6 +167,24 @@ final class BuildLauncher {
         requestBuilder.directory(aDirectory).reuseKey(ProjectCommands.getReuseKey(host, aDirectory));
 
         TerminalBuildLauncher.launch(shell, aJobName, host, aDirectory, aConfig, aVariables, aCommand, requestBuilder, aSourceMapping);
+    }
+
+    /**
+     * Checks that a terminal implementation is installed and reports the
+     * error otherwise.
+     *
+     * @param aShell - parent shell of the error message
+     * @return <code>true</code>, if a terminal can be opened
+     */
+    private static boolean isTerminalAvailable(Shell aShell) {
+
+        try {
+            TerminalLaunchers.getLauncher();
+            return true;
+        } catch (TerminalException e) {
+            MessageDialog.openError(aShell, Messages.Title_IFS_Projects, ExceptionUtils.getLocalizedMessage(e));
+            return false;
+        }
     }
 
     private String getUserId() {
