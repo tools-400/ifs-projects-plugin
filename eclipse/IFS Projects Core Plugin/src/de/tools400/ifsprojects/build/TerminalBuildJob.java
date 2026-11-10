@@ -213,7 +213,7 @@ public class TerminalBuildJob extends Job {
                     .logWarning("The command in the terminal has ended without exit code, e.g. because it has been killed: " + directory); //$NON-NLS-1$
             }
 
-            showEvents(session, startTime);
+            showEvents(session, startTime, aMonitor);
 
         } catch (InterruptedException e) {
             // Thrown on a cancel of the job, too, see checkCanceled().
@@ -234,11 +234,11 @@ public class TerminalBuildJob extends Job {
      * Shows the events files of the compiled objects in the 'Error List' view,
      * see {@link BuildEvents}. Errors are logged and reported to the user.
      */
-    private void showEvents(RemoteSession aSession, long aStartTime) {
+    private void showEvents(RemoteSession aSession, long aStartTime, IProgressMonitor aMonitor) {
 
         String events;
         try {
-            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
+            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime, aMonitor);
         } catch (IOException e) {
             IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
             PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects,

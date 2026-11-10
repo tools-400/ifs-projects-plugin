@@ -18,6 +18,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -359,11 +360,15 @@ final class LocalProjectCommands {
         try {
             new ProgressMonitorDialog(aShell).run(true, true, new IRunnableWithProgress() {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException, InterruptedException {
+                    // The task name covers the preparation, until the upload
+                    // replaces it with its own task name.
+                    SubMonitor progress = SubMonitor.convert(aMonitor,
+                        Messages.bind(Messages.Task_Preparing_upload_of_A, aLocalProject.getName()), 1);
                     try (RemoteSession session = new RemoteSession(aRseSystem)) {
                         AS400 system = session.getSystem();
                         String directory = aLocalProject.getDeployDirectory(RemoteJobs.getHomeDirectory(system));
                         result[0] = Deployment.deploy(system, aLocalProject.getProject(), aLocalProject.getConnectionName(), directory, anIsAll,
-                            conflictHandler, aMonitor);
+                            conflictHandler, progress.newChild(1, SubMonitor.SUPPRESS_NONE));
                     } catch (InterruptedException e) {
                         throw e;
                     } catch (Exception e) {

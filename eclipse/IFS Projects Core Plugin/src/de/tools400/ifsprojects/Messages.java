@@ -137,6 +137,8 @@ public class Messages extends NLS {
     public static String Error_Could_not_save_environment_variables_A;
 
     public static String Task_Checking_syntax_of_A;
+    public static String Task_Waiting_for_upload;
+    public static String Task_Running_compiler;
     public static String Question_Save_A_before_syntax_check;
     public static String Error_Syntax_check_of_A_not_supported;
     public static String Error_File_A_is_not_part_of_an_IFS_project;
@@ -150,6 +152,8 @@ public class Messages extends NLS {
     public static String Task_Building_A;
     public static String Task_Compiling_A;
     public static String Task_Build_progress_A_B_C;
+    public static String Task_Reading_compile_messages;
+    public static String Task_Reading_compile_messages_A_B;
     public static String Task_Waiting_for_command_to_start;
     public static String Task_Waiting_for_command_to_end;
     public static String Log_Running_A_in_B;
@@ -181,6 +185,7 @@ public class Messages extends NLS {
     public static String Error_Could_not_save_settings_A;
     public static String Error_A_is_not_configured_as_IFS_project;
     public static String Error_Connection_A_of_B_not_found;
+    public static String Task_Preparing_upload_of_A;
     public static String Task_Uploading_A_to_B;
     public static String Info_Upload_to_A_B_uploaded_C_deleted_D_unchanged;
     public static String Error_Could_not_delete_A;

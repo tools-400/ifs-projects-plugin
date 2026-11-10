@@ -94,8 +94,12 @@ public class SyntaxCheckJob extends Job {
         aMonitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
         try {
 
+            if (!savedFiles.isEmpty()) {
+                aMonitor.subTask(Messages.Task_Waiting_for_upload);
+            }
             waitForUpload(aMonitor);
 
+            aMonitor.subTask(Messages.Task_Running_compiler);
             String source = SyntaxCheckRunner.readStreamFile(system, sourcePath);
             boolean noMain = SyntaxCheckCommands.isNoMain(source);
 

@@ -125,7 +125,7 @@ public class RseBuildJob extends Job {
 
             logResult(commandThread, session.getCommandCall(), exitCodeFile);
 
-            showEvents(session, startTime);
+            showEvents(session, startTime, aMonitor);
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -147,11 +147,11 @@ public class RseBuildJob extends Job {
      * see {@link BuildEvents}. Errors are logged and written to the 'Commands
      * Log' view.
      */
-    private void showEvents(RemoteSession aSession, long aStartTime) {
+    private void showEvents(RemoteSession aSession, long aStartTime, IProgressMonitor aMonitor) {
 
         String events;
         try {
-            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime);
+            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime, aMonitor);
         } catch (IOException e) {
             IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
             CommandsLog.log(host, ExceptionUtils.getLocalizedMessage(e));

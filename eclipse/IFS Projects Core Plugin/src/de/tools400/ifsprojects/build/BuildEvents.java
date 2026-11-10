@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 
@@ -56,15 +58,20 @@ public final class BuildEvents {
      * @param aProjectDirectory - project directory
      * @param anObjectLibrary - object library or <code>null</code>
      * @param aStartTime - start time of the build (time of the server)
+     * @param aMonitor - progress monitor, which shows the number of read events
+     *        files as subtask
      * @return events, one events file after the other, or <code>null</code>, if
      *         no events files have been found
      * @throws IOException if the events files could not be read
      */
-    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime) throws IOException {
+    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime,
+        IProgressMonitor aMonitor) throws IOException {
 
-        List<String> events = collectStreamFiles(aSession.getSystem(), aProjectDirectory + EVENTS_DIRECTORY, aStartTime);
+        aMonitor.subTask(Messages.Task_Reading_compile_messages);
+
+        List<String> events = collectStreamFiles(aSession.getSystem(), aProjectDirectory + EVENTS_DIRECTORY, aStartTime, aMonitor);
         if (events.isEmpty() && anObjectLibrary != null) {
-            events = collectMembers(aSession, anObjectLibrary, aStartTime);
+            events = collectMembers(aSession, anObjectLibrary, aStartTime, aMonitor);
         }
 
         if (events.isEmpty()) {
@@ -82,11 +89,14 @@ public final class BuildEvents {
         return buffer.toString();
     }
 
-    private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime) throws IOException {
+    private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime, IProgressMonitor aMonitor)
+        throws IOException {
 
         List<String> events = new ArrayList<>();
         try {
-            for (IFSFile file : getChangedFiles(new IFSFile(aSystem, aDirectory), aStartTime)) {
+            List<IFSFile> files = getChangedFiles(new IFSFile(aSystem, aDirectory), aStartTime);
+            for (IFSFile file : files) {
+                showProgress(events.size(), files.size(), aMonitor);
                 events.add(RemoteJobs.readText(file));
             }
         } catch (Exception e) {
@@ -96,12 +106,16 @@ public final class BuildEvents {
         return events;
     }
 
-    private static List<String> collectMembers(RemoteSession aSession, String aLibrary, long aStartTime) throws IOException {
+    private static List<String> collectMembers(RemoteSession aSession, String aLibrary, long aStartTime, IProgressMonitor aMonitor)
+        throws IOException {
 
         List<String> events = new ArrayList<>();
         String eventsFile = ClCommands.getFilePath(aLibrary, EventsFiles.EVENTS_FILE);
         try {
-            for (IFSFile member : getChangedFiles(new IFSFile(aSession.getSystem(), eventsFile), aStartTime)) {
+            List<IFSFile> members = getChangedFiles(new IFSFile(aSession.getSystem(), eventsFile), aStartTime);
+            int count = 0;
+            for (IFSFile member : members) {
+                showProgress(count++, members.size(), aMonitor);
                 String name = member.getName();
                 if (!name.toUpperCase().endsWith(MEMBER_SUFFIX)) {
                     continue;
@@ -119,6 +133,15 @@ public final class BuildEvents {
         }
 
         return events;
+    }
+
+    /**
+     * Shows the number of the events file, that is read next, e.g.
+     * <code>(57 of 205)</code>.
+     */
+    private static void showProgress(int aReadCount, int aTotalCount, IProgressMonitor aMonitor) {
+        aMonitor.subTask(
+            Messages.bind(Messages.Task_Reading_compile_messages_A_B, Integer.toString(aReadCount + 1), Integer.toString(aTotalCount)));
     }
 
     /**
