@@ -328,10 +328,11 @@ source members, e.g. for a change management system. The facts below were verifi
   variables). Defaults: the preferences `exportCcsid` and `exportRecordLength` and the library
   `objlib` or `curlib` of `iproj.json`.
 * Context menus: IBM, iSphere and Eclipse put their actions into the group `additions` too.
-  Therefore the commands of the plug-in are placed at the end of the group
-  (`before=group.team` in the Remote Systems view, `before=group.properties` in the other views)
-  behind a separator. JFace merges the separator with the one of the next group, if none of the
-  commands is visible.
+  Therefore the commands of the plug-in are placed at the end of the group behind a separator:
+  `before=group.team` in the views of RSE (Remote Systems, Remote System Details, Remote Monitor),
+  which share the menu ID `org.eclipse.rse.views.common`, and `before=group.properties` in the
+  other views. JFace merges the separator with the one of the next group, if none of the commands
+  is visible.
 
 ## Migration to an IFS project
 

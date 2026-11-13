@@ -356,12 +356,16 @@
 
    <!--
      ==========================================================================
-       Context menu of the Remote Systems view
+       Context menu of the RSE views
      ==========================================================================
    -->
 
    <extension point="org.eclipse.ui.menus">
       <!--
+        The views of RSE, i.e. Remote Systems, Remote System Details and
+        Remote Monitor, register their context menu with the common ID
+        'org.eclipse.rse.views.common' too, so that the commands are available
+        in all of them.
         The commands are placed at the end of the group 'additions', which
         other plug-ins use too, e.g. IBM and iSphere for IFS files. The
         separator divides them from these actions. JFace shows a separator only
@@ -370,7 +374,7 @@
       -->
       <menuContribution
             allPopups="false"
-            locationURI="popup:org.eclipse.rse.ui.view.systemView?before=group.team">
+            locationURI="popup:org.eclipse.rse.views.common?before=group.team">
 
          <separator
                name="de.tools400.ifsprojects.separators.rse"
@@ -606,7 +610,7 @@
 
       <!--
         Context menu of projects of the workspace, e.g. in the Project Explorer:
-        local IFS projects. As in the Remote Systems view, the commands are
+        local IFS projects. As in the RSE views, the commands are
         placed at the end of the group 'additions', which e.g. Run As, Team and
         Configure use too, behind a separator, which JFace merges with the
         separator of the group 'group.properties', if none of the commands is

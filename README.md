@@ -302,8 +302,8 @@ settings.
 ## Migration to an IFS project
 
 *Migrate to IFS Project...* in the context menu of a library or of source files in the *Remote
-Systems* view copies the members into a new IFS project, the reverse of the export. The members are
-not changed.
+Systems* or *Remote System Details* view copies the members into a new IFS project, the reverse of
+the export. The members are not changed.
 
 **Source files.** On a library, the first page lists all its source files; on source files, only
 the selected ones. All are selected; *Select All* and *Deselect All* are to the right of the list.
