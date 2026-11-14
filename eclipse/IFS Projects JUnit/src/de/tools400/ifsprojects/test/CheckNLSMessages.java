@@ -30,9 +30,9 @@ import junit.framework.JUnit4TestAdapter;
 /**
  * <b>JUnit 4 Test Case</b>
  * <p>
- * Verifies that all message constants of the iSphere <i>Messages</i> objects
- * have a corresponding message text entry. Also ensure that there are no dead
- * text entries in the property files.
+ * Verifies that all message constants of the <i>Messages</i> objects have a
+ * corresponding message text entry. Also ensure that there are no dead text
+ * entries in the property files.
  * <p>
  * This class uses reflection to get the list of message constants. It
  * instantiates a new dedicated class loader to ensure that the static message
@@ -50,7 +50,7 @@ public class CheckNLSMessages {
     private final String[] locales = new String[] { defaultLocale, "de" };
 
     /**
-     * Verifies the NLS messages of the iSphere project.
+     * Verifies the NLS messages of the project.
      * 
      * @throws Exception
      */
@@ -155,7 +155,7 @@ public class CheckNLSMessages {
 
     /**
      * Uses a fresh classloader to create a new object from a fresh class.
-     *
+     * 
      * @param aClass - class to load
      * @return object created from <i>aClass</i>
      * @throws Exception
