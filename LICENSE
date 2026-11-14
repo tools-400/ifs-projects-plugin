@@ -1,3 +1,11 @@
+IFS Projects is licensed under the Common Public License Version 1.0 below, except for the icons
+in "eclipse/IFS Projects Core Plugin/icons". They are taken from Eclipse - the icons of the
+terminal from the Eclipse TM Terminal, the project icons in obj16 from the Eclipse IDE - and keep
+the Eclipse Public License 2.0, Copyright the Eclipse contributors, see
+"eclipse/IFS Projects Core Plugin/icons/epl-2.0.html".
+
+---
+
 Common Public License Version 1.0
 
 THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.

@@ -1,7 +1,7 @@
 # IFS Projects – Developer notes
 
-How the plug-in works and how it is built. For its use, see [README.md](README.md), for plug-ins
-that add a build tool [EXTENDING.md](EXTENDING.md).
+How the plug-in works and how it is built. For its use, see [USAGE.md](USAGE.md), for its
+installation [README.md](README.md), for plug-ins that add a build tool [EXTENDING.md](EXTENDING.md).
 
 ## Setup
 

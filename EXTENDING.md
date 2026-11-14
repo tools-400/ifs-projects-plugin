@@ -1,7 +1,7 @@
 # Extending IFS Projects
 
 How to write a plug-in that adds a build tool to IFS Projects. For the use of the plug-in, see
-[README.md](README.md), for its internals [DEVELOPMENT.md](DEVELOPMENT.md).
+[USAGE.md](USAGE.md), for its internals [DEVELOPMENT.md](DEVELOPMENT.md).
 
 An extension plug-in is an ordinary Eclipse plug-in, that requires
 `de.tools400.ifsprojects.core.plugin` and contributes to one of its extension points. It is shipped
