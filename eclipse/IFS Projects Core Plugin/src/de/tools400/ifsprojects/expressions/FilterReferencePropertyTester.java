@@ -14,6 +14,7 @@ import org.eclipse.rse.core.filters.ISystemFilterReference;
 import org.eclipse.rse.core.subsystems.ISubSystem;
 
 import de.tools400.ifsprojects.rse.IfsFilterStrings;
+import de.tools400.ifsprojects.rse.RseSelections;
 
 /**
  * Property tester for RSE filter references.
@@ -26,6 +27,11 @@ public class FilterReferencePropertyTester extends PropertyTester {
 
     public static final String PROPERTY_SUBSYSTEM_CONFIG_ID = "subsystemConfigId"; //$NON-NLS-1$
     public static final String PROPERTY_HAS_DIRECTORY = "hasDirectory"; //$NON-NLS-1$
+
+    /**
+     * The filter belongs to the subsystem 'Local Files' and has one directory.
+     */
+    public static final String PROPERTY_HAS_LOCAL_DIRECTORY = "hasLocalDirectory"; //$NON-NLS-1$
 
     public boolean test(Object aReceiver, String aProperty, Object[] anArgs, Object anExpectedValue) {
 
@@ -46,6 +52,10 @@ public class FilterReferencePropertyTester extends PropertyTester {
         if (PROPERTY_HAS_DIRECTORY.equals(aProperty)) {
             ISystemFilter filter = filterReference.getReferencedFilter();
             return toBoolean(anExpectedValue) == (IfsFilterStrings.getDirectory(filter.getFilterStrings()) != null);
+        }
+
+        if (PROPERTY_HAS_LOCAL_DIRECTORY.equals(aProperty)) {
+            return toBoolean(anExpectedValue) == (RseSelections.getLocalDirectory(filterReference) != null);
         }
 
         return false;

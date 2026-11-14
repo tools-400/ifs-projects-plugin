@@ -11,11 +11,13 @@ package de.tools400.ifsprojects.expressions;
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
+import de.tools400.ifsprojects.rse.RseSelections;
 import de.tools400.ifsprojects.subsystem.IfsProjects;
 import de.tools400.ifsprojects.syntaxcheck.SourceType;
 
 /**
- * Property tester for IFS files and directories.
+ * Property tester for IFS files and directories and for the directories of the
+ * subsystem 'Local Files' of RSE.
  * <p>
  * The tester only reads the RSE model. It never accesses the remote system.
  */
@@ -28,6 +30,9 @@ public class IfsFilePropertyTester extends PropertyTester {
 
     /** The file is part of an IFS project and its syntax can be checked. */
     public static final String PROPERTY_CAN_CHECK_SYNTAX = "canCheckSyntax"; //$NON-NLS-1$
+
+    /** The file is a directory of the subsystem 'Local Files'. */
+    public static final String PROPERTY_IS_LOCAL_DIRECTORY = "isLocalDirectory"; //$NON-NLS-1$
 
     public boolean test(Object aReceiver, String aProperty, Object[] anArgs, Object anExpectedValue) {
 
@@ -44,6 +49,10 @@ public class IfsFilePropertyTester extends PropertyTester {
         if (PROPERTY_CAN_CHECK_SYNTAX.equals(aProperty)) {
             boolean canCheckSyntax = SourceType.fromFileName(remoteFile.getName()) != null && isInProject(remoteFile);
             return toBoolean(anExpectedValue) == canCheckSyntax;
+        }
+
+        if (PROPERTY_IS_LOCAL_DIRECTORY.equals(aProperty)) {
+            return toBoolean(anExpectedValue) == (RseSelections.getLocalDirectory(remoteFile) != null);
         }
 
         return false;

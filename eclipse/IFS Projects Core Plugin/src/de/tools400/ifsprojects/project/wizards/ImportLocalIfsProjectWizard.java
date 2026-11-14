@@ -13,6 +13,7 @@ import org.eclipse.ui.IWorkingSet;
 
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.LocalProject;
+import de.tools400.ifsprojects.rse.RseSelections;
 
 /**
  * Wizard 'Import &gt; IFS Projects &gt; Existing Local IFS Project', that
@@ -24,6 +25,9 @@ import de.tools400.ifsprojects.local.LocalProject;
  * <li>Connection, deploy directory, encoding and <code>iproj.json</code>, see
  * {@link NewLocalIfsProjectWizardPage}.</li>
  * </ol>
+ * If a directory or a directory filter of the subsystem 'Local Files' of RSE is
+ * selected, its directory is filled in, e.g. when the wizard is started from
+ * the context menu of the Remote Systems view.
  */
 public class ImportLocalIfsProjectWizard extends AbstractLocalIfsProjectWizard implements IImportWizard {
 
@@ -36,7 +40,7 @@ public class ImportLocalIfsProjectWizard extends AbstractLocalIfsProjectWizard i
     @Override
     public void addPages() {
 
-        importPage = new ImportLocalIfsProjectWizardPage();
+        importPage = new ImportLocalIfsProjectWizardPage(RseSelections.getLocalDirectory(RseSelections.getSingleElement(getSelection())));
         addPage(importPage);
 
         addSettingsPage(importPage);

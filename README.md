@@ -52,8 +52,9 @@ plug-in of its own, see [EXTENDING.md](EXTENDING.md).
 3. When the build has ended, the compile errors are shown in the *Error List* view. Double-click
    an error to open the source at that line.
 
-You have cloned a project with Git to your PC? Import it with *File > Import... > IFS Projects >
-Existing Local IFS Project*, see [Local IFS projects](#local-ifs-projects).
+You have cloned a project with Git to your PC? In the *Remote Systems* view, right-click its
+directory under *Local Files* and choose *Import as Local IFS Project...*, or use *File > Import... >
+IFS Projects > Existing Local IFS Project*, see [Local IFS projects](#local-ifs-projects).
 
 ## SSH terminal
 
@@ -172,6 +173,7 @@ directory) and builds the project there. Files are only copied from your PC to t
 | Action | Function |
 |---|---|
 | *File > Import... > IFS Projects > Existing Local IFS Project* | Imports a directory, e.g. a Git working copy: select the directory, then the IBM i connection and the deploy directory. An existing `iproj.json` is used unchanged. |
+| *Import as Local IFS Project...* (context menu of a directory or a directory filter of *Local Files* in the *Remote Systems* view) | Starts the import with the directory filled in. A filter must have exactly one filter string. |
 | *File > New > Project... > IFS Projects > Local IFS Project* | Creates a new local IFS project, optionally with a new `iproj.json`. |
 | *Configure as IFS Project...* (context menu of a project with `iproj.json`) | Makes a project of the workspace a local IFS project. |
 | *Properties > IFS Project* | Connection, deploy directory (default `<home>/.ifsprojects/builds/<project>`) and the settings of `iproj.json`. |

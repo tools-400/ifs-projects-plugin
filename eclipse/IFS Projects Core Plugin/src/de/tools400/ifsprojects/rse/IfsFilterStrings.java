@@ -94,7 +94,16 @@ public final class IfsFilterStrings {
         return filterString.substring(0, index);
     }
 
-    private static String removeSwitches(String aFilterString) {
+    /**
+     * Removes the switches <code>/ns</code> and <code>/nf</code> from the end
+     * of a filter string. The switches are the same for all file subsystems,
+     * see {@link LocalFilterStrings}.
+     *
+     * @param aFilterString - filter string, e.g.
+     *        <code>/home/jsmith/* /nf</code>
+     * @return filter string without switches, e.g. <code>/home/jsmith/*</code>
+     */
+    static String removeSwitches(String aFilterString) {
 
         String filterString = aFilterString;
         boolean found = true;

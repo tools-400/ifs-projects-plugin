@@ -86,14 +86,14 @@
             id="de.tools400.ifsprojects.expressions.FilterReferencePropertyTester"
             class="de.tools400.ifsprojects.expressions.FilterReferencePropertyTester"
             namespace="de.tools400.ifsprojects.filter"
-            properties="subsystemConfigId,hasDirectory"
+            properties="subsystemConfigId,hasDirectory,hasLocalDirectory"
             type="org.eclipse.rse.core.filters.ISystemFilterReference">
       </propertyTester>
       <propertyTester
             id="de.tools400.ifsprojects.expressions.IfsFilePropertyTester"
             class="de.tools400.ifsprojects.expressions.IfsFilePropertyTester"
             namespace="de.tools400.ifsprojects.file"
-            properties="isInIfsProject,canCheckSyntax"
+            properties="isInIfsProject,canCheckSyntax,isLocalDirectory"
             type="org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile">
       </propertyTester>
       <propertyTester
@@ -286,6 +286,11 @@
             categoryId="de.tools400.ifsprojects.commands.category"
             name="%Command_Configure_local_project">
       </command>
+      <command
+            id="de.tools400.ifsprojects.commands.importLocalProject"
+            categoryId="de.tools400.ifsprojects.commands.category"
+            name="%Command_Import_local_project">
+      </command>
    </extension>
 
    <extension point="org.eclipse.ui.handlers">
@@ -351,6 +356,10 @@
       <handler
             commandId="de.tools400.ifsprojects.commands.configureLocalProject"
             class="de.tools400.ifsprojects.handlers.ConfigureLocalProjectHandler">
+      </handler>
+      <handler
+            commandId="de.tools400.ifsprojects.commands.importLocalProject"
+            class="de.tools400.ifsprojects.handlers.ImportLocalIfsProjectHandler">
       </handler>
    </extension>
 
@@ -601,6 +610,28 @@
                            <test property="de.tools400.ifsprojects.file.canCheckSyntax" value="true" forcePluginActivation="true"/>
                         </and>
                      </adapt>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+
+         <!-- Directory or directory filter of 'Local Files': import as local IFS project -->
+         <command
+               commandId="de.tools400.ifsprojects.commands.importLocalProject"
+               icon="icons/obj16/prj_obj.png"
+               label="%Label_Import_local_project">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <count value="1"/>
+                  <iterate ifEmpty="false" operator="and">
+                     <or>
+                        <adapt type="org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile">
+                           <test property="de.tools400.ifsprojects.file.isLocalDirectory" value="true" forcePluginActivation="true"/>
+                        </adapt>
+                        <adapt type="org.eclipse.rse.core.filters.ISystemFilterReference">
+                           <test property="de.tools400.ifsprojects.filter.hasLocalDirectory" value="true" forcePluginActivation="true"/>
+                        </adapt>
+                     </or>
                   </iterate>
                </and>
             </visibleWhen>

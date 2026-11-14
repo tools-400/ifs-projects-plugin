@@ -8,6 +8,8 @@
 
 package de.tools400.ifsprojects.rse;
 
+import java.io.File;
+
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -132,5 +134,45 @@ public final class RseSelections {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the directory of a selected element of the subsystem 'Local
+     * Files' of RSE:
+     * <ul>
+     * <li>directory: the directory itself</li>
+     * <li>filter: the directory of its filter string</li>
+     * </ul>
+     * The file system is not accessed.
+     *
+     * @param anElement - remote file or filter reference
+     * @return local directory or <code>null</code>, e.g. for a file, an IFS
+     *         directory or a filter with several filter strings
+     */
+    public static File getLocalDirectory(Object anElement) {
+
+        String directory = null;
+
+        if (anElement instanceof IRemoteFile) {
+            IRemoteFile remoteFile = (IRemoteFile)anElement;
+            if (remoteFile.isDirectory() && isLocalFiles(remoteFile.getParentRemoteFileSubSystem())) {
+                directory = remoteFile.getAbsolutePath();
+            }
+        } else if (anElement instanceof ISystemFilterReference) {
+            ISystemFilterReference filterReference = (ISystemFilterReference)anElement;
+            if (isLocalFiles(filterReference.getSubSystem())) {
+                directory = LocalFilterStrings.getDirectory(filterReference.getReferencedFilter().getFilterStrings());
+            }
+        }
+
+        if (directory == null || !new File(directory).isAbsolute()) {
+            return null;
+        }
+
+        return new File(directory);
+    }
+
+    private static boolean isLocalFiles(ISubSystem aSubSystem) {
+        return aSubSystem != null && LocalFilterStrings.SUBSYSTEM_CONFIGURATION_ID.equals(aSubSystem.getConfigurationId());
     }
 }

@@ -50,6 +50,8 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
 
     private static final String PAGE_NAME = "ImportLocalIfsProjectWizardPage"; //$NON-NLS-1$
 
+    private final File initialDirectory;
+
     private Text directoryText;
     private Text nameText;
 
@@ -59,8 +61,15 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
     private boolean isNameEntered;
     private boolean isUpdatingName;
 
-    public ImportLocalIfsProjectWizardPage() {
+    /**
+     * Creates the page.
+     *
+     * @param anInitialDirectory - directory, that is filled in, or
+     *        <code>null</code>
+     */
+    public ImportLocalIfsProjectWizardPage(File anInitialDirectory) {
         super(PAGE_NAME);
+        this.initialDirectory = anInitialDirectory;
         setTitle(Messages.Title_Import_local_IFS_project);
         setDescription(Messages.Description_Import_local_IFS_project_page);
     }
@@ -111,6 +120,10 @@ public class ImportLocalIfsProjectWizardPage extends WizardPage implements NewLo
 
         setControl(main);
         Dialog.applyDialogFont(main);
+
+        if (initialDirectory != null) {
+            directoryText.setText(initialDirectory.getPath());
+        }
 
         validate();
     }
