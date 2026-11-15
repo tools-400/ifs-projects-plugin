@@ -280,7 +280,8 @@ public final class SourceViewDialog extends Dialog {
 
         // The viewer builds the action of the search itself, if it runs
         // without a workbench part, and offers its target as an adapter.
-        IFindReplaceTarget target = compareViewer.getAdapter(IFindReplaceTarget.class);
+        // The cast is needed for RDi 9.6, where getAdapter() returns Object.
+        IFindReplaceTarget target = (IFindReplaceTarget)compareViewer.getAdapter(IFindReplaceTarget.class);
         compareFindReplace = new FindReplaceAction(FIND_REPLACE_BUNDLE, "", getShell(), target); //$NON-NLS-1$
 
         return composite;
