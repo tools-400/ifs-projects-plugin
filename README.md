@@ -36,6 +36,8 @@ In RDi, choose *Help > Install New Software...*, add the update site
 https://tools-400.github.io/ifs-projects/update-site/eclipse/rdi8.0/ and install *IFS Projects*.
 Restart RDi afterwards. Home page: https://tools-400.github.io/ifs-projects/.
 
+IFS Projects is available on the [Eclipse Marketplace](https://marketplace.eclipse.org/content/ifs-projects-rdi-96013/), too.
+
 The update site also offers the parsers of the headers, that build tools write into source members:
 *IFS Projects STRPREPRC Headers* for `STRPREPRC`, *IFS Projects BUILD Headers* for the `BUILD`
 command of Scott Klement, *IFS Projects COMPILE Headers* for the `COMPILE` command of Alan Campin
