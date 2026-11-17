@@ -56,7 +56,7 @@ Packages below `de.tools400.ifsprojects`:
 | `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. `RemoteSession`: copy of the system object of RSE for a job, with its command call and temporary files, closed with try-with-resources. |
 | `errorlist` | `ErrorList`: shows the events of builds and syntax checks in the *Error List* view of RDi (parser and view of RDi); the local events file is written in a workspace job, the view is updated in a UI job. `EventsFiles`: content of events files. |
 | `ibmi` | Syntax of the IBM i, without dependencies on the other packages except `utils`: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, names and export of variables, placeholders, `QP2SHELL2`), `IfsPaths`. |
-| `rse` | RSE helpers: `RseSelections` (host and directory of the selection), `RseConnections` (lookup of a connection), `RseTerminalRequests` (terminal request of a connection, may prompt for the user ID), `IfsFilterStrings`, `RemoteEditors`. |
+| `rse` | RSE helpers: `RseSelections` (host and directory of the selection, resource of the workspace of a selection of *Local Files*), `RseConnections` (lookup of a connection), `RseTerminalRequests` (terminal request of a connection, may prompt for the user ID), `IfsFilterStrings`, `RemoteEditors`. |
 | `local` | Local IFS projects: `LocalProject` (settings, `iproj.json`), `Deployment` (upload), `DeployManifest`, `SourceMapping`, `EventsFileMapper`. The launchers pass the `SourceMapping` through the builds to `errorlist.ErrorList`. |
 | `project` | `iproj.json`: `IProjConfig`, `IProjValues` (values with resolved variables), `IProjFileStore` (IFS). `EnvironmentVariables`, `BuildTool` (also `hasMakeCharacters`: `$` and `#`). `ProjectFiles` and `IgnoreRules`: the files of the upload and of the export. `IfsProjectCreator`: directory, `iproj.json` and filter of a new IFS project. |
 | `project.propertypages` | `AbstractIProjPropertyPage` and `AbstractEnvironmentPropertyPage` for IFS projects and local IFS projects. `LocalProjectSettingsGroup` for property page and wizards of local IFS projects. `IProjToolTips` for property pages and wizards. |
@@ -333,6 +333,14 @@ source members, e.g. for a change management system. The facts below were verifi
   which share the menu ID `org.eclipse.rse.views.common`, and `before=group.properties` in the
   other views. JFace merges the separator with the one of the next group, if none of the commands
   is visible.
+* Local IFS projects in the views of RSE: a directory, directory filter or file of *Local Files*
+  is an `IRemoteFile` or `ISystemFilterReference`, not an `IResource`. `RseSelections.getLocalResource()`
+  maps it to the resource of the innermost open project, whose location contains it (names compared
+  like `File.equals()`). `LocalFilePropertyTester` (namespace `localfile`) tests the properties of
+  `LocalProjectPropertyTester` for that resource, and `LocalProjectCommands.getSelectedResource()`
+  falls back to the same mapping, so that the handlers are shared with the *Project Explorer*. No
+  adapter factory `IRemoteFile` -> `IResource`: the commands of other plug-ins, e.g. *Team* and
+  *Compare With*, would then appear in the views of RSE too.
 
 ## Migration to an IFS project
 

@@ -10,7 +10,11 @@ package de.tools400.ifsprojects.rse;
 
 import java.io.File;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.ISystemFilterReference;
@@ -19,12 +23,15 @@ import org.eclipse.rse.core.subsystems.ISubSystem;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
 /**
- * Retrieves host and directory from objects selected in the Remote Systems
- * view.
+ * Retrieves host, directory and resource of the workspace from objects selected
+ * in the Remote Systems view.
  */
 public final class RseSelections {
 
     private static final String ROOT = "/"; //$NON-NLS-1$
+
+    /** Separator of the segments of a path of the workspace. */
+    private static final String SEPARATOR = "/"; //$NON-NLS-1$
 
     private RseSelections() {
         // Utility class
@@ -170,6 +177,100 @@ public final class RseSelections {
         }
 
         return new File(directory);
+    }
+
+    /**
+     * Returns the resource of the workspace, that is located at a selected
+     * element of the subsystem 'Local Files' of RSE:
+     * <ul>
+     * <li>directory: the project, whose location it is, or the folder of a
+     * project</li>
+     * <li>file: the file of a project</li>
+     * <li>filter: the project or folder of the directory of its filter
+     * string</li>
+     * </ul>
+     * If projects are nested, the resource of the innermost project is
+     * returned. Only open projects are considered. The resource does not need
+     * to exist in the workspace, e.g. if the file has been created outside of
+     * Eclipse.
+     *
+     * @param anElement - remote file or filter reference
+     * @return resource or <code>null</code>, if the element is not located in
+     *         an open project of the workspace
+     */
+    public static IResource getLocalResource(Object anElement) {
+
+        File directory = getLocalDirectory(anElement);
+        if (directory != null) {
+            return findResource(directory, true);
+        }
+
+        if (anElement instanceof IRemoteFile) {
+            IRemoteFile remoteFile = (IRemoteFile)anElement;
+            if (remoteFile.isFile() && isLocalFiles(remoteFile.getParentRemoteFileSubSystem())) {
+                File file = new File(remoteFile.getAbsolutePath());
+                if (file.isAbsolute()) {
+                    return findResource(file, false);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static IResource findResource(File aFile, boolean anIsDirectory) {
+
+        IProject innermostProject = null;
+        String innermostPath = null;
+
+        for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            IPath location = project.isOpen() ? project.getLocation() : null;
+            if (location != null) {
+                String relativePath = getRelativePath(location.toFile(), aFile);
+                if (relativePath != null && (innermostPath == null || relativePath.length() < innermostPath.length())) {
+                    innermostProject = project;
+                    innermostPath = relativePath;
+                }
+            }
+        }
+
+        if (innermostProject == null) {
+            return null;
+        }
+
+        if (innermostPath.length() == 0) {
+            return anIsDirectory ? innermostProject : null;
+        }
+
+        if (anIsDirectory) {
+            return innermostProject.getFolder(innermostPath);
+        }
+
+        return innermostProject.getFile(innermostPath);
+    }
+
+    /**
+     * Returns the path of a file relative to a directory. The names are
+     * compared like {@link File#equals(Object)} does, that is ignoring the case
+     * on Windows.
+     *
+     * @return relative path, an empty string for the directory itself or
+     *         <code>null</code>, if the file is not located in the directory
+     */
+    private static String getRelativePath(File aDirectory, File aFile) {
+
+        String relativePath = ""; //$NON-NLS-1$
+
+        File file = aFile;
+        while (file != null) {
+            if (file.equals(aDirectory)) {
+                return relativePath;
+            }
+            relativePath = relativePath.length() == 0 ? file.getName() : file.getName() + SEPARATOR + relativePath;
+            file = file.getParentFile();
+        }
+
+        return null;
     }
 
     private static boolean isLocalFiles(ISubSystem aSubSystem) {

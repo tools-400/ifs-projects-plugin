@@ -130,10 +130,14 @@ A local IFS project is a project in the RDi workspace, e.g. a Git working copy w
 Before each build, the plug-in copies the changed files to a directory in the IFS (the deploy
 directory) and builds the project there. Files are only copied from your PC to the IFS, never back.
 
+The actions of a project and its files are in the context menu of the *Project Explorer* and, under
+*Local Files* in the *Remote Systems* view, in the context menu of the project directory, of a
+directory filter of it and of its files.
+
 | Action | Function |
 |---|---|
 | *File > Import... > IFS Projects > Existing Local IFS Project* | Imports a directory, e.g. a Git working copy: select the directory, then the IBM i connection and the deploy directory. An existing `iproj.json` is used unchanged. |
-| *Import as Local IFS Project...* (context menu of a directory or a directory filter of *Local Files* in the *Remote Systems* view) | Starts the import with the directory filled in. A filter must have exactly one filter string. |
+| *Import as Local IFS Project...* (context menu of a directory or a directory filter of *Local Files* in the *Remote Systems* view) | Starts the import with the directory filled in. A filter must have exactly one filter string. Not offered for a directory, that already is the location of a project of the workspace. |
 | *File > New > Project... > IFS Projects > Local IFS Project* | Creates a new local IFS project, optionally with a new `iproj.json`. |
 | *Configure as IFS Project...* (context menu of a project with `iproj.json`) | Makes a project of the workspace a local IFS project. |
 | *Properties > IFS Project* | Connection, deploy directory (default `<home>/.ifsprojects/builds/<project>`) and the settings of `iproj.json`. |

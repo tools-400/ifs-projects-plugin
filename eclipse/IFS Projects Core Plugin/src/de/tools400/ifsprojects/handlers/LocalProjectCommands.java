@@ -94,7 +94,9 @@ final class LocalProjectCommands {
     }
 
     /**
-     * Returns the selected resource of the workspace.
+     * Returns the selected resource of the workspace. In the views of RSE, it
+     * is the resource, that is located at the selected file, directory or
+     * filter of the subsystem 'Local Files'.
      *
      * @param anEvent - execution event
      * @return resource or <code>null</code>, if not exactly one resource is
@@ -114,7 +116,7 @@ final class LocalProjectCommands {
             }
         }
 
-        return null;
+        return RseSelections.getLocalResource(element);
     }
 
     /**
@@ -362,8 +364,8 @@ final class LocalProjectCommands {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException, InterruptedException {
                     // The task name covers the preparation, until the upload
                     // replaces it with its own task name.
-                    SubMonitor progress = SubMonitor.convert(aMonitor,
-                        Messages.bind(Messages.Task_Preparing_upload_of_A, aLocalProject.getName()), 1);
+                    SubMonitor progress = SubMonitor.convert(aMonitor, Messages.bind(Messages.Task_Preparing_upload_of_A, aLocalProject.getName()),
+                        1);
                     try (RemoteSession session = new RemoteSession(aRseSystem)) {
                         AS400 system = session.getSystem();
                         String directory = aLocalProject.getDeployDirectory(RemoteJobs.getHomeDirectory(system));
