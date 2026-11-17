@@ -61,3 +61,7 @@ How to add a build tool with a plug-in of your own: [EXTENDING.md](EXTENDING.md)
 This software is free and provided without warranty. You use it at your own risk: test it with
 non-critical data first, and back up your data before you use it. The [license](LICENSE) applies in
 addition.
+
+## See Also
+
+* [IFS Projects Update Site](https://github.com/tools-400/ifs-projects)
