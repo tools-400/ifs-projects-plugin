@@ -150,8 +150,8 @@ directory filter of it and of its files.
 | *Properties > IFS Project > Environment* | Environment variables of the project. |
 
 * *Text files in UTF-8* is recommended. RDi then stores the encoding in `.settings/` of the project.
-* RDi creates the file `.project` in the project directory. If Git shall not show it and
-  `.settings/` as new files, add both to `.git/info/exclude`.
+* RDi creates the file `.project` in the project directory. Add it and `.settings/` to
+  `.gitignore`, like the output folders of TOBi, so that Git does not show them as new files.
 * Not copied are the files listed in `.deployignore` or, if it does not exist, in `.gitignore` of
   the project directory (Git syntax), and `.git`, `.project`, `.settings` and the output folders of
   TOBi.
