@@ -13,12 +13,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.tools400.ifsprojects.project.GitIgnoreEntries;
+import de.tools400.ifsprojects.project.IgnoreRules;
 import de.tools400.ifsprojects.sources.TextEncoding;
 
 /**
  * Files, that a migration writes into the project directory: the stream files
- * of the migrated members and, for TOBi projects, the build files of
- * {@link TobiBuildFiles}.
+ * of the migrated members, for TOBi projects the build files of
+ * {@link TobiBuildFiles}, and <code>.gitignore</code> with the files, that do
+ * not belong into the repository, see {@link GitIgnoreEntries}.
  */
 public final class MigrationFiles {
 
@@ -57,7 +60,9 @@ public final class MigrationFiles {
      *        written
      * @return contents by the paths relative to the project directory, in the
      *         order, in which they are written: the members, then the build
-     *         files of the directories, then the build file of the project
+     *         files of the directories, then the build file of the project,
+     *         then <code>.gitignore</code> (see
+     *         {@link GitIgnoreEntries#getMigrationGroups(boolean)})
      */
     public static Map<String, String> getFiles(MigrationPlan aPlan, List<SourceFile> aSourceFiles, boolean anIsTobi) {
 
@@ -66,9 +71,16 @@ public final class MigrationFiles {
             files.put(item.getPath(), item.getContent());
         }
 
-        if (!anIsTobi) {
-            return files;
+        if (anIsTobi) {
+            addTobiBuildFiles(files, aPlan, aSourceFiles);
         }
+
+        files.put(IgnoreRules.GIT_IGNORE_FILE, GitIgnoreEntries.addEntries(null, GitIgnoreEntries.getMigrationGroups(anIsTobi)));
+
+        return files;
+    }
+
+    private static void addTobiBuildFiles(Map<String, String> aFiles, MigrationPlan aPlan, List<SourceFile> aSourceFiles) {
 
         List<String> directories = new ArrayList<>();
         for (SourceFile sourceFile : aSourceFiles) {
@@ -78,17 +90,15 @@ public final class MigrationFiles {
             }
             String directory = MigrationMapping.getDirectory(sourceFile.getName());
             directories.add(directory);
-            files.put(directory + SEPARATOR + TobiBuildFiles.IBMI_JSON_FILE,
+            aFiles.put(directory + SEPARATOR + TobiBuildFiles.IBMI_JSON_FILE,
                 TobiBuildFiles.getIbmiJson(sourceFile, aPlan.getSettings().getHexCcsid()));
-            files.put(directory + SEPARATOR + TobiBuildFiles.RULES_FILE,
+            aFiles.put(directory + SEPARATOR + TobiBuildFiles.RULES_FILE,
                 TobiBuildFiles.getDirectoryRules(sourceFile, items, aPlan.getMigratedItems()));
         }
 
         if (!directories.isEmpty()) {
-            files.put(TobiBuildFiles.RULES_FILE, TobiBuildFiles.getProjectRules(directories));
+            aFiles.put(TobiBuildFiles.RULES_FILE, TobiBuildFiles.getProjectRules(directories));
         }
-
-        return files;
     }
 
     private static List<MigrationPlan.Item> getItems(MigrationPlan aPlan, SourceFile aSourceFile) {

@@ -31,11 +31,12 @@ public class ProjectFilesTest {
         assertTrue(ProjectFiles.isExcluded(".evfevent/HELLO.PGM.evfevent"));
         assertTrue(ProjectFiles.isExcluded(".deps/hello.d"));
         assertTrue(ProjectFiles.isExcluded(".deployignore"));
+        assertTrue(ProjectFiles.isExcluded(".gitignore"));
         assertTrue(ProjectFiles.isExcluded(".ifsprojects-deploy"));
 
         assertFalse(ProjectFiles.isExcluded("iproj.json"));
         assertFalse(ProjectFiles.isExcluded("src/.logs/x"));
-        assertFalse(ProjectFiles.isExcluded(".gitignore"));
+        assertFalse(ProjectFiles.isExcluded("src/.gitignore"));
         assertFalse(ProjectFiles.isExcluded("Rules.mk"));
     }
 

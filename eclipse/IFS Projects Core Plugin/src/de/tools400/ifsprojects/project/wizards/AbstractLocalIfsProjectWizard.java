@@ -8,12 +8,16 @@
 
 package de.tools400.ifsprojects.project.wizards;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,13 +35,15 @@ import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.local.LocalProject;
+import de.tools400.ifsprojects.project.GitIgnoreEntries;
 import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.project.IgnoreRules;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 
 /**
  * Base of the wizards, that create a local IFS project in the workspace, see
  * {@link LocalProject}. The last page defines connection, deploy directory,
- * encoding and <code>iproj.json</code>, see
+ * encoding, <code>.gitignore</code> and <code>iproj.json</code>, see
  * {@link NewLocalIfsProjectWizardPage}.
  * <p>
  * The project is created like the general project of Eclipse, so that its
@@ -97,6 +103,7 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
         final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(aDescription.getName());
 
         final boolean isUtf8 = settingsPage.isUtf8();
+        final boolean isAddToGitIgnore = settingsPage.isAddToGitIgnore();
         final IProjConfig config = settingsPage.isCreateIProj() ? settingsPage.createConfig() : null;
         final String connectionName = settingsPage.getConnectionName();
         final String deployDirectory = settingsPage.getDeployDirectory();
@@ -133,7 +140,7 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
             getContainer().run(true, false, new IRunnableWithProgress() {
                 public void run(IProgressMonitor aMonitor) throws InvocationTargetException {
                     try {
-                        configure(project, isUtf8, config, connectionName, deployDirectory, aMonitor);
+                        configure(project, isUtf8, isAddToGitIgnore, config, connectionName, deployDirectory, aMonitor);
                     } catch (Exception e) {
                         throw new InvocationTargetException(e);
                     }
@@ -154,14 +161,19 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
     }
 
     /**
-     * Configures the new project: encoding, <code>iproj.json</code> (unless the
-     * location already contains one) and the settings of the local IFS project.
+     * Configures the new project: encoding, the project file of RDi in
+     * <code>.gitignore</code>, <code>iproj.json</code> (unless the location
+     * already contains one) and the settings of the local IFS project.
      */
-    private void configure(IProject aProject, boolean anIsUtf8, IProjConfig aConfig, String aConnectionName, String aDeployDirectory,
-        IProgressMonitor aMonitor) throws Exception {
+    private void configure(IProject aProject, boolean anIsUtf8, boolean anIsAddToGitIgnore, IProjConfig aConfig, String aConnectionName,
+        String aDeployDirectory, IProgressMonitor aMonitor) throws Exception {
 
         if (anIsUtf8) {
             aProject.setDefaultCharset(UTF_8, aMonitor);
+        }
+
+        if (anIsAddToGitIgnore) {
+            addToGitIgnore(aProject, aMonitor);
         }
 
         IFile file = aProject.getFile(IProjConfig.FILE_NAME);
@@ -171,6 +183,35 @@ abstract class AbstractLocalIfsProjectWizard extends Wizard {
 
         if (aConnectionName != null) {
             LocalProject.configure(aProject, aConnectionName, aDeployDirectory);
+        }
+    }
+
+    /**
+     * Adds the project file of RDi, <code>.project</code>, to the
+     * <code>.gitignore</code> file of the project directory. The file is
+     * created, if it does not exist; an existing file only gets the missing
+     * entry.
+     */
+    private void addToGitIgnore(IProject aProject, IProgressMonitor aMonitor) throws Exception {
+
+        IFile file = aProject.getFile(IgnoreRules.GIT_IGNORE_FILE);
+        file.refreshLocal(IResource.DEPTH_ZERO, aMonitor);
+
+        String content = null;
+        if (file.exists()) {
+            content = new String(Files.readAllBytes(file.getLocation().toFile().toPath()), UTF_8);
+        }
+
+        String newContent = GitIgnoreEntries.addEntries(content, GitIgnoreEntries.getLocalProjectGroups());
+        if (newContent == null) {
+            return;
+        }
+
+        InputStream stream = new ByteArrayInputStream(newContent.getBytes(UTF_8));
+        if (file.exists()) {
+            file.setContents(stream, IResource.KEEP_HISTORY, aMonitor);
+        } else {
+            file.create(stream, false, aMonitor);
         }
     }
 }

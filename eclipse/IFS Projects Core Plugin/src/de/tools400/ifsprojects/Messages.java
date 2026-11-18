@@ -178,6 +178,8 @@ public class Messages extends NLS {
     public static String Description_Import_local_IFS_project_page;
     public static String Label_Text_files_in_UTF8;
     public static String Tooltip_Text_files_in_UTF8;
+    public static String Label_Add_project_file_to_gitignore;
+    public static String Tooltip_Add_project_file_to_gitignore;
     public static String Error_Could_not_create_project_A;
     public static String Warning_Project_A_created_but_not_configured_B;
     public static String Tooltip_Deploy_directory;

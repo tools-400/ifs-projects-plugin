@@ -9,6 +9,7 @@
 package de.tools400.ifsprojects.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -38,10 +39,13 @@ public class MigrationFilesTest {
         Map<String, String> files = MigrationFiles.getFiles(createPlan(), SOURCE_FILES, true);
 
         assertEquals(Arrays.asList("qrpglesrc/hello.rpgle", "qcpysrc/consts.rpgleinc", "qrpglesrc/.ibmi.json", "qrpglesrc/Rules.mk",
-            "qcpysrc/.ibmi.json", "qcpysrc/Rules.mk", "Rules.mk"), new ArrayList<>(files.keySet()));
+            "qcpysrc/.ibmi.json", "qcpysrc/Rules.mk", "Rules.mk", ".gitignore"), new ArrayList<>(files.keySet()));
         assertEquals("**FREE\n/copy 'qcpysrc/consts.rpgleinc'\n", files.get("qrpglesrc/hello.rpgle"));
         assertTrue(files.get("qcpysrc/.ibmi.json").contains("\"tgtCcsid\": \"1141\""));
         assertTrue(files.get("Rules.mk").endsWith("SUBDIRS = qcpysrc qrpglesrc\n"));
+        assertTrue(files.get(".gitignore").startsWith("# Output of TOBi (makei build)\n.logs\n.evfevent\n.deps\n.Rules.mk.build\n\n"));
+        assertTrue(files.get(".gitignore").endsWith("\n.env\n\n# Log directory, that IBM i Project Explorer ignores, too\n.itest\n\n"
+            + "# Project file of RDi (Import as Local IFS Project)\n.project\n"));
     }
 
     @Test
@@ -49,7 +53,9 @@ public class MigrationFilesTest {
 
         Map<String, String> files = MigrationFiles.getFiles(createPlan(), SOURCE_FILES, false);
 
-        assertEquals(Arrays.asList("qrpglesrc/hello.rpgle", "qcpysrc/consts.rpgleinc"), new ArrayList<>(files.keySet()));
+        assertEquals(Arrays.asList("qrpglesrc/hello.rpgle", "qcpysrc/consts.rpgleinc", ".gitignore"), new ArrayList<>(files.keySet()));
+        assertTrue(files.get(".gitignore").startsWith("# Environment variables of Code for IBM i, e.g. the library of the build\n.env\n\n"));
+        assertFalse(files.get(".gitignore").contains(".logs"));
     }
 
     private static MigrationPlan createPlan() {

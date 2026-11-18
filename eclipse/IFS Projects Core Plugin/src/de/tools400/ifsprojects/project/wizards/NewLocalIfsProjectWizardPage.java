@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.project.GitIgnoreEntries;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.project.IProjParseException;
 import de.tools400.ifsprojects.project.propertypages.LocalProjectSettingsGroup;
@@ -30,7 +31,8 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
 /**
  * Last page of the wizards 'New Local IFS Project' and 'Import Local IFS
  * Project': the settings of the local IFS project (see
- * {@link LocalProjectSettingsGroup}), the encoding of the project and the
+ * {@link LocalProjectSettingsGroup}), the encoding of the project, the project
+ * file of RDi in <code>.gitignore</code> (see {@link GitIgnoreEntries}) and the
  * attributes of a new <code>iproj.json</code> file (see
  * {@link IProjDefaultsGroup}).
  * <p>
@@ -61,10 +63,16 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
 
     private LocalProjectSettingsGroup settingsGroup;
     private Button utf8Button;
+    private Button gitIgnoreButton;
     private IProjDefaultsGroup iprojGroup;
 
     /** Location of the project, whose iproj.json has been checked. */
     private File checkedDirectory;
+
+    /**
+     * Location of the project, for which the .gitignore option has been preset.
+     */
+    private File gitCheckedDirectory;
 
     /**
      * Creates the page.
@@ -98,6 +106,13 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
         utf8Button.setLayoutData(utf8Data);
         ToolTips.set(Messages.Tooltip_Text_files_in_UTF8, utf8Button);
 
+        gitIgnoreButton = new Button(main, SWT.CHECK);
+        gitIgnoreButton.setText(Messages.Label_Add_project_file_to_gitignore);
+        GridData gitIgnoreData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gitIgnoreData.horizontalSpan = 2;
+        gitIgnoreButton.setLayoutData(gitIgnoreData);
+        ToolTips.set(Messages.Tooltip_Add_project_file_to_gitignore, gitIgnoreButton);
+
         iprojGroup = new IProjDefaultsGroup(main);
 
         setControl(main);
@@ -112,6 +127,7 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
         if (anIsVisible) {
             settingsGroup.setProjectName(projectLocation.getProjectName());
             checkIProjFile();
+            checkGitWorkingCopy();
         }
     }
 
@@ -140,6 +156,15 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
      */
     public boolean isUtf8() {
         return utf8Button.getSelection();
+    }
+
+    /**
+     * Returns <code>true</code>, if the project file of RDi shall be added to
+     * the <code>.gitignore</code> file of the project directory, see
+     * {@link GitIgnoreEntries.Group#RDI_PROJECT_FILE}.
+     */
+    public boolean isAddToGitIgnore() {
+        return gitIgnoreButton.getSelection();
     }
 
     /**
@@ -191,6 +216,23 @@ public class NewLocalIfsProjectWizardPage extends WizardPage {
             setMessage(Messages.bind(Messages.Warning_Existing_iproj_json_is_invalid_A, ExceptionUtils.getLocalizedMessage(e)),
                 IMessageProvider.WARNING);
         }
+    }
+
+    /**
+     * Selects the option to add the project file of RDi to
+     * <code>.gitignore</code>, if the location of the project is in a Git
+     * working copy. The option is preset once per location, so that the choice
+     * of the user is kept, when the page is shown again.
+     */
+    private void checkGitWorkingCopy() {
+
+        File directory = projectLocation.getProjectDirectory();
+        if (directory == null || directory.equals(gitCheckedDirectory)) {
+            return;
+        }
+
+        gitCheckedDirectory = directory;
+        gitIgnoreButton.setSelection(GitIgnoreEntries.isInGitWorkingCopy(directory));
     }
 
     private void validate() {

@@ -150,11 +150,14 @@ directory filter of it and of its files.
 | *Properties > IFS Project > Environment* | Environment variables of the project. |
 
 * *Text files in UTF-8* is recommended. RDi then stores the encoding in `.settings/` of the project.
-* RDi creates the file `.project` in the project directory. Add it and `.settings/` to
-  `.gitignore`, like the output folders of TOBi, so that Git does not show them as new files.
+* RDi creates the file `.project` in the project directory. Its name is chosen on the import, so
+  it does not belong into the repository: *Add .project to .gitignore* enters it into
+  `.gitignore`; an existing file only gets the missing entry. The option is selected, if the
+  directory is in a Git working copy. `.settings/` with the encoding belongs into the repository,
+  so that every clone uses UTF-8.
 * Not copied are the files listed in `.deployignore` or, if it does not exist, in `.gitignore` of
-  the project directory (Git syntax), and `.git`, `.project`, `.settings` and the output folders of
-  TOBi.
+  the project directory (Git syntax), and `.git`, `.deployignore`, `.gitignore`, `.project`,
+  `.settings` and the output folders of TOBi.
 * If a file in the deploy directory has been changed by someone else, e.g. with Code for IBM i, you
   are asked, whether it may be overwritten. Other files of the deploy directory, e.g. the output of
   TOBi, are never deleted.
@@ -351,6 +354,13 @@ is not supported or misses a character, the preview warns and the file is writte
   TOBi fails for it (`SQL8009`). Check the draft and set the
   parameters of the installer or of the `STRPREPRC` headers, because the defaults of TOBi differ
   from the CL commands, e.g. `DBGVIEW` and `ACTGRP`.
+
+**.gitignore.** The migration writes `.gitignore` into the project directory with the files, that
+do not belong into a repository: for TOBi its output `.logs`, `.evfevent`, `.deps` and
+`.Rules.mk.build`, `.env` of Code for IBM i, `.itest`, which IBM i Project Explorer ignores, too,
+and `.project` of RDi. The entries are written without a trailing slash, like Project Explorer
+writes them, so that its action *Create iproj.json* does not add them again. An existing
+`.gitignore` is not replaced, it only gets the missing entries.
 
 **Preview.** The second page lists the members with source type, stream file, status (*New*,
 *Error*) and problems. Members without source type are not migrated. Warnings, e.g. a source type

@@ -25,7 +25,7 @@ public final class ProjectFiles {
 
     /** Files and directories of the project directory, that are excluded. */
     private static final Set<String> EXCLUDED_NAMES = new HashSet<>(Arrays.asList(".git", ".project", ".settings", ".logs", ".evfevent", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-        ".deps", IgnoreRules.DEPLOY_IGNORE_FILE, DEPLOY_TOKEN_FILE)); //$NON-NLS-1$
+        ".deps", IgnoreRules.DEPLOY_IGNORE_FILE, IgnoreRules.GIT_IGNORE_FILE, DEPLOY_TOKEN_FILE)); //$NON-NLS-1$
 
     private static final char SEPARATOR = '/';
 
@@ -38,7 +38,9 @@ public final class ProjectFiles {
      * excluded, because its first segment is excluded: <code>.git</code>,
      * <code>.project</code>, <code>.settings</code>, the output directories of
      * TOBi <code>.logs</code>, <code>.evfevent</code> and <code>.deps</code>,
-     * <code>.deployignore</code> and <code>.ifsprojects-deploy</code>.
+     * the ignore files <code>.deployignore</code> and <code>.gitignore</code>,
+     * which nobody reads in the deploy directory, and
+     * <code>.ifsprojects-deploy</code>.
      *
      * @param aRelativePath - path relative to the project, e.g.
      *        <code>src/hello.rpgle</code>

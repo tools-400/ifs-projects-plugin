@@ -26,6 +26,8 @@ import de.tools400.ifsprojects.dialogs.JobSummary;
 import de.tools400.ifsprojects.dialogs.OverwriteQuery;
 import de.tools400.ifsprojects.dialogs.RememberingOverwriteQuery;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
+import de.tools400.ifsprojects.project.GitIgnoreEntries;
+import de.tools400.ifsprojects.project.IgnoreRules;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
@@ -34,8 +36,9 @@ import de.tools400.ifsprojects.utils.ExceptionUtils;
  * Writes the files of a migration, see {@link MigrationFiles}, into the project
  * directory as stream files with CCSID 1208 (UTF-8), except of the XML files,
  * that declare another encoding. Missing directories are created. Before an
- * existing file is replaced, the user is asked, see {@link OverwriteQuery}. At
- * the end, a summary is shown.
+ * existing file is replaced, the user is asked, see {@link OverwriteQuery}; an
+ * existing <code>.gitignore</code> file only gets the missing entries. At the
+ * end, a summary is shown.
  */
 public class MigrationJob extends Job {
 
@@ -125,6 +128,10 @@ public class MigrationJob extends Job {
         try {
             IFSFile file = new IFSFile(aSystem, path);
             boolean isExisting = file.exists();
+            if (isExisting && IgnoreRules.GIT_IGNORE_FILE.equals(aPath)) {
+                addToGitIgnore(file, aContent);
+                return true;
+            }
             if (isExisting) {
                 OverwriteQuery.Answer answer = overwriteQuery.ask(path);
                 if (answer == OverwriteQuery.Answer.CANCEL) {
@@ -164,6 +171,23 @@ public class MigrationJob extends Job {
         }
 
         return true;
+    }
+
+    /**
+     * Adds the entries of the migration, that an existing
+     * <code>.gitignore</code> file does not contain yet, instead of replacing
+     * the file. A file, that already contains all entries, is skipped.
+     */
+    private void addToGitIgnore(IFSFile aFile, String aContent) throws Exception {
+
+        String content = GitIgnoreEntries.merge(RemoteJobs.readText(aFile), aContent);
+        if (content == null) {
+            skipped++;
+            return;
+        }
+
+        RemoteJobs.writeText(aFile, content, RemoteJobs.CCSID_UTF8);
+        replaced++;
     }
 
     private void showSummary(boolean anIsCanceled) {
