@@ -11,14 +11,17 @@ The plug-in adds to RDi:
 * **IFS projects**: directories in the IFS, which you edit, build and check like a project.
 * **Local IFS projects**: projects on your PC, e.g. a Git working copy. They are copied to the IFS
   and built there.
+* **Syntax check**: RPGLE and SQLRPGLE files are compiled without creating an object, the errors
+  are shown in the *Error List* view.
 * **SSH terminal**: a command line (shell) of the IBM i in a view of RDi.
 * **Export to a library**: the source files of a project are copied into source members, e.g. for
   a change management system.
 * **Migration to an IFS project**: the members of source files are copied into a new IFS project,
   e.g. to move a utility from source members to Git and TOBi.
 
-Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`).
-The compile errors are shown in the *Error List* view of RDi.
+Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`),
+in the SSH terminal or in a job of the RSE connection. The compile errors are shown in the
+*Error List* view of RDi.
 
 Further information about IFS Projects is available on the [IFS Projects Web Site](https://tools-400.github.io/ifs-projects/).
 
