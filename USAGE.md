@@ -74,6 +74,11 @@ An IFS project is a directory in the IFS with your source files. In the *Remote 
 each IBM i connection has the entry *IFS Projects*, which lists your projects. You open, edit and
 compare their files as usual.
 
+The directory of an IFS project is marked with a small *i* at the top right of its icon, under
+*IFS Files* and in other projects, and so is a filter of *IFS Files*, that lists the directory. If
+the name of the project differs from the name of the directory, it follows in brackets, e.g.
+`src [My Project]`.
+
 | Action (context menu) | Function |
 |---|---|
 | *New > IFS Project...* (on *IFS Projects* or on an IFS directory) | Creates the project. Optionally creates the directory and a new `iproj.json`. An existing `iproj.json` is not changed. The directory must not contain `$` or `#`, because make interprets them. |
@@ -133,6 +138,10 @@ directory) and builds the project there. Files are only copied from your PC to t
 The actions of a project and its files are in the context menu of the *Project Explorer* and, under
 *Local Files* in the *Remote Systems* view, in the context menu of the project directory, of a
 directory filter of it and of its files.
+
+In the *Project Explorer* and at its directory under *Local Files*, a local IFS project is marked
+with a small *i* at the top right of its icon and with its RSE connection in brackets, e.g.
+`demo [DEMO400]`. A closed project is not marked.
 
 | Action | Function |
 |---|---|
@@ -401,3 +410,6 @@ The plug-in stores its files in the folder `.ifsprojects` of your home directory
   longer built with it. The list is empty, if no feature of a build tool is installed.
 * *Export to Library*: CCSID and record length of new source files for the first export of a
   project. The CCSID is also the default for source files with CCSID 65535 of the migration.
+
+The marks of IFS projects in the *Remote Systems* view and in the *Project Explorer* are switched
+off under *Window > Preferences > General > Appearance > Label Decorations* with *IFS Project*.

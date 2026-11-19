@@ -25,6 +25,7 @@ import org.eclipse.rse.core.model.IHost;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.decorators.IfsProjectDecorator;
 import de.tools400.ifsprojects.ibmi.IfsPaths;
 import de.tools400.ifsprojects.project.EnvironmentVariables;
 import de.tools400.ifsprojects.project.IProjConfig;
@@ -117,7 +118,9 @@ public final class LocalProject {
 
     /**
      * Configures a project as local IFS project or removes the configuration.
-     * The deploy directories of other connections are kept.
+     * The deploy directories of other connections are kept. The decorations of
+     * IFS projects are updated, because changing a persistent property does not
+     * notify the resource change listeners.
      *
      * @param aProject - open project
      * @param aConnectionName - name of the RSE connection or <code>null</code>
@@ -132,6 +135,8 @@ public final class LocalProject {
         if (StringUtils.trimToNull(aConnectionName) != null) {
             aProject.setPersistentProperty(getDeployDirectoryKey(aConnectionName), StringUtils.trimToNull(aDeployDirectory));
         }
+
+        IfsProjectDecorator.refresh();
     }
 
     /**

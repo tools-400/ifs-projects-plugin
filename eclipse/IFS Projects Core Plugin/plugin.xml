@@ -1030,6 +1030,33 @@
 
    <!--
      ==========================================================================
+       Decorator of IFS projects: local IFS projects in the Project Explorer
+       and in 'Local Files' of RSE, IFS projects at their directory in the
+       IFS subsystem of an IBM i connection.
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.decorators">
+      <decorator
+            id="de.tools400.ifsprojects.decorators.ifsProject"
+            class="de.tools400.ifsprojects.decorators.IfsProjectDecorator"
+            label="%Decorator_IFS_project"
+            lightweight="true"
+            location="TOP_RIGHT"
+            state="true">
+         <description>%Decorator_IFS_project_description</description>
+         <enablement>
+            <or>
+               <objectClass name="org.eclipse.core.resources.IProject"/>
+               <objectClass name="org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile"/>
+               <objectClass name="org.eclipse.rse.core.filters.ISystemFilterReference"/>
+            </or>
+         </enablement>
+      </decorator>
+   </extension>
+
+   <!--
+     ==========================================================================
        Preferences
      ==========================================================================
    -->
