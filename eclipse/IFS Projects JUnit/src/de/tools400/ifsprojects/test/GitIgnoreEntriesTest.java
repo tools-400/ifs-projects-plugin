@@ -27,8 +27,7 @@ public class GitIgnoreEntriesTest {
 
     private static final String MIGRATION_TOBI = "# Output of TOBi (makei build)\n.logs\n.evfevent\n.deps\n.Rules.mk.build\n\n"
         + "# Environment variables of Code for IBM i, e.g. the library of the build\n.env\n\n"
-        + "# Log directory, that IBM i Project Explorer ignores, too\n.itest\n\n"
-        + "# Project file of RDi (Import as Local IFS Project)\n.project\n";
+        + "# Log directory, that IBM i Project Explorer ignores, too\n.itest\n\n" + "# Project file of RDi (Import as Local IFS Project)\n.project\n";
 
     private static final List<Group> LOCAL = GitIgnoreEntries.getLocalProjectGroups();
 

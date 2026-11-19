@@ -153,7 +153,8 @@ public final class SourceCheck {
      * Returns the first line, that contains bytes, that are not valid in the
      * encoding of the file, i.e. the character
      * {@link TextEncoding#REPLACEMENT_CHARACTER}, by which the decoder has
-     * replaced them, see {@link TextEncoding#decode(byte[], java.nio.charset.Charset)}.
+     * replaced them, see
+     * {@link TextEncoding#decode(byte[], java.nio.charset.Charset)}.
      *
      * @param aText - text
      * @return line number or 0, if the text has no invalid bytes

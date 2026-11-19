@@ -21,11 +21,12 @@ public class RseBuildCommandsTest {
 
     @Test
     public void testGetScript_bash() {
-        assertEquals("exec < /dev/null >> '/home/jsmith/.ifsprojects/tmp/b.log' 2>&1; echo $$ > '/home/jsmith/.ifsprojects/tmp/b.pid';"
-            + " export HOME='/home/jsmith';" + " [ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile;"
-            + " if [ -f \"$HOME/.bash_profile\" ]; then . \"$HOME/.bash_profile\"; elif [ -f \"$HOME/.bash_login\" ]; then . \"$HOME/.bash_login\";"
-            + " elif [ -f \"$HOME/.profile\" ]; then . \"$HOME/.profile\"; fi;"
-            + " cd '/home/jsmith/git/dspsrc' && makei build; echo $? > '/home/jsmith/.ifsprojects/tmp/b.rc'",
+        assertEquals(
+            "exec < /dev/null >> '/home/jsmith/.ifsprojects/tmp/b.log' 2>&1; echo $$ > '/home/jsmith/.ifsprojects/tmp/b.pid';"
+                + " export HOME='/home/jsmith';" + " [ -f /QOpenSys/etc/profile ] && . /QOpenSys/etc/profile;"
+                + " if [ -f \"$HOME/.bash_profile\" ]; then . \"$HOME/.bash_profile\"; elif [ -f \"$HOME/.bash_login\" ]; then . \"$HOME/.bash_login\";"
+                + " elif [ -f \"$HOME/.profile\" ]; then . \"$HOME/.profile\"; fi;"
+                + " cd '/home/jsmith/git/dspsrc' && makei build; echo $? > '/home/jsmith/.ifsprojects/tmp/b.rc'",
             RseBuildCommands.getScript(PaseCommands.BASH, "/home/jsmith", "/home/jsmith/.ifsprojects/tmp/b.log", "/home/jsmith/.ifsprojects/tmp/b.rc",
                 "/home/jsmith/.ifsprojects/tmp/b.pid", "/home/jsmith/git/dspsrc", " makei build "));
     }

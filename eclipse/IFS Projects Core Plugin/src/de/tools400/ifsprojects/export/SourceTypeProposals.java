@@ -287,9 +287,8 @@ public final class SourceTypeProposals {
         }
 
         /**
-         * Returns the source directory of {@link Reason#SOURCE_DIRECTORY},
-         * e.g. <code>qddssrc</code>, an empty string for the project
-         * directory.
+         * Returns the source directory of {@link Reason#SOURCE_DIRECTORY}, e.g.
+         * <code>qddssrc</code>, an empty string for the project directory.
          */
         public String getDirectory() {
             return directory;

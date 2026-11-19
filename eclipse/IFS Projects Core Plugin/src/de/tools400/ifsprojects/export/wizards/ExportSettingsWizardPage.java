@@ -37,8 +37,7 @@ import de.tools400.ifsprojects.utils.StringUtils;
 /**
  * First page of the export: library, source files, CCSID and record length of
  * new source files, further source types and member text. 'Next' reads the
- * project and the library
- * and shows the {@link ExportPreviewWizardPage}.
+ * project and the library and shows the {@link ExportPreviewWizardPage}.
  */
 public class ExportSettingsWizardPage extends WizardPage {
 

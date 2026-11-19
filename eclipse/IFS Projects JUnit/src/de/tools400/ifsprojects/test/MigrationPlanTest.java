@@ -146,9 +146,10 @@ public class MigrationPlanTest {
 
         // INCFILE of the header of the build tool wins over the own source
         // file.
-        add("QRPGLESRC", "HELLO", "SQLRPGLE", null, "**FREE\n" //
-            + "// BUILD: CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2)\n" //
-            + "exec sql include HOSTVARS;\n");
+        add("QRPGLESRC", "HELLO", "SQLRPGLE", null,
+            "**FREE\n" //
+                + "// BUILD: CRTSQLRPGI OBJ(&LI/&OB) SRCSTMF('&STMF') INCFILE(&SL/QCPYSRC) RPGPPOPT(*LVL2)\n" //
+                + "exec sql include HOSTVARS;\n");
         add("QRPGLESRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
         add("QCPYSRC", "HOSTVARS", "SQLRPGLE", null, "**FREE\n");
 

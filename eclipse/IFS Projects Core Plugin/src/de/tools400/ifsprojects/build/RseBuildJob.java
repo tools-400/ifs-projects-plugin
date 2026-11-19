@@ -273,8 +273,8 @@ public class RseBuildJob extends Job {
         }
 
         if (isProgressChanged && aProgress.getStep() != null) {
-            aMonitor.subTask(Messages.bind(Messages.Task_Build_progress_A_B_C, new Object[] { Integer.toString(aProgress.getCreatedCount()),
-                Integer.toString(aProgress.getFailedCount()), aProgress.getStep() }));
+            aMonitor.subTask(Messages.bind(Messages.Task_Build_progress_A_B_C,
+                new Object[] { Integer.toString(aProgress.getCreatedCount()), Integer.toString(aProgress.getFailedCount()), aProgress.getStep() }));
         }
 
         return anOffset + bytes.length;

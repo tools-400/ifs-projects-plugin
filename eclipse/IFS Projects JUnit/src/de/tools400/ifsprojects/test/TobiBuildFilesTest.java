@@ -60,18 +60,20 @@ public class TobiBuildFilesTest {
         MigrationPlan plan = createPlan("QRPGLESRC", "QSRVSRC");
 
         assertEquals(String.format(HEADER, "QRPGLESRC") + "\nUTILS.MODULE: utils.rpgle\n" + "\nHELLO.PGM: hello.rpgle\n", rules(plan, "QRPGLESRC"));
-        assertEquals(String.format(HEADER, "QSRVSRC") + "\nUTILS.SRVPGM: utils.bnd UTILS.MODULE\n"
-            + "\n# Add the modules of the service program, e.g. MODULE1.MODULE MODULE2.MODULE.\nOTHER.SRVPGM: other.bnd\n", rules(plan, "QSRVSRC"));
+        assertEquals(
+            String.format(HEADER, "QSRVSRC") + "\nUTILS.SRVPGM: utils.bnd UTILS.MODULE\n"
+                + "\n# Add the modules of the service program, e.g. MODULE1.MODULE MODULE2.MODULE.\nOTHER.SRVPGM: other.bnd\n",
+            rules(plan, "QSRVSRC"));
     }
 
     /**
-     * TOBi 3.4 and later accept a <code>#</code> in the name of a target or
-     * of its source, if it is escaped, otherwise make reads the rule as a
-     * comment, and a <code>$</code> as it is. Because TOBi 3.5 does not build
-     * the targets with a recipe, if a target with <code>$</code> or
-     * <code>#</code> has none, the rules of such members are commented out.
-     * Copy books with <code>$</code> or <code>#</code> cannot be prerequisites
-     * (verified with makei 3.5).
+     * TOBi 3.4 and later accept a <code>#</code> in the name of a target or of
+     * its source, if it is escaped, otherwise make reads the rule as a comment,
+     * and a <code>$</code> as it is. Because TOBi 3.5 does not build the
+     * targets with a recipe, if a target with <code>$</code> or <code>#</code>
+     * has none, the rules of such members are commented out. Copy books with
+     * <code>$</code> or <code>#</code> cannot be prerequisites (verified with
+     * makei 3.5).
      */
     @Test
     public void testGetDirectoryRules_hash() {
@@ -96,8 +98,10 @@ public class TobiBuildFilesTest {
             + "\n# Copy books with $ or # cannot be prerequisites in TOBi: qrpglesrc/#consts.rpgleinc qrpglesrc/$protos.rpgleinc\n"
             + "# \\#INIT.PGM: \\#init.rpgle qrpglesrc/types.rpgleinc\n" //
             + "\n# $UTIL.PGM: $util.rpgle\n", rules(plan, "QRPGLESRC"));
-        assertEquals(String.format(HEADER, "QCLSRC") + comment
-            + "\n# \\#START.PGM: private INCDIR := 'qclsrc'\n# \\#START.PGM: \\#start.clle\n# \t$(PGM.CLLE_TO_PGM_RECIPE)\n", rules(plan, "QCLSRC"));
+        assertEquals(
+            String.format(HEADER, "QCLSRC") + comment
+                + "\n# \\#START.PGM: private INCDIR := 'qclsrc'\n# \\#START.PGM: \\#start.clle\n# \t$(PGM.CLLE_TO_PGM_RECIPE)\n",
+            rules(plan, "QCLSRC"));
     }
 
     /**

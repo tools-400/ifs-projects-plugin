@@ -83,8 +83,8 @@ public final class ExportPlan {
             exportedPaths.add(entry.getPath());
         }
         this.otherFileTypes = countOtherFileTypes(aFiles, exportedPaths);
-        this.sourceTypeProposals = Collections.unmodifiableList(SourceTypeProposals.create(aFiles, exportedPaths,
-            aSettings.getFurtherSourceTypes(), aContents.get(SourceTypeProposals.CODE_FOR_IBM_I_ACTIONS)));
+        this.sourceTypeProposals = Collections.unmodifiableList(SourceTypeProposals.create(aFiles, exportedPaths, aSettings.getFurtherSourceTypes(),
+            aContents.get(SourceTypeProposals.CODE_FOR_IBM_I_ACTIONS)));
 
         compute();
     }
@@ -173,8 +173,8 @@ public final class ExportPlan {
     }
 
     /**
-     * Returns the extensions, that can be added to the further source types
-     * of the settings, and those, that are selected already, see
+     * Returns the extensions, that can be added to the further source types of
+     * the settings, and those, that are selected already, see
      * {@link SourceTypeProposals}.
      */
     public List<SourceTypeProposals.Proposal> getSourceTypeProposals() {
@@ -656,8 +656,8 @@ public final class ExportPlan {
 
         /**
          * Returns the content, that is exported: the content of the file with
-         * converted include directives, without byte order mark and without
-         * the comment block of the member text, if it becomes the text of the
+         * converted include directives, without byte order mark and without the
+         * comment block of the member text, if it becomes the text of the
          * member, see {@link MemberText}.
          */
         public String getContent() {

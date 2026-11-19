@@ -92,9 +92,9 @@ public final class LocalProjectExportSource implements ExportSource {
     }
 
     /**
-     * Reads a file with its encoding in the workspace, which is the encoding
-     * of the XML declaration of an XML file, unless another one is set. Like
-     * the export of IFS projects, the plug-in decodes the bytes, see
+     * Reads a file with its encoding in the workspace, which is the encoding of
+     * the XML declaration of an XML file, unless another one is set. Like the
+     * export of IFS projects, the plug-in decodes the bytes, see
      * {@link TextEncoding#decode(byte[], Charset)}.
      */
     public String readFile(AS400 aSystem, String aPath) throws Exception {

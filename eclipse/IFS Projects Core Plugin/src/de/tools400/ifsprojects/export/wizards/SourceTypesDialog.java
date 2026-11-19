@@ -94,8 +94,7 @@ class SourceTypesDialog extends Dialog {
         labelData.widthHint = TEXT_WIDTH;
         label.setLayoutData(labelData);
 
-        String[] titles = { Messages.Label_Column_Extension, Messages.Label_Column_Files, Messages.Label_Column_Example,
-            Messages.Label_Column_Hint };
+        String[] titles = { Messages.Label_Column_Extension, Messages.Label_Column_Files, Messages.Label_Column_Example, Messages.Label_Column_Hint };
         tableGroup = new CheckboxTableGroup<>(area, titles, COLUMN_WIDTHS, new ProposalLabelProvider());
         ((GridData)tableGroup.getTable().getLayoutData()).heightHint = TABLE_HEIGHT;
 

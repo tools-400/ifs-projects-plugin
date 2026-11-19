@@ -39,9 +39,10 @@ public class MemberTextTest {
 
     @Test
     public void testParse_otherComments() {
-        assertEquals("Start the application", MemberText.parse("      /* %METADATA                                                    */\n"
-            + "      /*  %TEXT Start the application                                 */\n      /* %EMETADATA                                                   */\n"
-            + "PGM\n"));
+        assertEquals("Start the application",
+            MemberText.parse("      /* %METADATA                                                    */\n"
+                + "      /*  %TEXT Start the application                                 */\n      /* %EMETADATA                                                   */\n"
+                + "PGM\n"));
         assertEquals("Customers", MemberText.parse("      -- %METADATA                                                     *\n"
             + "      --  %TEXT Customers                                              *\n      -- %EMETADATA                                                    *\n"));
         assertEquals("Help", MemberText.parse(".* %METADATA *\n.*  %TEXT Help *\n.* %EMETADATA *\n:PNLGRP.\n"));
@@ -143,9 +144,8 @@ public class MemberTextTest {
             MemberText.remove("      *%METADATA                                                       *\n"
                 + "      * %TEXT Fixed format program                                     *\n"
                 + "      *%EMETADATA                                                      *\n" + "     H DFTACTGRP(*NO)\n"));
-        assertEquals("**FREE\r\ndcl-s x int(10);\r\n",
-            MemberText.remove("**FREE\r\n" + "      // %METADATA *\r\n" + "      //  %TEXT It's free *\r\n" + "      // %EMETADATA *\r\n"
-                + "dcl-s x int(10);\r\n"));
+        assertEquals("**FREE\r\ndcl-s x int(10);\r\n", MemberText.remove(
+            "**FREE\r\n" + "      // %METADATA *\r\n" + "      //  %TEXT It's free *\r\n" + "      // %EMETADATA *\r\n" + "dcl-s x int(10);\r\n"));
         assertEquals(":PNLGRP.\n", MemberText.remove(".* %METADATA *\n.* %TEXT Help *\n.* %EMETADATA *\n:PNLGRP.\n"));
         assertEquals("// line 1\n", MemberText.remove("// line 1\n// %metadata\n// %text Lowercase keywords\n// %emetadata"));
         assertEquals("", MemberText.remove("// %METADATA\n// %TEXT Only the block\n// %EMETADATA\n"));

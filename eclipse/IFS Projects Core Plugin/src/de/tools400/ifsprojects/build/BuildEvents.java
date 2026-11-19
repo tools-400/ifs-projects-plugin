@@ -64,8 +64,8 @@ public final class BuildEvents {
      *         no events files have been found
      * @throws IOException if the events files could not be read
      */
-    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime,
-        IProgressMonitor aMonitor) throws IOException {
+    public static String collect(RemoteSession aSession, String aProjectDirectory, String anObjectLibrary, long aStartTime, IProgressMonitor aMonitor)
+        throws IOException {
 
         aMonitor.subTask(Messages.Task_Reading_compile_messages);
 
@@ -89,8 +89,7 @@ public final class BuildEvents {
         return buffer.toString();
     }
 
-    private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime, IProgressMonitor aMonitor)
-        throws IOException {
+    private static List<String> collectStreamFiles(AS400 aSystem, String aDirectory, long aStartTime, IProgressMonitor aMonitor) throws IOException {
 
         List<String> events = new ArrayList<>();
         try {
@@ -140,8 +139,7 @@ public final class BuildEvents {
      * <code>(57 of 205)</code>.
      */
     private static void showProgress(int aReadCount, int aTotalCount, IProgressMonitor aMonitor) {
-        aMonitor.subTask(
-            Messages.bind(Messages.Task_Reading_compile_messages_A_B, Integer.toString(aReadCount + 1), Integer.toString(aTotalCount)));
+        aMonitor.subTask(Messages.bind(Messages.Task_Reading_compile_messages_A_B, Integer.toString(aReadCount + 1), Integer.toString(aTotalCount)));
     }
 
     /**

@@ -121,8 +121,8 @@ public class ExportMappingTest {
 
     /**
      * Hidden files and the files of hidden directories are not exported, e.g.
-     * the Windows batch file <code>.github/release.cmd</code>, which would be
-     * a command.
+     * the Windows batch file <code>.github/release.cmd</code>, which would be a
+     * command.
      */
     @Test
     public void testIsExported_hidden() {

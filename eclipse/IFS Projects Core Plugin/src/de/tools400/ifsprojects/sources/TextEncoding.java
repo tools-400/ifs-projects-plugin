@@ -34,8 +34,7 @@ public final class TextEncoding {
     /** Character, that replaces bytes, that are not valid in an encoding. */
     public static final char REPLACEMENT_CHARACTER = '\uFFFD';
 
-    private static final Pattern XML_ENCODING = Pattern
-        .compile("^\uFEFF?<\\?xml\\s[^>]*?encoding\\s*=\\s*[\"']([A-Za-z][A-Za-z0-9._:-]*)[\"']"); //$NON-NLS-1$
+    private static final Pattern XML_ENCODING = Pattern.compile("^\uFEFF?<\\?xml\\s[^>]*?encoding\\s*=\\s*[\"']([A-Za-z][A-Za-z0-9._:-]*)[\"']"); //$NON-NLS-1$
 
     /** Number of bytes, in which the XML declaration is searched. */
     private static final int XML_DECLARATION_LENGTH = 200;
@@ -76,8 +75,8 @@ public final class TextEncoding {
      * Returns the encoding of the text of a stream file with a CCSID.
      *
      * @param aCcsid - CCSID, e.g. 1208
-     * @return encoding or <code>null</code>, if it is not supported, e.g.
-     *         for EBCDIC
+     * @return encoding or <code>null</code>, if it is not supported, e.g. for
+     *         EBCDIC
      */
     public static Charset getCharset(int aCcsid) {
 

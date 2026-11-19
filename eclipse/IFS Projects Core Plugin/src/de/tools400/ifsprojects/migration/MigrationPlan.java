@@ -38,9 +38,8 @@ import de.tools400.ifsprojects.utils.StringUtils;
  * the second pass finds the copy books, i.e. the members included by other
  * members and the other members of the same source type in a source file, most
  * of whose members are included, which get the extension of copy books, see
- * {@link MigrationMapping};
- * the third pass converts the include directives to these paths and inserts the
- * member text.
+ * {@link MigrationMapping}; the third pass converts the include directives to
+ * these paths and inserts the member text.
  * <p>
  * The contents must have the line separator <code>\n</code>, which the plan
  * uses for the lines it inserts.
@@ -422,15 +421,15 @@ public final class MigrationPlan {
         MAKE_CHARACTERS (false),
 
         /**
-         * The member text is not kept, because the source type has no
-         * comments, in which it could be written, see {@link MemberText}.
+         * The member text is not kept, because the source type has no comments,
+         * in which it could be written, see {@link MemberText}.
          */
         TEXT_NOT_KEPT (false),
 
         /**
          * The XML declaration names an encoding, that is not supported or
-         * cannot hold all characters, so that the file is written in UTF-8,
-         * see {@link TextEncoding}.
+         * cannot hold all characters, so that the file is written in UTF-8, see
+         * {@link TextEncoding}.
          */
         ENCODING_NOT_KEPT (false),
 

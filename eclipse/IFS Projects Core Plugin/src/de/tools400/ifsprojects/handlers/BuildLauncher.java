@@ -170,8 +170,8 @@ final class BuildLauncher {
     }
 
     /**
-     * Checks that a terminal implementation is installed and reports the
-     * error otherwise.
+     * Checks that a terminal implementation is installed and reports the error
+     * otherwise.
      *
      * @param aShell - parent shell of the error message
      * @return <code>true</code>, if a terminal can be opened

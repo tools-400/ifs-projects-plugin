@@ -46,8 +46,8 @@ import de.tools400.ifsprojects.sources.headers.SourceHeader;
  * of a member with <code>$</code> or <code>#</code> in the name is commented
  * out, with <code>#</code> escaped as <code>\#</code>, because TOBi 3.5 does
  * not build the targets with a recipe, if such a target has none; copy books
- * with <code>$</code> or <code>#</code> cannot be prerequisites and are named in
- * a comment.</li>
+ * with <code>$</code> or <code>#</code> cannot be prerequisites and are named
+ * in a comment.</li>
  * </ul>
  */
 public final class TobiBuildFiles {
@@ -166,8 +166,8 @@ public final class TobiBuildFiles {
      *
      * @param aSourceFile - source file, e.g. <code>JSMITH#CL/QRPGLESRC</code>
      * @param anItems - migrated members of the source file
-     * @param aMigratedItems - all migrated members, which determine the
-     *        modules of the service programs, see
+     * @param aMigratedItems - all migrated members, which determine the modules
+     *        of the service programs, see
      *        {@link #getServiceProgramModules(Collection)}
      * @return content
      */

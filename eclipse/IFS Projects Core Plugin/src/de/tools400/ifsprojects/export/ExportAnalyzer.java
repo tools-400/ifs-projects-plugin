@@ -100,10 +100,10 @@ public final class ExportAnalyzer {
 
     /**
      * Reads the files, that a mapping exports, see
-     * {@link ExportMapping#isExported(String)}, and the actions of Code for
-     * IBM i, see {@link SourceTypeProposals#CODE_FOR_IBM_I_ACTIONS}, that have
-     * not been read yet. Files, that cannot be read, are logged and reported
-     * by the plan.
+     * {@link ExportMapping#isExported(String)}, and the actions of Code for IBM
+     * i, see {@link SourceTypeProposals#CODE_FOR_IBM_I_ACTIONS}, that have not
+     * been read yet. Files, that cannot be read, are logged and reported by the
+     * plan.
      */
     private void readFiles(AS400 aSystem, ExportMapping aMapping, IProgressMonitor aMonitor) throws Exception {
 

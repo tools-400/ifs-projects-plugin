@@ -294,8 +294,7 @@ public final class ExportSettings {
     /**
      * Sets the further source types.
      *
-     * @param aSourceTypes - source types, see
-     *        {@link #parseSourceTypes(String)}
+     * @param aSourceTypes - source types, see {@link #parseSourceTypes(String)}
      */
     public void setFurtherSourceTypes(List<String> aSourceTypes) {
 

@@ -37,9 +37,9 @@ public class SourceTypeProposalsTest {
     public void testCreate() {
 
         List<String> files = Arrays.asList("README.md", "LICENSE", "iproj.json", "Rules.mk", ".github/release.cmd", ".github/release.ps1",
-            "qddssrc/.ibmi.json", "qddssrc/Rules.mk", "qddssrc/testpeek.tbl", "qddssrc/testpeek2.tbl", "QXML/A_XMLINST.RPGLE",
-            "QXML/BASICS1.XML", "doc/whats_new.txt", "doc/download.bat", "doc/Peek400e.pdf", "doc/Peek400e.doc", "tools/mkproduct.sh",
-            "qrpglesrc/.ibmi.json", "qrpglesrc/hello.rpgle", "qrpglesrc/notes.my-ext", "qrpglesrc/toolongextension.abcdefghijk");
+            "qddssrc/.ibmi.json", "qddssrc/Rules.mk", "qddssrc/testpeek.tbl", "qddssrc/testpeek2.tbl", "QXML/A_XMLINST.RPGLE", "QXML/BASICS1.XML",
+            "doc/whats_new.txt", "doc/download.bat", "doc/Peek400e.pdf", "doc/Peek400e.doc", "tools/mkproduct.sh", "qrpglesrc/.ibmi.json",
+            "qrpglesrc/hello.rpgle", "qrpglesrc/notes.my-ext", "qrpglesrc/toolongextension.abcdefghijk");
 
         List<Proposal> proposals = create(files, Collections.<String> emptyList(), null);
 

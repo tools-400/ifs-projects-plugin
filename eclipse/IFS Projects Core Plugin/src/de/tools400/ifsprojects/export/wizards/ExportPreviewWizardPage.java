@@ -47,8 +47,8 @@ import de.tools400.ifsprojects.swt.ToolTips;
  * they are exported, and the problems, that have been found. Files with errors
  * are not exported. The user can deselect files; then the include directives,
  * that refer to them, are not converted. 'Source Types...' selects further
- * source types; the message of the page names the extensions, that are
- * probably source types, but not exported.
+ * source types; the message of the page names the extensions, that are probably
+ * source types, but not exported.
  */
 public class ExportPreviewWizardPage extends WizardPage {
 

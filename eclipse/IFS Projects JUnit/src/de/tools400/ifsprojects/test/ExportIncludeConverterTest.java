@@ -112,11 +112,12 @@ public class ExportIncludeConverterTest {
 
         // The source file of INCFILE is the source file of the including
         // member, so only the first statement needs no INCFILE.
-        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n" //
-            + "exec sql include 'qrpglesrc/sqlvars.sqlrpgleinc';\n" //
-            + "EXEC SQL\n" //
-            + "  INCLUDE 'inc/sqlvars.sqlrpgleinc';\n" //
-            + "exec sql include SQLVARS;\n");
+        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle",
+            "**FREE\n" //
+                + "exec sql include 'qrpglesrc/sqlvars.sqlrpgleinc';\n" //
+                + "EXEC SQL\n" //
+                + "  INCLUDE 'inc/sqlvars.sqlrpgleinc';\n" //
+                + "exec sql include SQLVARS;\n");
 
         assertEquals("**FREE\n" //
             + "exec sql include sqlvars;\n" //
@@ -135,14 +136,17 @@ public class ExportIncludeConverterTest {
         // The current directory (the project directory) and the directory of
         // the source, but neither the include directories nor other
         // extensions (verified with CRTSQLRPGI).
-        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle", "**FREE\n" //
-            + "exec sql include 'inc/sqlvars.sqlrpgleinc';\n" // project
-                                                              // directory
-            + "exec sql include 'sqlvars.sqlrpgleinc';\n" // directory of the
-                                                          // source
-            + "exec sql include 'sqlvars';\n" // no extension is added
-            + "exec sql include 'consts.rpgleinc';\n"); // include directory inc
-                                                        // is not searched
+        Result result = convert("SQLRPGLE", "qrpglesrc/hello.pgm.rpgle",
+            "**FREE\n" //
+                + "exec sql include 'inc/sqlvars.sqlrpgleinc';\n" // project
+                                                                  // directory
+                + "exec sql include 'sqlvars.sqlrpgleinc';\n" // directory of
+                                                              // the
+                                                              // source
+                + "exec sql include 'sqlvars';\n" // no extension is added
+                + "exec sql include 'consts.rpgleinc';\n"); // include directory
+                                                            // inc
+                                                            // is not searched
 
         assertEquals("**FREE\n" //
             + "exec sql include sqlvars;\n" //

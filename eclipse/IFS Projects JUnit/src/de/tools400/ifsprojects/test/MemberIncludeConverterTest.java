@@ -44,18 +44,19 @@ public class MemberIncludeConverterTest {
     @Test
     public void testRpg_free() {
 
-        Result result = convert("RPGLE", "QRPGLESRC(HELLO)", IncludeStyle.REPLACE, "**FREE\n" //
-            + "/copy QCPYSRC,CONSTS\n" //
-            + "  /include qcpysrc,consts // comment\n" //
-            + "/COPY LOCAL\n" //
-            + "/copy JSMITH#CL/QCPYSRC,CONSTS\n" //
-            + "/copy *LIBL/QCPYSRC,CONSTS\n" //
-            + "/copy OTHERLIB/QCPYSRC,CONSTS\n" //
-            + "/copy QOTHER,X\n" //
-            + "/copy QCPYSRC,MISSING\n" //
-            + "/copy QRPGLESRC,NOTYPE\n" //
-            + "/copy 'qcpysrc/consts.rpgleinc'\n" //
-            + "/copy inc/consts.rpgleinc\n");
+        Result result = convert("RPGLE", "QRPGLESRC(HELLO)", IncludeStyle.REPLACE,
+            "**FREE\n" //
+                + "/copy QCPYSRC,CONSTS\n" //
+                + "  /include qcpysrc,consts // comment\n" //
+                + "/COPY LOCAL\n" //
+                + "/copy JSMITH#CL/QCPYSRC,CONSTS\n" //
+                + "/copy *LIBL/QCPYSRC,CONSTS\n" //
+                + "/copy OTHERLIB/QCPYSRC,CONSTS\n" //
+                + "/copy QOTHER,X\n" //
+                + "/copy QCPYSRC,MISSING\n" //
+                + "/copy QRPGLESRC,NOTYPE\n" //
+                + "/copy 'qcpysrc/consts.rpgleinc'\n" //
+                + "/copy inc/consts.rpgleinc\n");
 
         assertEquals("**FREE\n" //
             + "/copy 'qcpysrc/consts.rpgleinc'\n" //
@@ -85,16 +86,17 @@ public class MemberIncludeConverterTest {
     @Test
     public void testSqlInclude_free() {
 
-        Result result = convert("SQLRPGLE", "QRPGLESRC(HELLO)", IncludeStyle.REPLACE, "**FREE\n" //
-            + "exec sql include SQLCA;\n" //
-            + "EXEC SQL INCLUDE HOSTVARS;\n" //
-            + "exec sql\n" //
-            + "  include hostvars; // comment\n" //
-            + "exec sql include 'qcpysrc/hostvars.sqlrpgleinc';\n" //
-            + "exec sql include MISSING;\n" //
-            + "exec sql include NOTYPE;\n" //
-            + "exec sql select count(*) into :count from qsqptabl;\n" //
-            + "exec sql include UNTERMINATED\n");
+        Result result = convert("SQLRPGLE", "QRPGLESRC(HELLO)", IncludeStyle.REPLACE,
+            "**FREE\n" //
+                + "exec sql include SQLCA;\n" //
+                + "EXEC SQL INCLUDE HOSTVARS;\n" //
+                + "exec sql\n" //
+                + "  include hostvars; // comment\n" //
+                + "exec sql include 'qcpysrc/hostvars.sqlrpgleinc';\n" //
+                + "exec sql include MISSING;\n" //
+                + "exec sql include NOTYPE;\n" //
+                + "exec sql select count(*) into :count from qsqptabl;\n" //
+                + "exec sql include UNTERMINATED\n");
 
         assertEquals("**FREE\n" //
             + "exec sql include SQLCA;\n" //
@@ -155,9 +157,10 @@ public class MemberIncludeConverterTest {
     @Test
     public void testSqlInclude_conditional() {
 
-        Result result = convert("SQLRPGLE", "QRPGLESRC(HELLO)", IncludeStyle.CONDITIONAL, "**FREE\n" //
-            + "exec sql\n" //
-            + "  include HOSTVARS;\n");
+        Result result = convert("SQLRPGLE", "QRPGLESRC(HELLO)", IncludeStyle.CONDITIONAL,
+            "**FREE\n" //
+                + "exec sql\n" //
+                + "  include HOSTVARS;\n");
 
         assertEquals("**FREE\n" //
             + "/if defined(MBR_BUILD)\n" //
@@ -207,9 +210,10 @@ public class MemberIncludeConverterTest {
         assertInclude(result.getIncludes().get(0), 2, "HOSTVARS", null, Problem.NOT_TRANSFERRED);
 
         // The path does not fit into the columns 7 to 80 of the fixed format
-        result = convert("SQLRPGLE", "QRPGLESRC(HELLO)", IncludeStyle.REPLACE, "     C/EXEC SQL\n" //
-            + pad("     C+", 60) + "INCLUDE HOSTVARS\n" //
-            + "     C/END-EXEC\n");
+        result = convert("SQLRPGLE", "QRPGLESRC(HELLO)", IncludeStyle.REPLACE,
+            "     C/EXEC SQL\n" //
+                + pad("     C+", 60) + "INCLUDE HOSTVARS\n" //
+                + "     C/END-EXEC\n");
         assertEquals(1, result.getIncludes().size());
         assertInclude(result.getIncludes().get(0), 2, "HOSTVARS", null, Problem.TOO_LONG);
     }
@@ -262,17 +266,18 @@ public class MemberIncludeConverterTest {
     @Test
     public void testCl() {
 
-        Result result = convert("CLLE", "QCLSRC(START)", IncludeStyle.CONDITIONAL, "             PGM\n" //
-            + "             INCLUDE    SRCMBR(VARS)\n" //
-            + "             INCLUDE    SRCMBR(VARS) SRCFILE(*INCFILE) /* same */\n" //
-            + "             include    srcmbr(clvars) srcfile(qcpysrc)\n" //
-            + " LBL:        INCLUDE    SRCFILE(JSMITH#CL/QCPYSRC) SRCMBR(CLVARS)\n" //
-            + "             INCLUDE    SRCMBR(CLVARS) SRCFILE(OTHERLIB/QCPYSRC)\n" //
-            + "             INCLUDE    SRCSTMF('vars.clleinc')\n" //
-            + "             INCLUDE    VARS\n" //
-            + "             INCLUDE    SRCMBR(VARS) +\n" //
-            + "                          SRCFILE(QCLSRC)\n" //
-            + "             ENDPGM\n");
+        Result result = convert("CLLE", "QCLSRC(START)", IncludeStyle.CONDITIONAL,
+            "             PGM\n" //
+                + "             INCLUDE    SRCMBR(VARS)\n" //
+                + "             INCLUDE    SRCMBR(VARS) SRCFILE(*INCFILE) /* same */\n" //
+                + "             include    srcmbr(clvars) srcfile(qcpysrc)\n" //
+                + " LBL:        INCLUDE    SRCFILE(JSMITH#CL/QCPYSRC) SRCMBR(CLVARS)\n" //
+                + "             INCLUDE    SRCMBR(CLVARS) SRCFILE(OTHERLIB/QCPYSRC)\n" //
+                + "             INCLUDE    SRCSTMF('vars.clleinc')\n" //
+                + "             INCLUDE    VARS\n" //
+                + "             INCLUDE    SRCMBR(VARS) +\n" //
+                + "                          SRCFILE(QCLSRC)\n" //
+                + "             ENDPGM\n");
 
         assertEquals("             PGM\n" //
             + "             INCLUDE    SRCSTMF('vars.clleinc')\n" //
