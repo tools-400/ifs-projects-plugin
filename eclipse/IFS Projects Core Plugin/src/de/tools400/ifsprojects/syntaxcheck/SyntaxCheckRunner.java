@@ -9,6 +9,7 @@
 package de.tools400.ifsprojects.syntaxcheck;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -19,6 +20,8 @@ import com.ibm.as400.access.IFSFile;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.ibmi.ClCommands;
+import de.tools400.ifsprojects.project.IProjConfig;
+import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.remote.RemoteJobs;
 import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
@@ -58,6 +61,47 @@ public final class SyntaxCheckRunner {
         } catch (Exception e) {
             throw new SyntaxCheckException(Messages.bind(Messages.Error_Could_not_read_A_B, aPath, ExceptionUtils.getLocalizedMessage(e)), e);
         }
+    }
+
+    /**
+     * Checks the syntax of a stream file of an IFS project: compiles it with
+     * the library list and the include directories of the project, see
+     * {@link SyntaxCheckCommands}, and removes the messages, that the compiler
+     * reports only because of the syntax check, e.g.
+     * {@link SyntaxCheckCommands#RNF1324}.
+     *
+     * @param aRseSystem - system object of RSE, which is copied
+     * @param aProjectDirectory - absolute directory of the IFS project
+     * @param aConfig - content of <code>iproj.json</code>
+     * @param aVariables - environment variables of the project
+     * @param aSourcePath - absolute path of the stream file
+     * @param aFileName - name of the stream file
+     * @param aSourceType - type of the stream file
+     * @param aMonitor - progress monitor
+     * @return result with the events
+     * @throws SyntaxCheckException if the syntax check could not be performed
+     *         or the compiler created no events file
+     * @throws InterruptedException if the user canceled the syntax check
+     */
+    public static SyntaxCheckResult check(AS400 aRseSystem, String aProjectDirectory, IProjConfig aConfig, Map<String, String> aVariables,
+        String aSourcePath, String aFileName, SourceType aSourceType, IProgressMonitor aMonitor) throws SyntaxCheckException, InterruptedException {
+
+        String source = readStreamFile(aRseSystem, aSourcePath);
+        boolean noMain = SyntaxCheckCommands.isNoMain(source);
+
+        String objectName = SyntaxCheckCommands.getObjectName(aFileName);
+        List<String> includeDirectories = IProjValues.getIncludeDirectories(aProjectDirectory, aConfig, aVariables);
+        String compileCommand = SyntaxCheckCommands.getCompileCommand(aSourceType, objectName, aSourcePath, includeDirectories, noMain);
+        List<String> setupCommands = SyntaxCheckCommands.getSetupCommands(aProjectDirectory, aConfig, aVariables);
+
+        SyntaxCheckResult result = run(aRseSystem, setupCommands, objectName, compileCommand, aMonitor);
+        if (result.getEvents() == null) {
+            throw new SyntaxCheckException(Messages.bind(Messages.Error_No_events_file_A_B, compileCommand, result.getCompileMessages()), null);
+        }
+
+        String events = EventsFiles.removeMessages(result.getEvents(), SyntaxCheckCommands.getIgnoredMessageIds(aSourceType, noMain));
+
+        return new SyntaxCheckResult(compileCommand, events, result.getCcsid(), result.getCompileMessages());
     }
 
     /**
@@ -102,10 +146,10 @@ public final class SyntaxCheckRunner {
             if (events == null) {
                 // The compiler did not create an events file, e.g. because the
                 // command is invalid.
-                return new SyntaxCheckResult(null, RemoteJobs.CCSID_NOT_SET, compileMessages);
+                return new SyntaxCheckResult(aCompileCommand, null, RemoteJobs.CCSID_NOT_SET, compileMessages);
             }
 
-            return new SyntaxCheckResult(events, session.getJobCcsid(), compileMessages);
+            return new SyntaxCheckResult(aCompileCommand, events, session.getJobCcsid(), compileMessages);
         }
     }
 

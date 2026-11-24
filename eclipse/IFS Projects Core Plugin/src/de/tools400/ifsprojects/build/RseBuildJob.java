@@ -8,34 +8,24 @@
 
 package de.tools400.ifsprojects.build;
 
-import java.io.IOException;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.rse.core.model.IHost;
-
-import com.ibm.as400.access.AS400;
-import com.ibm.as400.access.CommandCall;
-import com.ibm.as400.access.IFSFile;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.errorlist.ErrorList;
-import de.tools400.ifsprojects.ibmi.PaseCommands;
 import de.tools400.ifsprojects.local.SourceMapping;
-import de.tools400.ifsprojects.project.IProjValues;
-import de.tools400.ifsprojects.remote.RemoteJobs;
-import de.tools400.ifsprojects.remote.RemoteSession;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
-import de.tools400.ifsprojects.utils.StringUtils;
 
 /**
  * Runs the build or compile command of an IFS project in a remote command
- * server job of the RSE connection instead of the SSH terminal.
+ * server job of the RSE connection instead of the SSH terminal, see
+ * {@link RseBuild}.
  * <p>
  * The output is shown line by line in the 'Commands Log' view. Afterwards the
  * events files of the compiled objects are shown in the 'Error List' view, see
@@ -47,19 +37,9 @@ import de.tools400.ifsprojects.utils.StringUtils;
  */
 public class RseBuildJob extends Job {
 
-    private static final long POLL_INTERVAL_MILLIS = 500;
-    private static final String LOG_FILE_SUFFIX = ".log"; //$NON-NLS-1$
-    private static final String EXIT_CODE_FILE_SUFFIX = ".rc"; //$NON-NLS-1$
-    private static final String PROCESS_ID_FILE_SUFFIX = ".pid"; //$NON-NLS-1$
-    private static final long STOP_TIMEOUT_MILLIS = 30000;
-    private static final String KEY_SEPARATOR = ":"; //$NON-NLS-1$
-
     private final IHost host;
-    private final AS400 rseSystem;
     private final String directory;
-    private final String objectLibrary;
-    private final String displayCommand;
-    private final String command;
+    private final RseBuild build;
     private final SourceMapping sourceMapping;
 
     /**
@@ -67,30 +47,19 @@ public class RseBuildJob extends Job {
      *
      * @param aName - name of the job, e.g. "Building DSPSRC ..."
      * @param aHost - RSE connection
-     * @param aRseSystem - connected system object of RSE, which is copied
-     * @param aDirectory - project directory
-     * @param anObjectLibrary - library of the compiled objects or
-     *        <code>null</code>, see {@link IProjValues#getObjectLibrary}
-     * @param aDisplayCommand - command shown in the 'Commands Log' view, e.g.
-     *        <code>makei build</code>
-     * @param aCommand - command including the exports of the environment
-     *        variables
+     * @param aBuild - build, see {@link RseBuild#create}
      * @param aSourceMapping - mapping of the project directory to a local
      *        project or <code>null</code>, see {@link ErrorList#showEvents}
      */
-    public RseBuildJob(String aName, IHost aHost, AS400 aRseSystem, String aDirectory, String anObjectLibrary, String aDisplayCommand,
-        String aCommand, SourceMapping aSourceMapping) {
+    public RseBuildJob(String aName, IHost aHost, RseBuild aBuild, SourceMapping aSourceMapping) {
         super(aName);
 
         this.host = aHost;
-        this.rseSystem = aRseSystem;
-        this.directory = aDirectory;
-        this.objectLibrary = anObjectLibrary;
-        this.displayCommand = aDisplayCommand;
-        this.command = aCommand;
+        this.directory = aBuild.getDirectory();
+        this.build = aBuild;
         this.sourceMapping = aSourceMapping;
 
-        setRule(new ProjectRule(aHost.getAliasName() + KEY_SEPARATOR + aDirectory));
+        setRule(RseBuild.getRule(aHost, directory));
     }
 
     @Override
@@ -99,40 +68,28 @@ public class RseBuildJob extends Job {
         aMonitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
 
         CommandsLog.show(host);
-        CommandsLog.log(host, Messages.bind(Messages.Log_Running_A_in_B, displayCommand, directory));
+        CommandsLog.log(host, Messages.bind(Messages.Log_Running_A_in_B, build.getDisplayCommand(), directory));
 
-        try (RemoteSession session = new RemoteSession(rseSystem)) {
+        try {
 
-            AS400 system = session.getSystem();
-            String shell = new IFSFile(system, PaseCommands.BASH).exists() ? PaseCommands.BASH : PaseCommands.SH;
+            RseBuild.Result result = build.run(new RseBuild.IOutput() {
+                public void line(String aLine) {
+                    CommandsLog.log(host, aLine);
+                }
+            }, aMonitor);
 
-            IFSFile logFile = session.newTemporaryFile(LOG_FILE_SUFFIX);
-            logFile.createNewFile();
-            logFile.setCCSID(RemoteJobs.CCSID_UTF8);
-            long startTime = logFile.lastModified();
-
-            IFSFile exitCodeFile = session.newTemporaryFile(EXIT_CODE_FILE_SUFFIX);
-            IFSFile processIdFile = session.newTemporaryFile(PROCESS_ID_FILE_SUFFIX);
-
-            String script = RseBuildCommands.getScript(shell, RemoteJobs.getHomeDirectory(system), logFile.getAbsolutePath(),
-                exitCodeFile.getAbsolutePath(), processIdFile.getAbsolutePath(), directory, command);
-            CommandThread commandThread = new CommandThread(session.getCommandCall(), PaseCommands.getCallCommand(shell, script));
-            commandThread.start();
-
-            if (!logOutput(system, commandThread, logFile, processIdFile, aMonitor)) {
-                return Status.CANCEL_STATUS;
+            if (result.getEvents() != null) {
+                ErrorList.showEvents(getName(), host, directory, result.getEvents(), result.getCcsid(), sourceMapping);
             }
 
-            logResult(commandThread, session.getCommandCall(), exitCodeFile);
-
-            showEvents(session, startTime, aMonitor);
-
+        } catch (OperationCanceledException e) {
+            return Status.CANCEL_STATUS;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return Status.CANCEL_STATUS;
         } catch (Exception e) {
-            IfsProjectsPlugin.logError("Could not run command: " + displayCommand, e); //$NON-NLS-1$
-            String message = Messages.bind(Messages.Error_Could_not_run_A_B, displayCommand, ExceptionUtils.getLocalizedMessage(e));
+            IfsProjectsPlugin.logError("Could not run command: " + build.getDisplayCommand(), e); //$NON-NLS-1$
+            String message = Messages.bind(Messages.Error_Could_not_run_A_B, build.getDisplayCommand(), ExceptionUtils.getLocalizedMessage(e));
             CommandsLog.log(host, message);
             PlatformUtils.openErrorAsync(Messages.Title_IFS_Projects, message);
         } finally {
@@ -140,199 +97,5 @@ public class RseBuildJob extends Job {
         }
 
         return Status.OK_STATUS;
-    }
-
-    /**
-     * Shows the events files of the compiled objects in the 'Error List' view,
-     * see {@link BuildEvents}. Errors are logged and written to the 'Commands
-     * Log' view.
-     */
-    private void showEvents(RemoteSession aSession, long aStartTime, IProgressMonitor aMonitor) {
-
-        String events;
-        try {
-            events = BuildEvents.collect(aSession, directory, objectLibrary, aStartTime, aMonitor);
-        } catch (IOException e) {
-            IfsProjectsPlugin.logError("Could not read the events files of: " + directory, e); //$NON-NLS-1$
-            CommandsLog.log(host, ExceptionUtils.getLocalizedMessage(e));
-            return;
-        }
-
-        if (events == null) {
-            CommandsLog.log(host, Messages.Log_No_events_files_found);
-            return;
-        }
-
-        ErrorList.showEvents(getName(), host, directory, events, aSession.getJobCcsid(), sourceMapping);
-    }
-
-    /**
-     * Logs the output of the command line by line, until the command has ended
-     * or the job has been canceled. The command of a canceled job is stopped,
-     * see {@link #stop(String, Thread)}.
-     *
-     * @param aSystem - system object of the job, which runs the command
-     * @return <code>false</code>, if the job has been canceled
-     */
-    private boolean logOutput(AS400 aSystem, CommandThread aCommandThread, IFSFile aLogFile, IFSFile aProcessIdFile, IProgressMonitor aMonitor)
-        throws Exception {
-
-        LogLines logLines = new LogLines();
-        BuildProgress progress = new BuildProgress();
-        long offset = 0;
-        while (aCommandThread.isAlive()) {
-            if (aMonitor.isCanceled()) {
-                boolean isStopped = stop(aProcessIdFile.getAbsolutePath(), aCommandThread);
-                logNewLines(aLogFile, offset, logLines, progress, aMonitor);
-                if (isStopped) {
-                    CommandsLog.log(host, Messages.Log_Canceled);
-                } else {
-                    // Ends the remote command server job. Jobs started by the
-                    // command may still be running.
-                    aSystem.disconnectAllServices();
-                    CommandsLog.log(host, Messages.Log_Canceled_command_may_still_be_running);
-                }
-                return false;
-            }
-            aCommandThread.join(POLL_INTERVAL_MILLIS);
-            offset = logNewLines(aLogFile, offset, logLines, progress, aMonitor);
-        }
-
-        logNewLines(aLogFile, offset, logLines, progress, aMonitor);
-        String lastLine = logLines.flush();
-        if (lastLine != null) {
-            CommandsLog.log(host, lastLine);
-        }
-
-        return true;
-    }
-
-    /**
-     * Logs the end of the command: the messages of a failed CL command and the
-     * exit code of the shell.
-     *
-     * @throws Exception if the CL command could not be run
-     */
-    private void logResult(CommandThread aCommandThread, CommandCall aCommandCall, IFSFile anExitCodeFile) throws Exception {
-
-        if (aCommandThread.getException() != null) {
-            throw aCommandThread.getException();
-        }
-
-        if (!aCommandThread.isSuccessful()) {
-            CommandsLog.log(host, RemoteJobs.getMessages(aCommandCall));
-        }
-
-        Integer exitCode = anExitCodeFile.exists() ? RseBuildCommands.parseExitCode(RemoteJobs.readText(anExitCodeFile)) : null;
-        if (exitCode == null) {
-            CommandsLog.log(host, Messages.Log_Finished);
-        } else {
-            CommandsLog.log(host, Messages.bind(Messages.Log_Finished_with_exit_code_A, exitCode));
-        }
-    }
-
-    /**
-     * Terminates the shell of the build and all its descendants in a job of its
-     * own and waits, until the build command has ended.
-     *
-     * @return <code>true</code>, if the build command has ended
-     */
-    private boolean stop(String aProcessIdFile, Thread aCommandThread) throws InterruptedException {
-
-        try (RemoteSession stopSession = new RemoteSession(rseSystem)) {
-            stopSession.getCommandCall().run(PaseCommands.getCallCommand(PaseCommands.SH, RseBuildCommands.getStopScript(aProcessIdFile)));
-        } catch (Exception e) {
-            IfsProjectsPlugin.logError("Could not stop command: " + displayCommand, e); //$NON-NLS-1$
-        }
-
-        aCommandThread.join(STOP_TIMEOUT_MILLIS);
-
-        return !aCommandThread.isAlive();
-    }
-
-    /**
-     * Logs the lines, that have been appended to the log file, and shows the
-     * step of the build and the number of created and failed objects in the
-     * progress monitor, see {@link BuildProgress}.
-     *
-     * @return new offset
-     */
-    private long logNewLines(IFSFile aLogFile, long anOffset, LogLines aLogLines, BuildProgress aProgress, IProgressMonitor aMonitor)
-        throws Exception {
-
-        byte[] bytes = RemoteJobs.readBytes(aLogFile, anOffset);
-        boolean isProgressChanged = false;
-        for (String line : aLogLines.add(bytes)) {
-            // Empty lines would be logged as empty comments.
-            if (!StringUtils.isBlank(line)) {
-                CommandsLog.log(host, line);
-                if (aProgress.add(line)) {
-                    isProgressChanged = true;
-                }
-            }
-        }
-
-        if (isProgressChanged && aProgress.getStep() != null) {
-            aMonitor.subTask(Messages.bind(Messages.Task_Build_progress_A_B_C,
-                new Object[] { Integer.toString(aProgress.getCreatedCount()), Integer.toString(aProgress.getFailedCount()), aProgress.getStep() }));
-        }
-
-        return anOffset + bytes.length;
-    }
-
-    /**
-     * Runs the CL command, which runs the shell, while the job reads the log
-     * file.
-     */
-    private static class CommandThread extends Thread {
-
-        private final CommandCall commandCall;
-        private final String clCommand;
-        private volatile boolean isSuccessful;
-        private volatile Exception exception;
-
-        public CommandThread(CommandCall aCommandCall, String aClCommand) {
-            super("IFS Projects build"); //$NON-NLS-1$
-            this.commandCall = aCommandCall;
-            this.clCommand = aClCommand;
-            setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            try {
-                isSuccessful = commandCall.run(clCommand);
-            } catch (Exception e) {
-                exception = e;
-            }
-        }
-
-        public boolean isSuccessful() {
-            return isSuccessful;
-        }
-
-        public Exception getException() {
-            return exception;
-        }
-    }
-
-    /**
-     * Lets the builds of the same project run one after the other.
-     */
-    private static class ProjectRule implements ISchedulingRule {
-
-        private final String key;
-
-        public ProjectRule(String aKey) {
-            this.key = aKey;
-        }
-
-        public boolean contains(ISchedulingRule aRule) {
-            return aRule == this;
-        }
-
-        public boolean isConflicting(ISchedulingRule aRule) {
-            return aRule instanceof ProjectRule && ((ProjectRule)aRule).key.equals(key);
-        }
     }
 }

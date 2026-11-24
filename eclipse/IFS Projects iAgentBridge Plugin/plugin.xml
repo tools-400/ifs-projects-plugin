@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Tools 'ifs_projects_compile' and 'ifs_projects_check_syntax' of the
+       MCP server of iAgentBridge
+     ==========================================================================
+   -->
+
+   <extension point="de.tools400.iagentbridge.core.plugin.tools">
+      <tool
+            id="de.tools400.ifsprojects.iagentbridge.compile"
+            class="de.tools400.ifsprojects.iagentbridge.IfsProjectsCompileTool">
+      </tool>
+      <tool
+            id="de.tools400.ifsprojects.iagentbridge.checkSyntax"
+            class="de.tools400.ifsprojects.iagentbridge.IfsProjectsCheckSyntaxTool">
+      </tool>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Window > Preferences > iAgentBridge > IFS Projects: the switch
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+            id="de.tools400.ifsprojects.iagentbridge.ui.AgentPreferencePage"
+            category="de.tools400.iagentbridge.preferencepages.IAgentBridgePreferencePage"
+            class="de.tools400.ifsprojects.iagentbridge.ui.AgentPreferencePage"
+            name="%PreferencePage_IFS_Projects">
+      </page>
+   </extension>
+
+   <!--
+     ==========================================================================
+       Project > Properties > IFS Project > iAgentBridge: the approval
+     ==========================================================================
+   -->
+
+   <extension point="org.eclipse.ui.propertyPages">
+      <page
+            id="de.tools400.ifsprojects.iagentbridge.ui.AgentPropertyPage"
+            category="de.tools400.ifsprojects.propertypages.LocalProjectPropertyPage"
+            class="de.tools400.ifsprojects.iagentbridge.ui.AgentPropertyPage"
+            name="%PropertyPage_iAgentBridge">
+         <enabledWhen>
+            <adapt type="org.eclipse.core.resources.IProject">
+               <test property="de.tools400.ifsprojects.project.isLocalIfsProject" value="true" forcePluginActivation="true"/>
+            </adapt>
+         </enabledWhen>
+      </page>
+   </extension>
+
+</plugin>

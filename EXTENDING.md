@@ -15,7 +15,9 @@ as a feature of its own, so that only the build tools, that are used, are instal
 | `de.tools400.ifsprojects.core.plugin.terminalLaunchers` | `ITerminalLauncher` | Opens the SSH terminals. The available backend with the highest priority is used. |
 
 Both interfaces are in exported packages (`de.tools400.ifsprojects.sources.headers` and
-`de.tools400.ifsprojects.terminal`); the rest of the plug-in is internal. The reference
+`de.tools400.ifsprojects.terminal`). The exported package `de.tools400.ifsprojects.api` lets other
+plug-ins compile the files of local IFS projects, see `FileCompiler` and
+[DEVELOPMENT.md](DEVELOPMENT.md#iagentbridge); the rest of the plug-in is internal. The reference
 implementations of a header parser are the plug-ins `IFS Projects STRPREPRC Plugin`,
 `IFS Projects BUILD Plugin`, `IFS Projects COMPILE Plugin` and `IFS Projects CPLCAS Plugin` of this
 repository.

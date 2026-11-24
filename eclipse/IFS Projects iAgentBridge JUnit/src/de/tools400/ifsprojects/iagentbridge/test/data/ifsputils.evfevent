@@ -1,0 +1,6 @@
+TIMESTAMP  0 20261014201349
+PROCESSOR  0 000 1
+FILEID     0 001 000000 033 /home/jsmith/demo/ifsputils.rpgle 20261013212406 0
+ERROR      0 001 1 000005 000005 010 000005 012 RNF7537 S 30 086 The type of Factor 2 is not the same as the type of the return value of the procedure.
+ERROR      0 001 0 000000 000000 000 000000 000 RNS9308 T 50 057 Compilation stopped. Severity 30 errors found in program.
+FILEEND    0 001 000006

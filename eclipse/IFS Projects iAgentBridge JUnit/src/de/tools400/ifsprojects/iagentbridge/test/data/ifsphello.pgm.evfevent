@@ -1,0 +1,11 @@
+TIMESTAMP  0 20261014201350
+PROCESSOR  0 000 1
+FILEID     0 001 000000 037 /home/jsmith/demo/ifsphello.pgm.rpgle 20261013213315 0
+FILEID     0 002 000003 037 /home/jsmith/demo/inc/consts.rpgleinc 20261013212406 0
+ERROR      0 002 1 000003 000003 026 000003 030 RNF3430 E 20 087 Initial value 'abc' does not match data type of field BADINC. Initial value is ignored.
+FILEEND    0 002 000003
+ERROR      0 002 1 000003 000003 007 000003 012 RNF7031 I 00 047 The name or indicator BADINC is not referenced.
+ERROR      0 001 1 000006 000006 001 000006 012 RNF7030 S 30 050 The name or indicator UNDEFINEDVAR is not defined.
+ERROR      0 001 1 000006 000006 001 000006 012 RNF7503 S 30 051 Expression contains an operand that is not defined.
+ERROR      0 001 0 000000 000000 000 000000 000 RNS9308 T 50 057 Compilation stopped. Severity 30 errors found in program.
+FILEEND    0 001 000008

@@ -18,6 +18,9 @@ The plug-in adds to RDi:
   a change management system.
 * **Migration to an IFS project**: the members of source files are copied into a new IFS project,
   e.g. to move a utility from source members to Git and TOBi.
+* **AI agents**: the optional feature *IFS Projects iAgentBridge* lets AI agents like Claude Code
+  compile the files of local IFS projects on the IBM i and check their syntax, with the tools
+  `ifs_projects_compile` and `ifs_projects_check_syntax` of the plug-in iAgentBridge.
 
 Like Code for IBM i, the plug-in builds with the build tools TOBi (`makei`) or GNU Make (`gmake`),
 in the SSH terminal or in a job of the RSE connection. The compile errors are shown in the
@@ -48,11 +51,16 @@ and *IFS Projects CPLCAS Headers* for the `CPLCAS` command of Denis Robitaille, 
 build tool, if your members have such headers. A build tool with another header can be added by a
 plug-in of its own, see [EXTENDING.md](EXTENDING.md).
 
+The optional feature *IFS Projects iAgentBridge*, in the category of the same name, requires the
+plug-in iAgentBridge 1.1.0 or later. Install iAgentBridge first, from its update site
+https://tools-400.github.io/iagentbridge/update-site/eclipse/rdi8.0/. IFS Projects itself does not
+need it.
+
 ## Usage
 
 [USAGE.md](USAGE.md) describes how to work with the plug-in: a quick start, the SSH terminal, IFS
-projects and local IFS projects, the export to a library, the migration to an IFS project and
-the preferences.
+projects and local IFS projects, the export to a library, the migration to an IFS project, AI
+agents and the preferences.
 
 ## For developers
 

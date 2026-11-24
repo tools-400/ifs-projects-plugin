@@ -14,14 +14,23 @@ package de.tools400.ifsprojects.syntaxcheck;
  */
 public final class SyntaxCheckResult {
 
+    private final String command;
     private final String events;
     private final int ccsid;
     private final String compileMessages;
 
-    SyntaxCheckResult(String anEvents, int aCcsid, String aCompileMessages) {
+    SyntaxCheckResult(String aCommand, String anEvents, int aCcsid, String aCompileMessages) {
+        this.command = aCommand;
         this.events = anEvents;
         this.ccsid = aCcsid;
         this.compileMessages = aCompileMessages;
+    }
+
+    /**
+     * Returns the compile command of the syntax check.
+     */
+    public String getCommand() {
+        return command;
     }
 
     /**

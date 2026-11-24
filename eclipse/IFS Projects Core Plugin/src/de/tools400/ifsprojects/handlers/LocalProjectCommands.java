@@ -31,6 +31,7 @@ import com.ibm.as400.access.AS400;
 
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.build.BuildCommands;
 import de.tools400.ifsprojects.local.Deployment;
 import de.tools400.ifsprojects.local.LocalProject;
 import de.tools400.ifsprojects.local.SourceMapping;
@@ -258,7 +259,7 @@ final class LocalProjectCommands {
         String command;
         String jobName;
         if (aFile == null) {
-            command = BuildLauncher.getBuildCommand(config);
+            command = BuildCommands.getBuildCommand(config);
             jobName = Messages.bind(Messages.Task_Building_A, aProject.getName());
         } else {
             command = launcher.getCompileCommand(config, aFile.getName());

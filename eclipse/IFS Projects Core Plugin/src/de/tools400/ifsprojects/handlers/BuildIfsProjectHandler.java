@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.ifsprojects.Messages;
+import de.tools400.ifsprojects.build.BuildCommands;
 import de.tools400.ifsprojects.project.IProjConfig;
 import de.tools400.ifsprojects.rse.RseSelections;
 import de.tools400.ifsprojects.subsystem.IfsProjectEnvironment;
@@ -59,7 +60,7 @@ public class BuildIfsProjectHandler extends AbstractTerminalHandler {
         ISystemFilter filter = ((ISystemFilterReference)element).getReferencedFilter();
 
         launcher.launch(Messages.bind(Messages.Task_Building_A, filter.getName()), directory, config,
-            IfsProjectEnvironment.getEffectiveVariables(filter), BuildLauncher.getBuildCommand(config), null);
+            IfsProjectEnvironment.getEffectiveVariables(filter), BuildCommands.getBuildCommand(config), null);
 
         return null;
     }

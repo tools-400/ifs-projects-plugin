@@ -176,6 +176,61 @@ with a small *i* at the top right of its icon and with its RSE connection in bra
 * Limitation of RDi: the *Outline* view of LPEX does not find copy books in the `includePath`
   directories of `iproj.json`. Builds and syntax checks are not affected.
 
+## AI agents (iAgentBridge)
+
+The optional feature *IFS Projects iAgentBridge* lets AI agents like Claude Code compile the files
+of local IFS projects on the IBM i and check their syntax. It adds two tools to the MCP server of
+the plug-in iAgentBridge, which runs in RDi. Install iAgentBridge, connect the agent to its server
+as described in its usage, then install the feature and restart RDi. In Claude Code the tools are
+called e.g. `mcp__rdi096__ifs_projects_compile`.
+
+| Tool | Function |
+|---|---|
+| `ifs_projects_compile` | Like *Build on IBM i* of a file: uploads the changes of the project and runs the compile command of `iproj.json` or the default compile command, e.g. `makei compile -f hello.pgm.rpgle`, in a job of the RSE connection. The objects are created like in a build of your own. |
+| `ifs_projects_check_syntax` | Like *Check Syntax*: uploads the changes and compiles an RPGLE or SQLRPGLE file without creating an object. |
+
+An agent can change the files of a project, e.g. `iproj.json` and `Rules.mk`, and so run any
+command on the IBM i with the user profile of the RSE connection. Therefore the tools run only, if
+you allow them twice:
+
+1. *Window > Preferences > iAgentBridge > IFS Projects*: *Allow AI agents to compile on the IBM i*
+   (off by default), for the workspace.
+2. *Project > Properties > IFS Project > iAgentBridge*: *Allow AI agents to compile this project on
+   the IBM i*, for each project. The approval is stored in the workspace, not in the project.
+
+Arguments:
+
+| Name | Content |
+|---|---|
+| `file` | absolute path of a file of a local IFS project, e.g. `C:/git/demo/qrpglesrc/hello.pgm.rpgle` or `/c/git/demo/qrpglesrc/hello.pgm.rpgle` (Git Bash) |
+| `minSeverity` | optional: lowest severity of the returned messages, default 10; 0 returns all messages |
+| `maxMessages` | optional: maximum number of returned messages, default 100 |
+| `timeoutSeconds` | only `ifs_projects_compile`, optional: time in seconds, including the upload, after which the tool cancels the upload or the compile command like *Cancel* in RDi and fails, default 600. The tool returns, when they have stopped, which may take up to about 30 seconds more. |
+
+The result is JSON with the command (`command`), the exit code of the compile command
+(`exitCode`, not for the syntax check), `success` (exit code 0 and no message with a severity of 30
+or higher, or for the syntax check no message with a severity above 10), the highest severity
+(`highestSeverity`), the number of messages per
+severity (`counts`), the messages of the compilers (`messages`: file, line, column, message ID,
+severity and text, sorted by severity, file and line; `truncated`, if there are more than
+`maxMessages`) and, if it failed, the last 30 lines of the output (`output`). Files of the project
+have their local paths, other files, e.g. system include files, their paths in the IFS. The lines
+of an SQLRPGLE source are those of the source, not of the precompiled one.
+
+The tools open no dialog. They fail with a message for the agent, if
+
+* the tools are not allowed or the project is not approved,
+* the file does not belong to a local IFS project,
+* the RSE connection of the project is not connected; they never connect it, because RDi would ask
+  for the password,
+* a file of the project has unsaved changes in an editor: the tools upload the files on disk,
+* a file of the deploy directory has been changed in the IFS since the last upload, e.g. by someone
+  else: they do not replace it. *Upload All to IFS* replaces it.
+
+The *Progress* view shows a running tool; *Cancel* there stops it. Unlike *Build on IBM i*, the
+compile always runs in a job of the RSE connection, never in the SSH terminal, and the errors are
+not shown in the *Error List* view.
+
 ## Export to a library
 
 *Export to Library...* in the context menu of an IFS project or a local IFS project copies the

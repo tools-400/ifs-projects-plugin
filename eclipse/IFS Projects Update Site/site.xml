@@ -15,9 +15,17 @@
    <feature url="features/de.tools400.ifsprojects.cplcas.feature_1.3.0.r.jar" id="de.tools400.ifsprojects.cplcas.feature" version="1.3.0.r">
       <category name="de.tools400.ifsprojects"/>
    </feature>
+   <feature url="features/de.tools400.ifsprojects.iagentbridge.feature_1.3.0.r.jar" id="de.tools400.ifsprojects.iagentbridge.feature" version="1.3.0.r">
+      <category name="de.tools400.ifsprojects.iagentbridge"/>
+   </feature>
    <category-def name="de.tools400.ifsprojects" label="IFS Projects">
       <description>
          IFS Projects for RDi 9.6, 9.8 and 9.9.
+      </description>
+   </category-def>
+   <category-def name="de.tools400.ifsprojects.iagentbridge" label="IFS Projects iAgentBridge (requires iAgentBridge)">
+      <description>
+         Optional: adds the tools ifs_projects_compile and ifs_projects_check_syntax to the MCP server of iAgentBridge. Install iAgentBridge 1.1.0 or later first, from its update site https://tools-400.github.io/iagentbridge/update-site/eclipse/rdi8.0/.
       </description>
    </category-def>
 </site>

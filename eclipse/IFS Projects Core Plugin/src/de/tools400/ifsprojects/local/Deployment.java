@@ -31,8 +31,13 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.MultiRule;
 
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
@@ -98,6 +103,12 @@ public final class Deployment {
      * Uploads the files of a project to the deploy directory. The project is
      * refreshed before, so that changes made outside of the workspace, e.g. by
      * git, are uploaded.
+     * <p>
+     * The upload holds the scheduling rule of the refresh of the project and of
+     * the deploy directory, so that two uploads of the same project, e.g. of
+     * the user and of an AI agent, do not write its manifest and its files at
+     * the same time. The thread must not hold a conflicting rule. While the
+     * upload waits for the rule, the progress monitor can cancel it.
      *
      * @param aSystem - system object
      * @param aProject - project
@@ -113,6 +124,24 @@ public final class Deployment {
      * @throws Exception if a file could not be uploaded or deleted
      */
     public static Result deploy(AS400 aSystem, IProject aProject, String aConnectionName, String aDeployDirectory, boolean anIsAll,
+        ConflictHandler aConflictHandler, IProgressMonitor aMonitor) throws Exception {
+
+        ISchedulingRule rule = MultiRule.combine(ResourcesPlugin.getWorkspace().getRuleFactory().refreshRule(aProject),
+            new UploadRule(aConnectionName + KEY_SEPARATOR + aDeployDirectory));
+        try {
+            // endRule() is called also, if beginRule() fails.
+            Job.getJobManager().beginRule(rule, aMonitor);
+            return deployFiles(aSystem, aProject, aConnectionName, aDeployDirectory, anIsAll, aConflictHandler, aMonitor);
+        } catch (OperationCanceledException e) {
+            // Thrown by beginRule(), if the monitor has been canceled, while it
+            // waited for the rule.
+            throw new InterruptedException();
+        } finally {
+            Job.getJobManager().endRule(rule);
+        }
+    }
+
+    private static Result deployFiles(AS400 aSystem, IProject aProject, String aConnectionName, String aDeployDirectory, boolean anIsAll,
         ConflictHandler aConflictHandler, IProgressMonitor aMonitor) throws Exception {
 
         aProject.refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -611,6 +640,26 @@ public final class Deployment {
          */
         public int getUnchanged() {
             return unchanged;
+        }
+    }
+
+    /**
+     * Lets the uploads to the same deploy directory run one after the other.
+     */
+    private static class UploadRule implements ISchedulingRule {
+
+        private final String key;
+
+        public UploadRule(String aKey) {
+            this.key = aKey;
+        }
+
+        public boolean contains(ISchedulingRule aRule) {
+            return aRule == this;
+        }
+
+        public boolean isConflicting(ISchedulingRule aRule) {
+            return aRule instanceof UploadRule && ((UploadRule)aRule).key.equals(key);
         }
     }
 }

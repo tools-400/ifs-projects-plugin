@@ -13,7 +13,14 @@ installation [README.md](README.md), for plug-ins that add a build tool [EXTENDI
   `IFS Projects COMPILE Plugin` with `IFS Projects COMPILE Feature` the parser of the `COMPILE`
   command of Alan Campin, `IFS Projects CPLCAS Plugin` with `IFS Projects CPLCAS Feature` the
   parser of the `CPLCAS` command of Denis Robitaille. The parser of a build tool is a feature of its own, so that only the build tools, that are used,
-  are installed and the Eclipse Marketplace can offer them as optional. A new project has to be
+  are installed and the Eclipse Marketplace can offer them as optional. `IFS Projects iAgentBridge
+  Plugin` with `IFS Projects iAgentBridge Feature` adds the tools of AI agents to the MCP server of
+  iAgentBridge, see [iAgentBridge](#iagentbridge). Its feature has an update site category of its
+  own, so that selecting the category *IFS Projects* does not require iAgentBridge. It requires the
+  project `iAgentBridge Core Plugin` (1.1.0 or later) of the repository `iagentbridge-plugin` in the
+  workspace or in the target platform, and it runs with the launch configurations of iAgentBridge,
+  which contain the bundles of IFS Projects; those of IFS Projects do not contain iAgentBridge. A
+  new project has to be
   added to `build.projects` of `build/IFS Projects Build/build/build.properties`, to `site.xml` of
   the update site and to the launch configurations.
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.
@@ -34,7 +41,7 @@ installation [README.md](README.md), for plug-ins that add a build tool [EXTENDI
 * Unit tests: the fragments `eclipse/IFS Projects JUnit` (core plug-in),
   `eclipse/IFS Projects STRPREPRC JUnit`, `eclipse/IFS Projects BUILD JUnit`,
   `eclipse/IFS Projects COMPILE JUnit` and `eclipse/IFS Projects CPLCAS JUnit` (the plug-ins of the
-  build tools), *Run As > JUnit Test*, with Java 11 or
+  build tools), `eclipse/IFS Projects iAgentBridge JUnit`, *Run As > JUnit Test*, with Java 11 or
   later. The bundles of RDi 9.8 are Java 11 class files; with Java 8 (e.g. the J9 of RDi 9.6) the
   tests that load Eclipse classes fail with `UnsupportedClassVersionError`.
 * Update site: *Build All* in `eclipse/IFS Projects Update Site/site.xml`.
@@ -51,8 +58,9 @@ Packages below `de.tools400.ifsprojects`:
 | `subsystem` | Subsystem *IFS Projects*. Delegates its filter strings (`/directory/*`) to the IFS subsystem of IBM instead of extending it. Connector service from `ToolboxConnectorServiceManager`. |
 | `terminal` | `ITerminalLauncher`, the only interface the handlers know. `launch()` returns an `ITerminalCommandLine`, which tells whether the session has been closed since. Backends come from the extension point `terminalLaunchers`; the available one with the highest priority is used. |
 | `terminal.tm` | Backend for the TM Terminal of RDi 9.6 - 9.9: a view around `TerminalViewControlFactory.makeControl()`. `TmTerminalView` with `TerminalActionGroup` (actions), `TerminalRequestMemento` (restore) and `SessionNames` (names and order of the sessions), `TerminalSession` with `TerminalKeyHandler` (keys); calls, that differ between the TM versions, in `TmCompatibility`. The SSH connector is created from the extension registry, because extension points and connector IDs differ between the TM versions. A backend for `org.eclipse.terminal.*` can be added as a separate bundle. |
-| `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuildJob`, `CommandsLog`, `LogLines`. Both: `BuildEvents`, the errors are shown by `errorlist.ErrorList`. Started by `handlers.BuildLauncher` (build mode of the preferences, placeholders of the compile command) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
-| `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). |
+| `build` | Terminal: `TerminalBuildCommands`, `TerminalBuildJob`. RSE job: `RseBuildCommands`, `RseBuild` (the build without UI: script, output, exit code, events, cancel; also used by `api.FileCompiler`), `RseBuildJob` (the job of the menus: *Commands Log* with `CommandsLog` and `LogLines`, *Error List*). Both: `BuildEvents`, the errors are shown by `errorlist.ErrorList`. `BuildCommands`: build and compile command of `iproj.json` or of the preferences, with the placeholders of the compile command. Started by `handlers.BuildLauncher` (build mode of the preferences) via `handlers.TerminalBuildLauncher` or `handlers.RseBuildLauncher`. |
+| `syntaxcheck` | `SyntaxCheckCommands`, `SyntaxCheckRunner`, `SyntaxCheckJob`. Started by `handlers.SyntaxCheckLauncher` (context menu and LPEX action `lpex.CheckSyntaxAction`). `SyntaxCheckRunner.check()` runs the check without UI, also for `api.FileCompiler`. |
+| `api` | Exported API for other plug-ins: `FileCompiler` uploads a local IFS project and compiles a file or checks its syntax like *Build on IBM i* and *Check Syntax*, without dialogs; `CompileResult`, `CompileException`. See [iAgentBridge](#iagentbridge). |
 | `remote` | `RemoteJobs`: IBM Toolbox helpers of build and syntax check, paths in the IFS. `RemoteSession`: copy of the system object of RSE for a job, with its command call and temporary files, closed with try-with-resources. |
 | `errorlist` | `ErrorList`: shows the events of builds and syntax checks in the *Error List* view of RDi (parser and view of RDi); the local events file is written in a workspace job, the view is updated in a UI job. `EventsFiles`: content of events files. |
 | `ibmi` | Syntax of the IBM i, without dependencies on the other packages except `utils`: `ClCommands` (CL literals, object names, paths of libraries, files and members), `PaseCommands` (shell quoting, names and export of variables, placeholders, `QP2SHELL2`), `IfsPaths`. |
@@ -67,6 +75,7 @@ Packages below `de.tools400.ifsprojects`:
 | `buildcmd` | Plug-in `IFS Projects BUILD Plugin`: `BuildCommandHeaderParser` reads the commands behind `*>`, which may stand anywhere in a line, up to the optional `<*` outside of a quoted string or to the end of the line. A line, that ends with `-`, is continued by the next line, which repeats `*>`; the prefix `IGN:`, with which the build tool ignores a failing command, is removed. The package is not called `build`, because the core plug-in already has one. Its priority is 90, below `STRPREPRC`: the marker is two characters only, so a fixed form `STRPREPRC` header written as `*>>CRTCMD<<` contains it, too, and has to be read by its own parser first (verified). |
 | `compile` | Plug-in `IFS Projects COMPILE Plugin`: `CompileHeaderParser` reads the commands behind `*_>`, which may stand anywhere in a line, up to the end of the line; the `*/` of a CL comment at the end of a line is removed. A line, that ends with `+` or `-`, is continued by the next line, which repeats `*_>`; like in CL, `+` skips the leading blanks of the next line. The substitution variables `@1` - `@15` are returned as `&1` - `&15`, so that `SourceHeader` recognizes a library, that is a variable. Its priority is 80, the lowest: no other header contains its marker. |
 | `cplcas` | Plug-in `IFS Projects CPLCAS Plugin`: `CplCasHeaderParser` reads the lines with `*%%%`, which stands in columns 7 - 10, but is searched anywhere in a line. The character behind it is a flag: a blank is followed by up to 50 characters of the command (the frame of a comment block behind them is ignored), `#` ends a command, `&` ends the last command and the header, `*` is a comment and `@` (run again for further libraries) is ignored. The parts of a command are joined with a blank; a line without the marker ends the command. The substitution variables `%LIBO`, `%LIBS`, `%FIC`, `%MBR` and `%OBJ` are returned with `&`. Its priority is 70, the lowest: no other header contains its marker. |
+| `iagentbridge` | Plug-in `IFS Projects iAgentBridge Plugin`: the tools `IfsProjectsCompileTool` and `IfsProjectsCheckSyntaxTool` with `AbstractFileCompilerTool`, `AgentSettings`, `EventsFileMessages`, `CompileReport` and `Watchdog`; the package `iagentbridge.ui` has the preference page and the property page. See [iAgentBridge](#iagentbridge). |
 | `strpreprc` | Plug-in `IFS Projects STRPREPRC Plugin`: `StrPrePrcHeaderParser` reads the commands behind the tags `>>CRTCMD<<` of the first 100 lines. A command ends with a semicolon, a line, that ends with `+` or `-`, is continued by the next line of the header, from which the comment characters are removed (`//`, `*` of fixed format, `/*` of CL, `--` of SQL, and the `*/` at the end of a line). A line, that is no comment, that starts with `**` (`**FREE`, compile time data) or that contains another tag ends the command, so that a header without a semicolon does not swallow the source. |
 | `export` | Export to a library: `ExportMapping` (stream file to member), `IncludeResolver` and `ExportIncludeConverter` (`RpgIncludeConverter`, `ClIncludeConverter`), `SourceCheck`, `LibraryInfo`, `ExportPlan` (preview) computed by `ExportAnalyzer`, `ExportSettings`, `SourceTypeProposals` (proposed further source types), `ExportCommands`, `ExportJob`. The project is an `ExportSource`: `IfsProjectExportSource` or `local.LocalProjectExportSource`. |
 | `export.wizards` | `ExportToLibraryWizard` with `ExportSettingsWizardPage` and `ExportPreviewWizardPage`, which opens `SourceTypesDialog`. Started by `handlers.ExportIfsProjectHandler` and `handlers.ExportLocalProjectHandler`. |
@@ -244,6 +253,43 @@ events file in the *Error List*.
   the root of referenced projects. There is no per-project setting that the plug-in could fill.
   According to the code of RDi 9.8 (not tested), the outline finds `/copy inc/name.rpgleinc` of a
   source in the project directory.
+
+## iAgentBridge
+
+`api.FileCompiler` runs the upload and the compile of the menus for other plug-ins, without UI:
+
+* `compile()` and `checkSyntax()` block and must not be called in the UI thread. They upload the
+  changes with `Deployment.deploy()`, which holds the rule of the refresh of the project and of
+  its deploy directory, so that an upload of the menus does not run at the same time; canceling
+  the wait for the rule cancels the upload. Then `compile()` runs `build.RseBuild` (created by
+  `RseBuild.create()` like for the menus) under `RseBuild.getRule()`, so that builds of the same
+  project run one after the other like with `RseBuildJob`, and `checkSyntax()` runs
+  `SyntaxCheckRunner.check()`.
+* No dialog: the system object comes from `IToolboxSessionProvider.getAS400()` of the connector
+  service of the connection, which does not connect. `IBMiConnection.getAS400ToolboxObject()`
+  would connect a disconnected connection and ask for the password. A conflict of the upload is
+  answered with *No*, and the `CompileException` names the changed files.
+* The events are mapped by `local.EventsFileMapper` like in a build; `CompileResult.getLocalFiles()`
+  returns the local paths of the mapped files of the project.
+
+`IFS Projects iAgentBridge Plugin` contributes the tools to the extension point
+`de.tools400.iagentbridge.core.plugin.tools` (see `EXTENDING.md` of iAgentBridge):
+
+* `AbstractFileCompilerTool` maps the path to a file of a local IFS project
+  (`IWorkspaceRoot.findFilesForLocationURI()`), checks `AgentSettings` and the editors with unsaved
+  changes (in the UI thread) and runs `FileCompiler` in a job with `ToolJobs.runAndWait()` of
+  iAgentBridge 1.1.0, so that the *Progress* view shows it and the user can cancel it. For
+  `ifs_projects_compile`, a `Watchdog` cancels the job after `timeoutSeconds`, like the user.
+* `AgentSettings`: the switch is the preference `compileAllowed` of the plug-in in the instance
+  scope (the workspace), the approval the persistent property `approved` of the project. Neither is
+  stored in the project directory, so that neither a clone nor a change of the project files
+  approves a project. They protect against an unintended use, not against an agent, that may write
+  any file, e.g. the preferences in `.metadata` of the workspace.
+* `EventsFileMessages` reads the events with `EventsFileParserCore` of RDi (bundle
+  `com.ibm.etools.iseries.toolbox`), whose `getAllErrors()` maps the lines of the source, that the
+  SQL precompiler has created in `QTEMP`, back to the lines of the SQLRPGLE source.
+  `EventsFileMessages` and `CompileReport` (the JSON of the result) have no Eclipse types; the
+  tests of `IFS Projects iAgentBridge JUnit` use events files of TOBi in `test/data`.
 
 ## Export to a library
 

@@ -25,10 +25,8 @@ import com.ibm.as400.access.AS400;
 import de.tools400.ifsprojects.IfsProjectsPlugin;
 import de.tools400.ifsprojects.Messages;
 import de.tools400.ifsprojects.errorlist.ErrorList;
-import de.tools400.ifsprojects.errorlist.EventsFiles;
 import de.tools400.ifsprojects.local.SourceMapping;
 import de.tools400.ifsprojects.project.IProjConfig;
-import de.tools400.ifsprojects.project.IProjValues;
 import de.tools400.ifsprojects.utils.ExceptionUtils;
 import de.tools400.ifsprojects.utils.PlatformUtils;
 
@@ -100,21 +98,9 @@ public class SyntaxCheckJob extends Job {
             waitForUpload(aMonitor);
 
             aMonitor.subTask(Messages.Task_Running_compiler);
-            String source = SyntaxCheckRunner.readStreamFile(system, sourcePath);
-            boolean noMain = SyntaxCheckCommands.isNoMain(source);
-
-            String objectName = SyntaxCheckCommands.getObjectName(fileName);
-            List<String> includeDirectories = IProjValues.getIncludeDirectories(projectDirectory, config, variables);
-            String compileCommand = SyntaxCheckCommands.getCompileCommand(sourceType, objectName, sourcePath, includeDirectories, noMain);
-            List<String> setupCommands = SyntaxCheckCommands.getSetupCommands(projectDirectory, config, variables);
-
-            SyntaxCheckResult result = SyntaxCheckRunner.run(system, setupCommands, objectName, compileCommand, aMonitor);
-            if (result.getEvents() == null) {
-                throw new SyntaxCheckException(Messages.bind(Messages.Error_No_events_file_A_B, compileCommand, result.getCompileMessages()), null);
-            }
-
-            String events = EventsFiles.removeMessages(result.getEvents(), SyntaxCheckCommands.getIgnoredMessageIds(sourceType, noMain));
-            ErrorList.showEvents(getName(), host, sourcePath, events, result.getCcsid(), sourceMapping);
+            SyntaxCheckResult result = SyntaxCheckRunner.check(system, projectDirectory, config, variables, sourcePath, fileName, sourceType,
+                aMonitor);
+            ErrorList.showEvents(getName(), host, sourcePath, result.getEvents(), result.getCcsid(), sourceMapping);
 
         } catch (InterruptedException e) {
             // Thrown on a cancel of the job, too, see waitForUpload() and
